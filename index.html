@@ -1826,7 +1826,7 @@ const adminViews = {
       </div>
     </div>`,
 
-  recipients: \`
+  recipients: `
     <div class="dash-greeting">🪪 Получатели</div>
     <div class="dash-sub">Получатели закреплены за пользователями через удостоверение личности</div>
     <div class="acard">
@@ -2101,7 +2101,7 @@ const adminViews = {
       if (empty) empty.style.display = 'none';
       tbody.innerHTML = filtered.map(p => {
         const icon = productCategoryIcons[p.category] || '📦';
-        return \`<tr style="border-top:1px solid #F0F0F0;">
+        return `<tr style="border-top:1px solid #F0F0F0;">
           <td style="padding:12px;font-size:13px;">\${icon} \${p.category}</td>
           <td style="padding:12px;font-size:13px;font-weight:600;">\${p.name}</td>
           <td style="padding:12px;"><code style="background:#F3F4F6;padding:3px 8px;border-radius:6px;font-size:13px;font-weight:700;color:#1E40AF;">\${p.tnved}</code></td>
@@ -2110,7 +2110,7 @@ const adminViews = {
             <button onclick="editProduct(\${p.id})" style="padding:4px 12px;border:1.5px solid #F0F0F0;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;">✏️ Изменить</button>
             <button onclick="deleteProduct(\${p.id})" style="padding:4px 12px;border:1.5px solid #FEE2E2;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;color:#991B1B;">🗑</button>
           </td>
-        </tr>\`;
+        </tr>`;
       }).join('');
     }
     function filterProducts() { renderProductsTable(); }
@@ -2333,7 +2333,7 @@ const adminViews = {
       document.getElementById('mvTitle').textContent = d.title;
       document.getElementById('mvMeta').textContent = d.meta;
       document.getElementById('mvTableBody').innerHTML = d.rows.map(r =>
-        \`<tr style="border-top:1px solid #F0F0F0;">
+        `<tr style="border-top:1px solid #F0F0F0;">
           <td style="padding:10px 12px;">\${r[0]}</td>
           <td style="padding:10px 12px;font-weight:700;">\${r[1]}</td>
           <td style="padding:10px 12px;">\${r[2]}</td>
@@ -2342,7 +2342,7 @@ const adminViews = {
           <td style="padding:10px 12px;">\${r[5]}</td>
           <td style="padding:10px 12px;font-weight:700;">\${r[6]}</td>
           <td style="padding:10px 12px;font-weight:700;color:var(--accent);">\${r[7]}</td>
-        </tr>\`
+        </tr>`
       ).join('');
       document.getElementById('manifestViewModal').style.display = 'flex';
     }
