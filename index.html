@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Shop KZ — Доставка из-за рубежа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -7741,3 +7742,34 @@ const loadUserNotifications = async () => {
     }
   } catch(e) { console.error("Notify error:", e); }
 };
+</script>
+
+<script>
+async function doGoogleLogin() {
+  try {
+    if (!window._firebaseReady) {
+      alert('Firebase еще не инициализирован');
+      return;
+    }
+
+    const provider = window.firebaseGoogleProvider;
+    const auth = window.firebaseAuth;
+
+    const result = await window.firebaseSignInWithPopup(auth, provider);
+    const user = result.user;
+
+    console.log('Google login:', user.email);
+
+    if (typeof showPage === 'function') {
+      showPage('dashboard');
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert('Ошибка входа: ' + error.message);
+  }
+}
+</script>
+
+</body>
+</html>
