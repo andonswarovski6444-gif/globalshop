@@ -2682,14 +2682,14 @@ async function loadExtraServicesPrices() {
 window.loadExtraServicesPrices = loadExtraServicesPrices;
 
 async function saveExtraServicesPrices() {
-  const get = id => (document.getElementById(id)||{}).value?.trim() || '';
+  const get = id => (document.getElementById(id)||{}).value.trim() || '';
   const data = {
     insurance: get('adminExtraInsurance'),
     box:       get('adminExtraBox'),
     pack:      get('adminExtraPack'),
     inspect:   get('adminExtraInspect'),
     updatedAt: Date.now(),
-    updatedBy: window.currentUser?.email || 'admin'
+    updatedBy: (window.currentUser && window.currentUser.email) || 'admin'
   };
   try {
     await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'extraServices'), data);
@@ -2707,7 +2707,7 @@ async function adminUpdateLegalDate(docId) {
     const now = Date.now();
     await window.firebaseSetDoc(
       window.firebaseDoc(window.firebaseDb, 'legalDocs', docId),
-      { updatedAt: now, updatedBy: window.currentUser?.email || 'admin' }
+      { updatedAt: now, updatedBy: (window.currentUser && window.currentUser.email) || 'admin' }
     );
     const pad = n => String(n).padStart(2, '0');
     const d = new Date(now);
@@ -2877,7 +2877,7 @@ async function saveCurrencyRate() {
   if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем...'; }
   try {
     const now = Date.now();
-    const by = window.currentUser?.email || 'admin';
+    const by = (window.currentUser && window.currentUser.email) || 'admin';
     // Сохраняем текущий курс
     await window.firebaseSetDoc(
       window.firebaseDoc(window.firebaseDb, 'settings', 'currency'),
@@ -3001,7 +3001,7 @@ async function adminChangeParcelStatus(docId, trackId, currentStatus) {
     const data = snap.data() || {};
     data.status = newStatus;
     data.statusHistory = data.statusHistory || [];
-    data.statusHistory.push({ status: newStatus, at: Date.now(), by: window.currentUser?.email || 'admin' });
+    data.statusHistory.push({ status: newStatus, at: Date.now(), by: (window.currentUser && window.currentUser.email) || 'admin' });
     await window.firebaseSetDoc(ref, data);
     alert('✅ Статус изменён: ' + trackId + ' → ' + statuses[idx].label);
     adminLoadParcels();
@@ -3102,9 +3102,9 @@ async function confirmIntake() {
     data.weightKg = weight;
     data.status = 'warehouse';
     data.acceptedAt = Date.now();
-    data.acceptedBy = window.currentUser?.email || 'admin';
+    data.acceptedBy = (window.currentUser && window.currentUser.email) || 'admin';
     data.statusHistory = data.statusHistory || [];
-    data.statusHistory.push({ status: 'warehouse', at: Date.now(), by: window.currentUser?.email || 'admin', note: 'Принято на склад' });
+    data.statusHistory.push({ status: 'warehouse', at: Date.now(), by: (window.currentUser && window.currentUser.email) || 'admin', note: 'Принято на склад' });
     await window.firebaseSetDoc(ref, data);
     alert('✅ Посылка принята на склад!\n\nТрек: ' + (data.trackId || '—') + '\nВес: ' + weight + ' кг\nСтатус обновлён.');
     document.getElementById('intakeResult').style.display = 'none';
@@ -3309,7 +3309,7 @@ async function saveKaspiNumber() {
   try {
     await window.firebaseSetDoc(
       window.firebaseDoc(window.firebaseDb, 'settings', 'payment'),
-      { kaspiNumber: val, updatedAt: Date.now(), updatedBy: window.currentUser?.email || 'admin' }
+      { kaspiNumber: val, updatedAt: Date.now(), updatedBy: (window.currentUser && window.currentUser.email) || 'admin' }
     );
     alert('✅ Номер Kaspi сохранён: ' + val);
   } catch(e) { alert('❌ ' + (e.message || e)); }
@@ -3405,7 +3405,7 @@ async function adminPaymentAction(payId, action) {
     const pay = snap.data();
     pay.status = action === 'confirm' ? 'confirmed' : 'rejected';
     pay.processedAt = Date.now();
-    pay.processedBy = window.currentUser?.email || 'admin';
+    pay.processedBy = (window.currentUser && window.currentUser.email) || 'admin';
     await window.firebaseSetDoc(ref, pay);
 
     // При подтверждении — обновим статус посылки на pickup
@@ -3629,8 +3629,8 @@ async function saveShop() {
   const desc = get('shopDesc').trim();
   const country = get('shopCountry');
   const countryLabel = get('shopCountryLabel').trim() || COUNTRY_LABELS[country] || '';
-  const vpn = document.getElementById('shopVpn')?.checked || false;
-  const needsManager = document.getElementById('shopNeedsManager')?.checked || false;
+  const vpn = (document.getElementById('shopVpn') ? document.getElementById('shopVpn').checked : false) || false;
+  const needsManager = (document.getElementById('shopNeedsManager') ? document.getElementById('shopNeedsManager').checked : false) || false;
   const cats = Array.from(document.querySelectorAll('#shopCatsPicker input:checked')).map(c => c.value);
 
   if (!name) { alert('⚠️ Укажите название'); return; }
@@ -3648,7 +3648,7 @@ async function saveShop() {
       name, url, icon, desc, country, countryLabel,
       cats, vpn, needsManager,
       updatedAt: Date.now(),
-      updatedBy: window.currentUser?.email || 'admin'
+      updatedBy: (window.currentUser && window.currentUser.email) || 'admin'
     };
     if (!editId) data.createdAt = Date.now();
 
@@ -4634,26 +4634,26 @@ function renderDash(view) {
         <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:20px;">👤 МОЙ ПРОФИЛЬ</div>
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--card-border);">
           <div style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;color:white;font-weight:800;flex-shrink:0;">
-            ${(window.currentUserData?.name || window.currentUser?.email || 'U')[0].toUpperCase()}
+            ${((window.currentUserData && window.currentUserData.name) || (window.currentUser && window.currentUser.email) || 'U')[0].toUpperCase()}
           </div>
           <div>
-            <div style="font-size:17px;font-weight:800;color:var(--text-primary);">${window.currentUserData?.name || window.currentUser?.email?.split('@')[0] || 'Клиент'}</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">${window.currentUser?.email || ''}</div>
+            <div style="font-size:17px;font-weight:800;color:var(--text-primary);">${(window.currentUserData && window.currentUserData.name) || (window.currentUser && window.currentUser.email ? window.currentUser.email.split('@')[0] : '') || 'Клиент'}</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">${(window.currentUser && window.currentUser.email) || ''}</div>
             <div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">
-              🪪 ${window.currentClientId || window.currentUserData?.clientId || 'GS-????'}
+              🪪 ${window.currentClientId || (window.currentUserData && window.currentUserData.clientId) || 'GS-????'}
             </div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
           <div>
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Имя</label>
-            <input type="text" id="settingsName" value="${window.currentUserData?.name || ''}" placeholder="Ваше имя"
+            <input type="text" id="settingsName" value="${(window.currentUserData && window.currentUserData.name) || ''}" placeholder="Ваше имя"
               style="width:100%;padding:11px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);"
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--input-border)'" />
           </div>
           <div>
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Телефон</label>
-            <input type="tel" id="settingsPhone" value="${window.currentUserData?.phone || ''}" placeholder="+7 700 000 00 00"
+            <input type="tel" id="settingsPhone" value="${(window.currentUserData && window.currentUserData.phone) || ''}" placeholder="+7 700 000 00 00"
               style="width:100%;padding:11px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);"
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--input-border)'" />
           </div>
@@ -5705,7 +5705,7 @@ async function adminLoadUsersFromFirestore() {
     set('admUsersWithParcels', withParcels);
     // Перерисовать если таблица открыта
     if (document.getElementById('adminUsersTbody')) {
-      adminSearchUsers(document.getElementById('adminUserSearch')?.value || '');
+      adminSearchUsers((document.getElementById('adminUserSearch') ? document.getElementById('adminUserSearch').value : "") || '');
     }
   } catch(e) { console.warn('adminLoadUsers error:', e); }
 }
@@ -5713,7 +5713,7 @@ window.adminLoadUsersFromFirestore = adminLoadUsersFromFirestore;
 
 function adminSearchUsers(query) {
   const q = (query || '').toLowerCase().trim();
-  const filter = document.getElementById('adminUserFilter')?.value || '';
+  const filter = (document.getElementById('adminUserFilter') ? document.getElementById('adminUserFilter').value : "") || '';
   const tbody = document.getElementById('adminUsersTbody');
   const noResults = document.getElementById('adminNoResults');
   if (!tbody) return;
@@ -5755,8 +5755,8 @@ function adminViewUser(id) {
 
 // ===== НАСТРОЙКИ ПРОФИЛЯ =====
 async function saveProfileSettings() {
-  const name = document.getElementById('settingsName')?.value.trim();
-  const phone = document.getElementById('settingsPhone')?.value.trim();
+  const name = (document.getElementById('settingsName') ? document.getElementById('settingsName').value.trim() : "");
+  const phone = (document.getElementById('settingsPhone') ? document.getElementById('settingsPhone').value.trim() : "");
   if (!name) return;
   try {
     await window.firebaseSetDoc(
@@ -5771,8 +5771,8 @@ async function saveProfileSettings() {
 }
 
 async function changePassword() {
-  const np = document.getElementById('settingsNewPass')?.value;
-  const cp = document.getElementById('settingsConfirmPass')?.value;
+  const np = (document.getElementById('settingsNewPass') ? document.getElementById('settingsNewPass').value : "");
+  const cp = (document.getElementById('settingsConfirmPass') ? document.getElementById('settingsConfirmPass').value : "");
   const msg = document.getElementById('passMsg');
   if (!np || np.length < 6) { if(msg){msg.textContent='Минимум 6 символов';msg.style.color='#EF4444';msg.style.display='inline';} return; }
   if (np !== cp) { if(msg){msg.textContent='Пароли не совпадают';msg.style.color='#EF4444';msg.style.display='inline';} return; }
@@ -5800,7 +5800,7 @@ async function saveTheme(theme) {
   if (document.getElementById('themeCardLight')) {
     renderDash('settings');
     document.querySelectorAll('.sidebar-item').forEach(i => {
-      if (i.getAttribute('onclick')?.includes("'settings'")) i.classList.add('active');
+      if (i.getAttribute("onclick") && i.getAttribute("onclick").includes("'settings'")) i.classList.add('active');
       else i.classList.remove('active');
     });
   }
@@ -6110,7 +6110,7 @@ function renderPromoTable(codes) {
 
 function filterPromos(query) {
   const q      = (query || '').toLowerCase().trim();
-  const status = document.getElementById('promoFilterStatus')?.value || '';
+  const status = (document.getElementById('promoFilterStatus') ? document.getElementById('promoFilterStatus').value : "") || '';
   const now    = new Date().toISOString().split('T')[0];
   const filtered = _promoCodes.filter(p => {
     const matchQ = !q || p.code.toLowerCase().includes(q);
@@ -6124,11 +6124,11 @@ function filterPromos(query) {
 }
 
 async function adminCreatePromo() {
-  const code     = document.getElementById('newPromoCode')?.value.trim().toUpperCase();
-  const type     = document.getElementById('newPromoType')?.value;
-  const discount = parseFloat(document.getElementById('newPromoDiscount')?.value);
-  const limit    = parseInt(document.getElementById('newPromoLimit')?.value) || 100;
-  const expiry   = document.getElementById('newPromoExpiry')?.value;
+  const code     = (document.getElementById('newPromoCode') ? document.getElementById('newPromoCode').value.trim() : "").toUpperCase();
+  const type     = (document.getElementById('newPromoType') ? document.getElementById('newPromoType').value : "");
+  const discount = parseFloat((document.getElementById('newPromoDiscount') ? document.getElementById('newPromoDiscount').value : ""));
+  const limit    = parseInt((document.getElementById('newPromoLimit') ? document.getElementById('newPromoLimit').value : "")) || 100;
+  const expiry   = (document.getElementById('newPromoExpiry') ? document.getElementById('newPromoExpiry').value : "");
   const msg      = document.getElementById('promoCreateMsg');
 
   if (!code) { if(msg){msg.textContent='Введите код';msg.style.color='#EF4444';msg.style.display='block';} return; }
@@ -6196,7 +6196,7 @@ async function importPromoCodes(input) {
     let added = 0; let skipped = 0;
     for (let i = 1; i < Math.min(lines.length, 1001); i++) {
       const cols = lines[i].split(',').map(c => c.trim().replace(/"/g,''));
-      const code = cols[codeIdx]?.toUpperCase();
+      const code = (cols[codeIdx] ? cols[codeIdx].toUpperCase() : "");
       if (!code) continue;
       if (_promoCodes.find(p => p.code === code)) { skipped++; continue; }
       _promoCodes.push({
@@ -6245,7 +6245,7 @@ async function loadPromoCodesFromFirestore() {
 let _activePromo = null;
 
 async function applyPromoCode() {
-  const code   = document.getElementById('orderPromoInput')?.value.trim().toUpperCase();
+  const code   = (document.getElementById('orderPromoInput') ? document.getElementById('orderPromoInput').value.trim() : "").toUpperCase();
   const result = document.getElementById('promoResult');
   if (!code || !result) return;
 
@@ -6306,7 +6306,7 @@ function updateOrderTotal() {
       : Math.min(_activePromo.discount, deliveryCost);
   }
   const walletBalance = getWalletBalance();
-  const useWallet = document.getElementById('useWalletCheck')?.checked;
+  const useWallet = (document.getElementById('useWalletCheck') ? document.getElementById('useWalletCheck').checked : false);
   const walletDeduct = useWallet ? Math.min(walletBalance, deliveryCost - discount) : 0;
   const total = Math.max(0, deliveryCost - discount - walletDeduct);
 
@@ -6331,7 +6331,7 @@ function updateOrderTotal() {
 function toggleWalletUse() {
   const info = document.getElementById('walletUseInfo');
   const check = document.getElementById('useWalletCheck');
-  if (info) info.style.display = check?.checked ? 'block' : 'none';
+  if (info) info.style.display = (check && check.checked) ? 'block' : 'none';
   updateOrderTotal();
 }
 
@@ -7125,7 +7125,7 @@ async function adminSaveWarehouseFields(whId, count) {
   wh.fields = newFields;
   try {
     await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'), { list: warehouses });
-    document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]')?.remove();
+    { const _el = document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]'); if (_el) _el.remove(); };
     alert('✅ Адрес склада сохранён! Клиенты сразу увидят изменения.');
     adminLoadWarehouses();
   } catch(e) { alert('Ошибка: ' + e.message); }
@@ -7174,7 +7174,7 @@ async function adminSaveTariffsByLevel(whId) {
   };
   try {
     await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'), { list: warehouses });
-    document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]')?.remove();
+    { const _el = document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]'); if (_el) _el.remove(); };
     alert('✅ Тарифы сохранены! Клиенты сразу увидят новые цены.');
     adminLoadWarehouses();
   } catch(e) { alert('Ошибка: ' + e.message); }
@@ -7309,7 +7309,7 @@ async function submitAccountDeletion() {
       }, { merge: true });
     }
     // Отправляем в WhatsApp
-    const msg = `Запрос на удаление аккаунта\n\nEmail: ${window.currentUser?.email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
+    const msg = `Запрос на удаление аккаунта\n\nEmail: ${(window.currentUser && window.currentUser.email)}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
     window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
 
     // Показываем финальное сообщение
