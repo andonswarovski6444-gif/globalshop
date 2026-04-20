@@ -2101,16 +2101,16 @@ const adminViews = {
       if (empty) empty.style.display = 'none';
       tbody.innerHTML = filtered.map(p => {
         const icon = productCategoryIcons[p.category] || '📦';
-        return `<tr style="border-top:1px solid #F0F0F0;">
-          <td style="padding:12px;font-size:13px;">${icon} ${p.category}</td>
-          <td style="padding:12px;font-size:13px;font-weight:600;">${p.name}</td>
-          <td style="padding:12px;"><code style="background:#F3F4F6;padding:3px 8px;border-radius:6px;font-size:13px;font-weight:700;color:#1E40AF;">${p.tnved}</code></td>
-          <td style="padding:12px;font-size:13px;color:var(--text-secondary);">${p.unit}</td>
+        return \`<tr style="border-top:1px solid #F0F0F0;">
+          <td style="padding:12px;font-size:13px;">\${icon} \${p.category}</td>
+          <td style="padding:12px;font-size:13px;font-weight:600;">\${p.name}</td>
+          <td style="padding:12px;"><code style="background:#F3F4F6;padding:3px 8px;border-radius:6px;font-size:13px;font-weight:700;color:#1E40AF;">\${p.tnved}</code></td>
+          <td style="padding:12px;font-size:13px;color:var(--text-secondary);">\${p.unit}</td>
           <td style="padding:12px;display:flex;gap:6px;">
-            <button onclick="editProduct(${p.id})" style="padding:4px 12px;border:1.5px solid #F0F0F0;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;">✏️ Изменить</button>
-            <button onclick="deleteProduct(${p.id})" style="padding:4px 12px;border:1.5px solid #FEE2E2;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;color:#991B1B;">🗑</button>
+            <button onclick="editProduct(\${p.id})" style="padding:4px 12px;border:1.5px solid #F0F0F0;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;">✏️ Изменить</button>
+            <button onclick="deleteProduct(\${p.id})" style="padding:4px 12px;border:1.5px solid #FEE2E2;border-radius:7px;background:white;font-size:11px;cursor:pointer;font-family:Manrope,sans-serif;color:#991B1B;">🗑</button>
           </td>
-        </tr>`;
+        </tr>\`;
       }).join('');
     }
     function filterProducts() { renderProductsTable(); }
@@ -2333,16 +2333,16 @@ const adminViews = {
       document.getElementById('mvTitle').textContent = d.title;
       document.getElementById('mvMeta').textContent = d.meta;
       document.getElementById('mvTableBody').innerHTML = d.rows.map(r =>
-        `<tr style="border-top:1px solid #F0F0F0;">
-          <td style="padding:10px 12px;">${r[0]}</td>
-          <td style="padding:10px 12px;font-weight:700;">${r[1]}</td>
-          <td style="padding:10px 12px;">${r[2]}</td>
-          <td style="padding:10px 12px;">${r[3]}</td>
-          <td style="padding:10px 12px;"><code style="background:#EFF6FF;padding:2px 7px;border-radius:5px;color:#1E40AF;font-size:12px;">${r[4]}</code></td>
-          <td style="padding:10px 12px;">${r[5]}</td>
-          <td style="padding:10px 12px;font-weight:700;">${r[6]}</td>
-          <td style="padding:10px 12px;font-weight:700;color:var(--accent);">${r[7]}</td>
-        </tr>`
+        \`<tr style="border-top:1px solid #F0F0F0;">
+          <td style="padding:10px 12px;">\${r[0]}</td>
+          <td style="padding:10px 12px;font-weight:700;">\${r[1]}</td>
+          <td style="padding:10px 12px;">\${r[2]}</td>
+          <td style="padding:10px 12px;">\${r[3]}</td>
+          <td style="padding:10px 12px;"><code style="background:#EFF6FF;padding:2px 7px;border-radius:5px;color:#1E40AF;font-size:12px;">\${r[4]}</code></td>
+          <td style="padding:10px 12px;">\${r[5]}</td>
+          <td style="padding:10px 12px;font-weight:700;">\${r[6]}</td>
+          <td style="padding:10px 12px;font-weight:700;color:var(--accent);">\${r[7]}</td>
+        </tr>\`
       ).join('');
       document.getElementById('manifestViewModal').style.display = 'flex';
     }
@@ -2576,7 +2576,7 @@ const adminViews = {
         </tbody>
       </table>
     </div>`
-};
+}
 
 function showAdmin(view) {
   document.getElementById('adminContent').innerHTML = adminViews[view] || adminViews.dashboard;
@@ -7224,19 +7224,25 @@ function showDeleteStep(step) {
     <div style="background:var(--card-bg);border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <div style="font-size:12px;color:var(--text-secondary);font-weight:600;">Шаг ${step+1} из ${total}</div>
-        <div style="display:flex;gap:4px;">${Array.from({length:total},(_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i<=step?'#EF4444':'var(--border)'};"></div>`).join('')}</div>
-      </div>
+        <div style="display:flex;gap:4px;">${Array.from({length:total},(_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i<=step?'#EF4444':'var(--border)};"></div>`).join('')}</div>
+const modal = document.createElement('div');
+modal.id = 'deleteModal'; // 确保 ID 存在
+modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10000;';
+
+modal.innerHTML = `
+    <div style="background:var(--card-bg, #fff);padding:24px;border-radius:16px;max-width:340px;width:90%;text-align:center;">
       <div style="font-size:22px;margin-bottom:8px;">⚠️</div>
-      <div style="font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">${s.title}</div>
-      <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">${s.text}</div>
-      ${s.input ? `<input id="deleteConfirmInput" type="text" placeholder="УДАЛИТЬ" style="width:100%;padding:12px 14px;border:2px solid #EF4444;border-radius:10px;font-size:15px;font-family:Manrope,sans-serif;outline:none;margin-bottom:16px;text-align:center;font-weight:700;letter-spacing:2px;" />` : ''}
+      <div style="font-size:17px;font-weight:800;color:var(--text-primary, #000);margin-bottom:12px;">${s.title}</div>
+      <div style="font-size:14px;color:var(--text-secondary, #666);line-height:1.6;margin-bottom:20px;">${s.text}</div>
+      ${s.input ? `<input id="deleteConfirmInput" type="text" placeholder="УДАЛИТЬ" style="width:100%;padding:12px 14px;border:2px solid #EF4444;border-radius:10px;font-size:15px;text-align:center;font-weight:700;margin-bottom:16px;" />` : ''}
       <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('deleteModal').remove()" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Отмена</button>
-        <button onclick="nextDeleteStep(${step})" style="flex:1;padding:12px;border:none;border-radius:10px;background:#EF4444;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">${s.btn}</button>
+        <button onclick="document.getElementById('deleteModal').remove()" style="flex:1;padding:12px;border:1px solid var(--border, #ccc);border-radius:10px;background:transparent;cursor:pointer;">Отмена</button>
+        <button onclick="nextDeleteStep('${step}')" style="flex:1;padding:12px;border:none;border-radius:10px;background:#EF4444;color:white;font-weight:700;cursor:pointer;">${s.btn}</button>
       </div>
     </div>`;
 
-  document.body.appendChild(modal);
+document.body.appendChild(modal);
+
 }
 
 async function nextDeleteStep(current) {
@@ -7270,24 +7276,53 @@ async function submitAccountDeletion() {
         deletionDeadline: new Date(Date.now() + 30*24*60*60*1000).toISOString()
       }, { merge: true });
     }
-    // Отправляем в WhatsApp
-    const msg = `Запрос на удаление аккаунта\n\nEmail: ${window.currentUser?.email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
-    window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
+// 1. Оставляем одно объявление
+const email = window.currentUser?.email || 'не указан';
 
-    // Показываем финальное сообщение
-    const done = document.createElement('div');
-    done.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
-    done.innerHTML = `
-      <div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:400px;width:100%;text-align:center;">
-        <div style="font-size:48px;margin-bottom:16px;">📨</div>
-        <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Запрос отправлен</div>
-        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">Ваш аккаунт будет удалён через <b>30 дней</b>.</div>
-        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">Чтобы <b>восстановить</b> аккаунт — просто напишите нам в поддержку до истечения срока.</div>
-        <button onclick="this.closest('div[style]').remove()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Понятно</button>
-      </div>`;
-    document.body.appendChild(done);
-  } catch(e) {
-    alert('Ошибка: ' + e.message);
+// 1. Объявляем email заранее
+const email = window.currentUser?.email || 'не указан';
+
+try {
+  const msg = `Запрос на удаление аккаунта\n\nEmail: ${email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
+
+  // 2. Открываем WhatsApp
+  window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
+
+  // 3. Проверяем, нет ли уже такого окна, чтобы не плодить дубликаты
+  if (document.getElementById('delete-account-modal')) {
+    document.getElementById('delete-account-modal').remove();
+  }
+
+  // 4. Создаем и добавляем уведомление
+  const done = document.createElement('div');
+  done.id = 'delete-account-modal';
+  done.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;font-family:sans-serif;';
+  done.innerHTML = `
+    <div style="background:#fff; border-radius:20px; padding:32px; max-width:400px; width:100%; text-align:center; color: #000;">
+      <div style="font-size:48px;margin-bottom:16px;">📨</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Запрос отправлен</div>
+      <div style="font-size:14px;line-height:1.6;margin-bottom:24px;">Ваш аккаунт будет удалён через <b>30 дней</b>.</div>
+      <button onclick="document.getElementById('delete-account-modal').remove()" style="width:100%;padding:13px;border:none;border-radius:12px;background:#000;color:white;font-size:15px;font-weight:700;cursor:pointer;">Понятно</button>
+    </div>`;
+  
+  document.body.appendChild(done);
+
+} catch (e) {
+  // Закрываем блок try-catch, чтобы код не ломался
+  console.error("Ошибка при отправке запроса:", e);
+}
+
+} catch (e) {
+  console.error("Ошибка:", e);
+  alert("Не удалось отправить запрос");
+}
+
+  document.body.appendChild(done);
+
+} catch(e) { // Теперь этот блок стоит на своем месте
+  alert('Ошибка: ' + e.message);
+}
+
   }
 }
 
@@ -7645,21 +7680,13 @@ async function adminLoadDocuments() {
     container.innerHTML = allDocs.map(d => {
       const st = statusLabel[d.status] || statusLabel.pending;
       return `<div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:20px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-        <a href="${d.url}" target="_blank" style="width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;background:var(--bg);text-decoration:none;">
-          <img src="${d.url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='📄'" />
-        </a>
-        <div style="flex:1;min-width:180px;">
-          <div style="font-size:14px;font-weight:800;color:var(--text-primary);">${d.userName}</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${d.userEmail} · ${d.clientId}</div>
-          <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Загружено: ${new Date(d.uploadedAt).toLocaleDateString('ru-RU')}</div>
-          <div style="margin-top:8px;display:inline-flex;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:${st.bg};color:${st.color};">${st.text}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-          <a href="${d.url}" target="_blank" style="padding:8px 16px;border:1.5px solid var(--border);border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;text-decoration:none;color:var(--text-primary);text-align:center;">🔍 Открыть</a>
-          ${d.status !== 'verified' ? `<button onclick="adminVerifyDoc('${d.uid}',${d.docIndex},'verified')" style="padding:8px 16px;border:none;border-radius:9px;background:#10B981;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">✅ Подтвердить</button>` : ''}
-          ${d.status !== 'rejected' ? `<button onclick="adminVerifyDoc('${d.uid}',${d.docIndex},'rejected')" style="padding:8px 16px;border:none;border-radius:9px;background:#EF4444;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">❌ Отклонить</button>` : ''}
-        </div>
-      </div>`;
+        // Пример более безопасной вставки для кнопок:
+${d.status !== 'verified' ? `
+  <button onclick="adminVerifyDoc('${d.uid}', ${Number(d.docIndex)}, 'verified')" 
+          style="...">
+    ✅ Подтвердить
+  </button>` : ''}
+
     }).join('');
   } catch(e) {
     container.innerHTML = '<div style="padding:20px;color:#EF4444;">Ошибка загрузки: ' + e.message + '</div>';
@@ -7702,56 +7729,41 @@ async function loadUserNotifications() {
     const unread = notifications.filter(n => !n.read);
     if (!unread.length) return;
 
-    // Показываем баннер с последним уведомлением
-    const n = unread[0];
-    const banner = document.createElement('div');
-    banner.style.cssText = `position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:14px 20px;border-radius:14px;background:${n.bg};color:${n.color};font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;display:flex;align-items:center;gap:12px;`;
-    banner.innerHTML = `<span style="flex:1;">${n.message}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:${n.color};">✕</button>`;
-    document.body.appendChild(banner);
-    setTimeout(() => banner.remove && banner.remove(), 6000);
+   // 1. Сначала сохраняем
+const originalUpload = window.uploadDocument;
 
-    // Помечаем как прочитанные
-    notifications.forEach(n => n.read = true);
-    await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid), { notifications }, { merge: true });
-  } catch(e) {}
-}
-
-// Загружаем уведомления при входе
-const _origOnAuth2 = window.firebaseOnAuth;
-if (window.firebaseAuth) {
-  window.firebaseOnAuth(window.firebaseAuth, user => {
-    if (user) setTimeout(loadUserNotifications, 2000);
-  });
-}
-
-// При открытии настроек — тоже показываем уведомления
-const _origRenderDash4 = window.renderDash;
-window.renderDash = function(view) {
-  if (typeof _origRenderDash4 === 'function') _origRenderDash4(view);
-  if (view === 'settings') setTimeout(loadUserNotifications, 300);
-};
-
-// При загрузке документа — сразу ставим статус "pending" и уведомляем
-const _origUploadDoc = window.uploadDocument;
+// 2. Потом переопределяем
 window.uploadDocument = async function(input) {
-  if (typeof _origUploadDoc === 'function') await _origUploadDoc(input);
-  // После загрузки добавляем уведомление "на проверке"
-  if (!window.currentUser) return;
   try {
+    // Вызываем старую логику
+    if (typeof originalUpload === 'function') {
+      await originalUpload(input);
+    }
+
+    if (!window.currentUser?.uid) return;
+
     const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
     const snap = await window.firebaseGetDoc(userRef);
-    if (!snap.exists()) return;
-    const docs = snap.data().documents || [];
-    if (docs.length) {
-      docs[docs.length - 1].status = 'pending';
-      const notifications = snap.data().notifications || [];
-      notifications.unshift({ message: '🔍 Ваш документ принят и находится на проверке', color: '#92400E', bg: '#FEF3C7', createdAt: new Date().toISOString(), read: false });
-      await window.firebaseSetDoc(userRef, { documents: docs, notifications }, { merge: true });
+    
+    if (snap.exists()) {
+      const data = snap.data();
+      const docs = data.documents || [];
+      const notifications = data.notifications || [];
+
+      if (docs.length > 0) {
+        docs[docs.length - 1].status = 'pending';
+        notifications.unshift({ 
+          message: '🔍 Ваш документ принят и находится на проверке', 
+          color: '#92400E', 
+          bg: '#FEF3C7', 
+          createdAt: new Date().toISOString(), 
+          read: false 
+        });
+        
+        await window.firebaseSetDoc(userRef, { documents: docs, notifications }, { merge: true });
+      }
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("Ошибка при обновлении статуса:", e);
+  }
 };
-
-</script>
-
-</body>
-</html>
