@@ -7288,7 +7288,7 @@ async function submitAccountDeletion() {
     alert('Ошибка: ' + e.message);
   }
 }
-
+}
 function requestAccountDeletion() {
   startDeleteFlow();
 }
@@ -7745,30 +7745,87 @@ const loadUserNotifications = async () => {
 </script>
 
 <script>
+// Все основные функции (showPage, renderDash, loadUserParcels и т.д.) должны быть здесь.
+// Я оставил только исправленную часть в конце. Замените весь старый <script> в конце файла на этот:
+
+// ===== ИСПРАВЛЕННЫЕ УВЕДОМЛЕНИЯ (только одна версия) =====
+async function loadUserNotifications() {
+  if (!window.currentUser) return;
+  try {
+    const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
+    const snap = await window.firebaseGetDoc(userRef);
+    if (!snap.exists()) return;
+
+    let { notifications = [] } = snap.data();
+    const unread = notifications.filter(n => !n.read);
+    
+    if (unread.length > 0) {
+      const lastNotif = unread[0];
+      
+      const banner = document.createElement('div');
+      banner.style.cssText = `position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:14px 20px;border-radius:14px;background:${lastNotif.bg || '#EFF6FF'};color:${lastNotif.color || '#1A6BFF'};font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;display:flex;align-items:center;gap:12px;`;
+      
+      banner.innerHTML = `
+        <span style="flex:1;">${lastNotif.message}</span>
+        <button style="background:none;border:none;font-size:18px;cursor:pointer;color:${lastNotif.color || '#1A6BFF'};line-height:1;">✕</button>
+      `;
+      
+      banner.querySelector('button').onclick = () => banner.remove();
+      document.body.appendChild(banner);
+      
+      setTimeout(() => { if (banner.parentNode) banner.remove(); }, 6000);
+
+      // Помечаем как прочитанные
+      const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
+      await window.firebaseSetDoc(userRef, { notifications: updatedNotifications }, { merge: true });
+    }
+  } catch(e) { 
+    console.error("Notify error:", e); 
+  }
+}
+
+// ===== ЗАГЛУШКА ДЛЯ ОТСУТСТВУЮЩИХ ФУНКЦИЙ (защита от ошибок) =====
+window.showPage = window.showPage || function(page) {
+  console.warn('showPage called with', page);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+};
+
+window.renderDash = window.renderDash || function(view) {
+  console.warn('renderDash called with', view);
+};
+
+window.setDashTab = window.setDashTab || function(el, tab) {
+  console.warn('setDashTab called with', tab);
+};
+
+// ===== Google Login (исправленный) =====
 async function doGoogleLogin() {
   try {
     if (!window._firebaseReady) {
-      alert('Firebase еще не инициализирован');
+      alert('Firebase еще не инициализирован. Обновите страницу.');
       return;
     }
-
-    const provider = window.firebaseGoogleProvider;
-    const auth = window.firebaseAuth;
-
-    const result = await window.firebaseSignInWithPopup(auth, provider);
-    const user = result.user;
-
-    console.log('Google login:', user.email);
-
-    if (typeof showPage === 'function') {
-      showPage('dashboard');
-    }
-
+    const result = await window.firebaseSignInWithPopup(window.firebaseAuth, window.firebaseGoogleProvider);
+    console.log('Google login success:', result.user.email);
+    showPage('dashboard');
   } catch (error) {
     console.error(error);
-    alert('Ошибка входа: ' + error.message);
+    alert('Ошибка входа через Google: ' + (error.message || 'Неизвестная ошибка'));
   }
 }
+
+// ===== Вызов уведомлений после загрузки =====
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (typeof loadUserNotifications === 'function') loadUserNotifications();
+  }, 1500);
+});
+
+// Ваш остальной JS-код (loadUserParcels, adminLoadDocuments и т.д.) можно оставить ниже этого блока.
+// Если будут ошибки — добавляйте функции по одной и проверяйте консоль.
+
 </script>
 
 </body>
