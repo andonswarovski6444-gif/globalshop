@@ -65,9 +65,15 @@
       window.currentUser = null;
       window.sampleParcels = [];
     }
-    if (typeof updateNav === 'function') {
-      updateNav(!!user, false);
+    // Откладываем updateNav до готовности основного скрипта (body)
+    function tryUpdateNav() {
+      if (typeof updateNav === 'function') {
+        updateNav(!!user, false);
+      } else {
+        setTimeout(tryUpdateNav, 50);
+      }
     }
+    tryUpdateNav();
   });
 </script>
 <style>
@@ -265,6 +271,14 @@
   .form-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   .form-field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: 'Manrope', sans-serif; outline: none; transition: border-color 0.2s; background: var(--bg-card); color: var(--text-primary); }
   .form-field input:focus { border-color: var(--accent); }
+  /* Фикс автозаполнения браузера — особенно важен для тёмной темы */
+  .form-field input:-webkit-autofill,
+  .form-field input:-webkit-autofill:hover,
+  .form-field input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-card) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
   .btn-full { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--accent); color: white; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Manrope', sans-serif; transition: all 0.2s; margin-top: 8px; }
   .btn-full:hover { background: var(--accent-hover); }
   .auth-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-secondary); }
@@ -2076,7 +2090,6 @@ const adminViews = {
         </div>
       </div>
     </div>
-    <script>
     let editingProductId = null;
     const productCategoryIcons = {
       'Обувь':'👟','Одежда':'👗','Электроника':'📱','Косметика':'💄',
@@ -2300,7 +2313,6 @@ const adminViews = {
         </div>
       </div>
     </div>
-    <script>
     const manifestData = {
       'MF-2025-042': {
         title: 'Манифест MF-2025-042',
@@ -4037,6 +4049,23 @@ async function doGoogleLogin() {
   }
 }
 
+// Ожидание готовности Firebase (решает race condition при быстром входе)
+function waitForFirebase(timeout = 6000) {
+  return new Promise((resolve, reject) => {
+    if (window._firebaseReady && window.firebaseSignIn && window.firebaseAuth) return resolve();
+    const start = Date.now();
+    const iv = setInterval(() => {
+      if (window._firebaseReady && window.firebaseSignIn && window.firebaseAuth) {
+        clearInterval(iv);
+        resolve();
+      } else if (Date.now() - start > timeout) {
+        clearInterval(iv);
+        reject(new Error('firebase-timeout'));
+      }
+    }, 100);
+  });
+}
+
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -4053,15 +4082,22 @@ async function doLogin() {
     return;
   }
 
-  // Проверка готовности Firebase
-  if (!window._firebaseReady || !window.firebaseSignIn || !window.firebaseAuth) {
-    err.textContent = '⏳ Firebase ещё загружается. Подождите секунду и нажмите снова.';
+  btn.textContent = 'Подключение...';
+  btn.disabled = true;
+  err.style.display = 'none';
+
+  // Ожидаем готовности Firebase вместо немедленного отказа
+  try {
+    await waitForFirebase();
+  } catch (e) {
+    err.textContent = '❌ Не удалось подключиться к серверу. Проверьте интернет и обновите страницу.';
     err.style.display = 'block';
+    btn.textContent = 'Войти';
+    btn.disabled = false;
     return;
   }
 
   btn.textContent = 'Вход...';
-  btn.disabled = true;
   err.style.display = 'none';
 
   try {
@@ -4105,6 +4141,8 @@ async function doLogin() {
       'auth/network-request-failed':  '🌐 Нет соединения с интернетом',
       'auth/user-disabled':           '🚫 Аккаунт заблокирован',
       'auth/app-check-token-expired': '🔒 Ошибка App Check. Обновите страницу (F5)',
+      'auth/unauthorized-domain':     '🔒 Этот домен не разрешён в Firebase. Добавьте его в Authorized Domains в консоли Firebase.',
+      'auth/operation-not-allowed':   '🚫 Вход через email/пароль не включён в Firebase консоли.',
     };
     const display = msgs[e.code] || ('Ошибка [' + (e.code || 'unknown') + ']: ' + (e.message || 'неизвестная ошибка'));
     err.textContent = display;
