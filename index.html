@@ -7258,53 +7258,33 @@ async function submitAccountDeletion() {
         deletionDeadline: new Date(Date.now() + 30*24*60*60*1000).toISOString()
       }, { merge: true });
     }
-// 1. Оставляем одно объявление
-const email = window.currentUser?.email || 'не указан';
+  const email = window.currentUser?.email || 'не указан';
 
-// 1. Объявляем email заранее
-const email = window.currentUser?.email || 'не указан';
+  try {
+    const msg = `Запрос на удаление аккаунта\n\nEmail: ${email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
 
-try {
-  const msg = `Запрос на удаление аккаунта\n\nEmail: ${email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
+    // Открываем WhatsApp
+    window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
 
-  // 2. Открываем WhatsApp
-  window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
+    // Убираем дубликаты
+    const existing = document.getElementById('delete-account-modal');
+    if (existing) existing.remove();
 
-  // 3. Проверяем, нет ли уже такого окна, чтобы не плодить дубликаты
-  if (document.getElementById('delete-account-modal')) {
-    document.getElementById('delete-account-modal').remove();
-  }
-
-  // 4. Создаем и добавляем уведомление
-  const done = document.createElement('div');
-  done.id = 'delete-account-modal';
-  done.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;font-family:sans-serif;';
-  done.innerHTML = `
-    <div style="background:#fff; border-radius:20px; padding:32px; max-width:400px; width:100%; text-align:center; color: #000;">
-      <div style="font-size:48px;margin-bottom:16px;">📨</div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Запрос отправлен</div>
-      <div style="font-size:14px;line-height:1.6;margin-bottom:24px;">Ваш аккаунт будет удалён через <b>30 дней</b>.</div>
-      <button onclick="document.getElementById('delete-account-modal').remove()" style="width:100%;padding:13px;border:none;border-radius:12px;background:#000;color:white;font-size:15px;font-weight:700;cursor:pointer;">Понятно</button>
-    </div>`;
-  
-  document.body.appendChild(done);
-
-} catch (e) {
-  // Закрываем блок try-catch, чтобы код не ломался
-  console.error("Ошибка при отправке запроса:", e);
-}
-
-} catch (e) {
-  console.error("Ошибка:", e);
-  alert("Не удалось отправить запрос");
-}
-
-  document.body.appendChild(done);
-
-} catch(e) { // Теперь этот блок стоит на своем месте
-  alert('Ошибка: ' + e.message);
-}
-
+    // Показываем финальное сообщение
+    const done = document.createElement('div');
+    done.id = 'delete-account-modal';
+    done.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+    done.innerHTML = `
+      <div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:400px;width:100%;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">📨</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Запрос отправлен</div>
+        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">Ваш аккаунт будет удалён через <b>30 дней</b>.</div>
+        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">Чтобы <b>восстановить</b> аккаунт — напишите в поддержку до истечения срока.</div>
+        <button onclick="document.getElementById('delete-account-modal').remove()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Понятно</button>
+      </div>`;
+    document.body.appendChild(done);
+  } catch(e) {
+    alert('Ошибка: ' + e.message);
   }
 }
 
