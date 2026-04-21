@@ -1007,9 +1007,9 @@
       </div>
 <div class="form-field">
   <label>Пароль</label>
-<input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doGoogleLogin()" />
+<input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
 </div>
-<button class="btn-full" id="loginBtn" onclick="doGoogleLogin()">Войти</button>
+<button class="btn-full" id="loginBtn" onclick="doLogin()">Войти</button>
 <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
   <div style="flex:1;height:1px;background:var(--border);"></div>
   <span style="font-size:12px;color:var(--text-secondary);">или</span>
@@ -1440,6 +1440,7 @@ function showPageDirect(page) {
   if (page === 'admin') { window.isAdmin = true; showAdmin('dashboard'); }
   if (page === 'warehouses') showWarehousesPage();
   if (page === 'calculator') loadTariffs();
+  if (page === 'shops') { if (typeof renderShops === 'function') renderShops(); if (typeof loadCustomShops === 'function') loadCustomShops(); }
   if (page === 'home') { window.isAdmin = false; if (typeof updateHomeCurrencyWidget === 'function') updateHomeCurrencyWidget(); }
   if (page === 'oferta' || page === 'privacy') { if (typeof loadLegalDocsDates === 'function') loadLegalDocsDates(); }
   if (page === 'login' || page === 'register') { updateFirebaseStatusBanner(); }
@@ -5423,8 +5424,10 @@ function toggleLangMenu() {
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
 document.addEventListener('click', e => {
-  if (!document.getElementById('langSwitcher').contains(e.target)) {
-    document.getElementById('langMenu').style.display = 'none';
+  const switcher = document.getElementById('langSwitcher');
+  const menu = document.getElementById('langMenu');
+  if (switcher && menu && !switcher.contains(e.target)) {
+    menu.style.display = 'none';
   }
 });
 function setLang(lang) {
@@ -7683,70 +7686,6 @@ async function adminVerifyDoc(uid, docIndex, newStatus) {
 }
 
 // ===== УВЕДОМЛЕНИЯ В ЛИЧНОМ КАБИНЕТЕ =====
-async function loadUserNotifications() {
-  if (!window.currentUser) return;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid));
-    if (!snap.exists()) return;
-    const notifications = snap.data().notifications || [];
-    const unread = notifications.filter(n => !n.read);
-    if (!unread.length) return;
-
-    // Помечаем уведомления как прочитанные ПЕРЕД отрисовкой или корректно обновляем массив
-const loadUserNotifications = async () => {
-  try {
-    if (!window.currentUser) return;
-    const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
-    const snap = await window.firebaseGetDoc(userRef);
-    if (!snap.exists()) return;
-
-    let { notifications = [] } = snap.data();
-    const unread = notifications.filter(n => !n.read);
-    
-    if (unread.length > 0) {
-      const n = unread[0];
-      const banner = document.createElement('div');
-      const loadUserNotifications = async () => {
-  try {
-    if (!window.currentUser) return;
-    const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
-    const snap = await window.firebaseGetDoc(userRef);
-    if (!snap.exists()) return;
-
-    let { notifications = [] } = snap.data();
-    const unread = notifications.filter(n => !n.read);
-    
-    if (unread.length > 0) {
-      // ИСПРАВЛЕНО: берем первое уведомление из списка непрочитанных
-      const lastNotif = unread[0]; 
-      
-      const banner = document.createElement('div');
-      // ИСПРАВЛЕНО: заменены n.bg на lastNotif.bg и т.д.
-      banner.style.cssText = `position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:14px 20px;border-radius:14px;background:${lastNotif.bg};color:${lastNotif.color};font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;display:flex;align-items:center;gap:12px;transition: opacity 0.3s ease;`;
-      
-      banner.innerHTML = `
-        <span style="flex:1;">${lastNotif.message}</span>
-        <button style="background:none;border:none;font-size:18px;cursor:pointer;color:${lastNotif.color};line-height:1;">✕</button>
-      `;
-      
-      banner.querySelector('button').onclick = () => banner.remove();
-      document.body.appendChild(banner);
-      
-      setTimeout(() => {
-        if (banner.parentNode) banner.remove();
-      }, 6000);
-
-      // Помечаем уведомления как прочитанные в базе
-      const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
-      await window.firebaseSetDoc(userRef, { notifications: updatedNotifications }, { merge: true });
-    }
-  } catch(e) { console.error("Notify error:", e); }
-};
-</script>
-
-<script>
-// Все основные функции (showPage, renderDash, loadUserParcels и т.д.) должны быть здесь.
-// Я оставил только исправленную часть в конце. Замените весь старый <script> в конце файла на этот:
 
 // ===== ИСПРАВЛЕННЫЕ УВЕДОМЛЕНИЯ (только одна версия) =====
 async function loadUserNotifications() {
