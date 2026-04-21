@@ -3424,16 +3424,22 @@ async function adminLoadShopsList() {
   const list = document.getElementById('admShopsList');
   if (!list) return;
   try {
+    // Загружаем кастомные магазины из Firestore
     const snap = await window.firebaseGetDocs(
       window.firebaseCollection(window.firebaseDb, 'shops')
     );
-    const rows = [];
-    snap.forEach(d => rows.push({ ...d.data(), __docId: d.id }));
+    const customRows = [];
+    snap.forEach(d => { if (!d.data().__deleted) customRows.push({ ...d.data(), __docId: d.id, __custom: true }); });
+
+    // Объединяем: сначала встроенные, потом кастомные
+    const builtIn = (typeof shopsData !== 'undefined' ? shopsData : []).map(s => ({ ...s, __builtin: true }));
+    const rows = [...builtIn, ...customRows];
+
     if (rows.length === 0) {
-      list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:8px;">🛍</div><div style="font-size:14px;font-weight:700;">Пока нет добавленных магазинов</div><div style="font-size:12px;margin-top:4px;">Встроенный каталог из 30 магазинов отображается на странице «Магазины» автоматически</div></div>';
+      list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:8px;">🛍</div><div style="font-size:14px;font-weight:700;">Нет магазинов</div></div>';
       return;
     }
-    rows.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+
     list.innerHTML = `
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:var(--bg);">
@@ -3441,7 +3447,7 @@ async function adminLoadShopsList() {
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Название</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Страна</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Категории</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Флаги</th>
+          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Тип</th>
           <th style="padding:10px 12px;"></th>
         </tr></thead>
         <tbody>
@@ -3450,17 +3456,21 @@ async function adminLoadShopsList() {
             const logo = isImg
               ? `<img src="${s.icon}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;" onerror="this.outerHTML='🛍';" />`
               : `<span style="font-size:22px;">${s.icon || '🛍'}</span>`;
+            const typeBadge = s.__custom
+              ? `<span style="background:#D1FAE5;color:#065F46;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;">добавлен</span>`
+              : `<span style="background:#EFF6FF;color:#1E40AF;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700;">встроен</span>`;
+            const actions = s.__custom
+              ? `<button onclick="editShop('${s.__docId}')" class="btn-outline" style="padding:5px 12px;font-size:11px;margin-right:4px;">✏️</button>
+                 <button onclick="deleteShop('${s.__docId}','${(s.name||'').replace(/'/g,'&#39;')}')" class="btn-outline" style="padding:5px 12px;font-size:11px;border-color:#FECACA;color:#991B1B;">🗑</button>`
+              : `<span style="font-size:11px;color:var(--text-secondary);">встроенный</span>`;
             return `
               <tr style="border-top:1px solid var(--card-border);">
                 <td style="padding:12px;">${logo}</td>
                 <td style="padding:12px;font-size:13px;"><b>${s.name || '—'}</b><br><span style="font-size:11px;color:var(--text-secondary);">${s.url || ''}</span></td>
                 <td style="padding:12px;font-size:13px;">${s.countryLabel || '—'}</td>
                 <td style="padding:12px;font-size:12px;color:var(--text-secondary);">${(s.cats || []).join(', ') || '—'}</td>
-                <td style="padding:12px;font-size:11px;">${s.vpn ? '🔒 VPN ' : ''}${s.needsManager ? '👤 Менеджер' : ''}</td>
-                <td style="padding:12px;white-space:nowrap;">
-                  <button onclick="editShop('${s.__docId}')" class="btn-outline" style="padding:5px 12px;font-size:11px;margin-right:4px;">✏️ Изменить</button>
-                  <button onclick="deleteShop('${s.__docId}','${(s.name||'').replace(/'/g,'&#39;')}')" class="btn-outline" style="padding:5px 12px;font-size:11px;border-color:#FECACA;color:#991B1B;">🗑</button>
-                </td>
+                <td style="padding:12px;">${typeBadge}${s.vpn ? ' 🔒' : ''}</td>
+                <td style="padding:12px;white-space:nowrap;">${actions}</td>
               </tr>
             `;
           }).join('')}
