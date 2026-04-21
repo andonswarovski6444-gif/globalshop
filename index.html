@@ -577,11 +577,11 @@
       </button>
       <div id="langMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:160px;z-index:200;overflow:hidden;">
         <div onclick="setLang('ru')" class="lang-opt" data-lang="ru">🇷🇺 Русский</div>
-        <div onclick="setLang('en')" class="lang-opt" data-lang="en">🇺🇸 English</div>
-        <div onclick="setLang('kk')" class="lang-opt" data-lang="kk" style="color:var(--text-secondary);">🇰🇿 Қазақша <span style="font-size:11px;">(скоро)</span></div>
-        <div onclick="setLang('zh')" class="lang-opt" data-lang="zh" style="color:var(--text-secondary);">🇨🇳 中文 <span style="font-size:11px;">(скоро)</span></div>
-        <div onclick="setLang('uz')" class="lang-opt" data-lang="uz" style="color:var(--text-secondary);">🇺🇿 O'zbek <span style="font-size:11px;">(скоро)</span></div>
-        <div onclick="setLang('ky')" class="lang-opt" data-lang="ky" style="color:var(--text-secondary);">🇰🇬 Кыргызча <span style="font-size:11px;">(скоро)</span></div>
+        <div class="lang-opt" style="display:flex;align-items:center;justify-content:space-between;cursor:not-allowed;opacity:0.6;">🇺🇸 English <span style="font-size:10px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:10px;flex-shrink:0;">Скоро</span></div>
+        <div class="lang-opt" style="display:flex;align-items:center;justify-content:space-between;cursor:not-allowed;opacity:0.6;">🇰🇿 Қазақша <span style="font-size:10px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:10px;flex-shrink:0;">Скоро</span></div>
+        <div class="lang-opt" style="display:flex;align-items:center;justify-content:space-between;cursor:not-allowed;opacity:0.6;">🇨🇳 中文 <span style="font-size:10px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:10px;flex-shrink:0;">Скоро</span></div>
+        <div class="lang-opt" style="display:flex;align-items:center;justify-content:space-between;cursor:not-allowed;opacity:0.6;">🇺🇿 O'zbek <span style="font-size:10px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:10px;flex-shrink:0;">Скоро</span></div>
+        <div class="lang-opt" style="display:flex;align-items:center;justify-content:space-between;cursor:not-allowed;opacity:0.6;">🇰🇬 Кыргызча <span style="font-size:10px;font-weight:700;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:10px;flex-shrink:0;">Скоро</span></div>
       </div>
     </div>
     <div id="authButtons" style="display:inline-flex;align-items:center;gap:8px;">
@@ -4677,27 +4677,41 @@ function fallbackCopy(value, onSuccess) {
 function renderWarehouses(data) {
   const list = document.getElementById('warehousesList');
   if (!list) return;
-  list.innerHTML = data.map(wh => `
-    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
+  list.innerHTML = data.map(wh => {
+    const isKorea = wh.id === 'kr';
+    return `
+    <div class="warehouse-card" style="flex-direction:column;gap:12px;position:relative;${isKorea ? 'overflow:hidden;' : ''}">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:28px;">${wh.flag}</span>
         <div>
           <div class="wh-country">${wh.country}</div>
-          <span class="wh-badge active">✓ Активен</span>
+          ${isKorea
+            ? '<span class="wh-badge" style="background:#FEF3C7;color:#92400E;">⏳ Скоро</span>'
+            : '<span class="wh-badge active">✓ Активен</span>'
+          }
         </div>
       </div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Нажмите на поле чтобы скопировать 👇</div>
-      ${wh.fields.map(f => `
-        <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
-          <div>
-            <div class="copy-field-label">${f.label}</div>
-            <div class="copy-field-value">${f.value}</div>
+      <div style="${isKorea ? 'filter:blur(6px);user-select:none;pointer-events:none;' : ''}">
+        ${wh.fields.map(f => `
+          <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
+            <div>
+              <div class="copy-field-label">${f.label}</div>
+              <div class="copy-field-value">${f.value}</div>
+            </div>
+            <span class="copy-field-icon">📋</span>
           </div>
-          <span class="copy-field-icon">📋</span>
+        `).join('')}
+      </div>
+      ${isKorea ? `
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,0.08);backdrop-filter:blur(2px);border-radius:inherit;">
+          <div style="font-size:32px;">🔜</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text-primary);">Скоро</div>
+          <div style="font-size:12px;color:var(--text-secondary);text-align:center;max-width:180px;">Склад в Корее откроется в ближайшее время</div>
         </div>
-      `).join('')}
+      ` : ''}
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function showWarehousesPage() {
