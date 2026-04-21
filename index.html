@@ -896,16 +896,17 @@
 
 <!-- WAREHOUSES PAGE -->
 <div class="page" id="page-warehouses">
-  <div class="section">
+  <div class="section" style="max-width:640px;margin:0 auto;padding-top:24px;">
     <div class="section-title">🏪 Адреса складов</div>
-    <div class="section-sub">Нажмите на любое поле чтобы скопировать</div>
+    <div class="section-sub">Нажмите на поле чтобы скопировать</div>
     <div id="warehousesGuard" style="display:none;background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:40px;text-align:center;max-width:480px;margin:0 auto;">
       <div style="font-size:48px;margin-bottom:16px;">🔒</div>
       <div style="font-size:18px;font-weight:800;margin-bottom:8px;">Только для зарегистрированных</div>
       <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Адреса складов доступны только авторизованным пользователям</div>
       <button class="btn-pink" style="padding:12px 32px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="showPage('login')">Войти или зарегистрироваться</button>
     </div>
-    <div id="warehousesList" class="warehouses-grid"></div>
+    <div id="whTabsRow" style="display:none;overflow-x:auto;white-space:nowrap;margin-bottom:20px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+    <div id="whCardArea" style="display:none;"></div>
   </div>
 </div>
 
@@ -4719,62 +4720,132 @@ function fallbackCopy(value, onSuccess) {
   document.body.removeChild(ta);
 }
 
+// ===== СКЛАДЫ: НОВЫЙ ДИЗАЙН С ТАБАМИ =====
+let _whData = [];
+let _whActiveId = null;
+
 function renderWarehouses(data) {
-  const list = document.getElementById('warehousesList');
-  if (!list) return;
-  list.innerHTML = data.map(wh => {
+  _whData = data;
+  // Первый активный склад — первый не-coming-soon
+  const first = data.find(w => !w.comingSoon) || data[0];
+  _whActiveId = first ? first.id : null;
+  _renderWhTabs();
+  _renderWhCard(_whActiveId);
+}
+
+function _renderWhTabs() {
+  const row = document.getElementById('whTabsRow');
+  if (!row) return;
+  row.style.display = 'block';
+  row.innerHTML = _whData.map(wh => {
+    const active = wh.id === _whActiveId;
     const cs = !!wh.comingSoon;
-    if (cs) {
-      // Карточка "Скоро" — без полей, без блюра
-      return `
-    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:28px;">${wh.flag}</span>
-        <div>
-          <div class="wh-country">${wh.country}</div>
-          <span class="wh-badge" style="background:#FEF3C7;color:#92400E;">⏳ Скоро</span>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px 0;border:1.5px dashed #FDE68A;border-radius:14px;background:#FFFBEB;">
-        <div style="font-size:28px;">🔜</div>
-        <div style="font-size:14px;font-weight:700;color:#92400E;">Склад откроется в ближайшее время</div>
-      </div>
-    </div>`;
-    }
-    // Обычная карточка с адресом
-    return `
-    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:28px;">${wh.flag}</span>
-        <div>
-          <div class="wh-country">${wh.country}</div>
-          <span class="wh-badge active">✓ Активен</span>
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Нажмите на поле чтобы скопировать 👇</div>
-      ${wh.fields.map(f => `
-        <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
-          <div>
-            <div class="copy-field-label">${f.label}</div>
-            <div class="copy-field-value">${f.value}</div>
-          </div>
-          <span class="copy-field-icon">📋</span>
-        </div>
-      `).join('')}
-    </div>`;
+    return `<button onclick="_selectWhTab('${wh.id}')" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:none;cursor:${cs ? 'default' : 'pointer'};font-family:Manrope,sans-serif;font-size:13px;font-weight:700;margin-right:8px;transition:all 0.15s;white-space:nowrap;
+      background:${active ? 'var(--accent)' : 'var(--card-bg)'};
+      color:${active ? 'white' : 'var(--text-secondary)'};
+      box-shadow:${active ? '0 2px 10px rgba(26,107,255,0.25)' : 'none'};
+      border:1.5px solid ${active ? 'var(--accent)' : 'var(--border)'};
+      opacity:${cs && !active ? '0.65' : '1'};
+    ">${wh.flag} ${wh.country.split(' (')[0]}${cs ? ' <span style="font-size:10px;background:rgba(0,0,0,0.12);padding:1px 5px;border-radius:8px;">скоро</span>' : ''}</button>`;
   }).join('');
 }
 
+function _selectWhTab(id) {
+  const wh = _whData.find(w => w.id === id);
+  if (!wh || wh.comingSoon) return;
+  _whActiveId = id;
+  _renderWhTabs();
+  _renderWhCard(id);
+}
+window._selectWhTab = _selectWhTab;
+
+function _renderWhCard(id) {
+  const area = document.getElementById('whCardArea');
+  if (!area) return;
+  area.style.display = 'block';
+  const wh = _whData.find(w => w.id === id);
+  if (!wh) { area.innerHTML = ''; return; }
+
+  if (wh.comingSoon) {
+    area.innerHTML = `
+      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--border);padding:48px 24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">🔜</div>
+        <div style="font-size:18px;font-weight:800;margin-bottom:8px;">${wh.flag} ${wh.country}</div>
+        <div style="font-size:14px;color:var(--text-secondary);">Склад откроется в ближайшее время</div>
+      </div>`;
+    return;
+  }
+
+  // Описание полей с английским переводом
+  const labelMap = {
+    'Получатель': 'recipient — name', 'Имя': 'first name', 'Фамилия': 'last name',
+    'Адрес': 'address 1', 'Адрес 1': 'address 1', 'Адрес 2': 'address 2',
+    'Город': 'city', 'Город / Индекс': 'city / zip code', 'Штат / Индекс': 'state / zip code',
+    'Штат': 'state', 'Индекс': 'zip code', 'Страна': 'country',
+    'Провинция': 'province', 'Провинция / Район': 'province / district',
+    'Телефон': 'phone number',
+  };
+
+  area.innerHTML = `
+    <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--border);overflow:hidden;">
+      <!-- Подсказки -->
+      <div style="border-bottom:1px solid var(--border);">
+        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;font-size:14px;font-weight:600;">
+          Как заполнить адрес? <span style="color:var(--text-secondary);font-size:18px;">›</span>
+        </div>
+        <div style="display:none;padding:0 20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.7;">
+          Скопируйте каждое поле и вставьте в форму заказа на сайте магазина. Поля на английском — используйте именно такое написание.
+        </div>
+      </div>
+      <div style="border-bottom:1px solid var(--border);">
+        <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;cursor:pointer;font-size:14px;font-weight:600;">
+          Важно знать! <span style="color:var(--text-secondary);font-size:18px;">›</span>
+        </div>
+        <div style="display:none;padding:0 20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.7;">
+          После заказа отправьте нам трек-номер в WhatsApp или Telegram. Укажите своё имя в поле «Address 2» рядом с кодом получателя.
+        </div>
+      </div>
+      <!-- Поля адреса -->
+      ${wh.fields.map(f => {
+        const sub = labelMap[f.label] || f.label.toLowerCase();
+        return `
+        <div onclick="whCopyField(this, '${f.value.replace(/'/g, "\'")}')" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--sidebar-active-bg)'" onmouseout="this.style.background=''">
+          <div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:3px;">${f.label} — ${sub}</div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);">${f.value}</div>
+          </div>
+          <span id="whCopyIcon_${f.label.replace(/\s/g,'_')}" style="font-size:20px;color:var(--text-secondary);flex-shrink:0;margin-left:12px;">⎘</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--text-secondary);">Нажмите на поле чтобы скопировать</div>
+  `;
+}
+
+function whCopyField(el, value) {
+  const icon = el.querySelector('span[id^="whCopyIcon"]');
+  const doCopy = () => {
+    if (icon) { icon.textContent = '✅'; setTimeout(() => { icon.textContent = '⎘'; }, 1500); }
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(value).then(doCopy).catch(() => { document.execCommand && document.execCommand('copy'); doCopy(); });
+  } else {
+    const t = document.createElement('textarea'); t.value = value; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); doCopy();
+  }
+}
+window.whCopyField = whCopyField;
+
 function showWarehousesPage() {
   const guard = document.getElementById('warehousesGuard');
-  const list = document.getElementById('warehousesList');
+  const tabs = document.getElementById('whTabsRow');
+  const card = document.getElementById('whCardArea');
   if (window.currentUser || window.isAdmin) {
     guard.style.display = 'none';
-    list.style.display = 'grid';
     loadWarehouses();
   } else {
     guard.style.display = 'block';
-    list.style.display = 'none';
+    if (tabs) tabs.style.display = 'none';
+    if (card) card.style.display = 'none';
   }
 }
 
