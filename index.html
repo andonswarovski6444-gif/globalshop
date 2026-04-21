@@ -2431,27 +2431,27 @@ const adminViews = {
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;">
       <div class="acard" style="text-align:center;padding:16px;">
         <div style="font-size:28px;margin-bottom:6px;">⚪</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text-primary);">89</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text-primary);" id="loyalStat_standard">—</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Стандарт</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#FDE68A;">
         <div style="font-size:28px;margin-bottom:6px;">🥉</div>
-        <div style="font-size:20px;font-weight:800;color:#92400E;">24</div>
+        <div style="font-size:20px;font-weight:800;color:#92400E;" id="loyalStat_bronze">—</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Бронза</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#CBD5E1;">
         <div style="font-size:28px;margin-bottom:6px;">🥈</div>
-        <div style="font-size:20px;font-weight:800;color:#475569;">10</div>
+        <div style="font-size:20px;font-weight:800;color:#475569;" id="loyalStat_silver">—</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Сильвер</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#FDE68A;">
         <div style="font-size:28px;margin-bottom:6px;">🥇</div>
-        <div style="font-size:20px;font-weight:800;color:#B45309;">3</div>
+        <div style="font-size:20px;font-weight:800;color:#B45309;" id="loyalStat_gold">—</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Золото</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#C7D2FE;">
         <div style="font-size:28px;margin-bottom:6px;">💎</div>
-        <div style="font-size:20px;font-weight:800;color:#3730A3;">1</div>
+        <div style="font-size:20px;font-weight:800;color:#3730A3;" id="loyalStat_platinum">—</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Платина</div>
       </div>
     </div>
@@ -2539,7 +2539,48 @@ function showAdmin(view) {
     setTimeout(adminLoadSettingsView, 80);
     setTimeout(loadExtraServicesPrices, 100);
   }
+  if (view === 'loyalty_admin') {
+    setTimeout(adminLoadLoyaltyStats, 80);
+  }
 }
+
+// ===== ЛОЯЛЬНОСТЬ: РЕАЛЬНАЯ СТАТИСТИКА =====
+async function adminLoadLoyaltyStats() {
+  // Показываем загрузку
+  ['standard','bronze','silver','gold','platinum'].forEach(k => {
+    const el = document.getElementById('loyalStat_' + k);
+    if (el) el.textContent = '...';
+  });
+
+  try {
+    const snap = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, 'users'));
+    const counts = { standard: 0, bronze: 0, silver: 0, gold: 0, platinum: 0 };
+
+    snap.forEach(d => {
+      const data = d.data();
+      const kg = Number(data.totalKg || 0);
+      let level;
+      if (kg >= 100)     level = 'platinum';
+      else if (kg >= 30) level = 'gold';
+      else if (kg >= 10) level = 'silver';
+      else if (kg >= 3)  level = 'bronze';
+      else               level = 'standard';
+      counts[level]++;
+    });
+
+    Object.entries(counts).forEach(([key, val]) => {
+      const el = document.getElementById('loyalStat_' + key);
+      if (el) el.textContent = val;
+    });
+  } catch(e) {
+    ['standard','bronze','silver','gold','platinum'].forEach(k => {
+      const el = document.getElementById('loyalStat_' + k);
+      if (el) el.textContent = '—';
+    });
+    console.warn('adminLoadLoyaltyStats error:', e);
+  }
+}
+window.adminLoadLoyaltyStats = adminLoadLoyaltyStats;
 
 // Загружает даты юр. документов в панели настроек
 async function adminLoadSettingsView() {
@@ -4620,7 +4661,7 @@ const defaultWarehouses = [
     { label: 'Страна', value: 'Germany (DE)' },
     { label: 'Телефон', value: '+49 0511 67 69 5277' }
   ]},
-  { id: 'kr', flag: '🇰🇷', country: 'Южная Корея (Сеул)', fields: [
+  { id: 'kr', flag: '🇰🇷', country: 'Южная Корея (Сеул)', comingSoon: true, fields: [
     { label: 'Получатель', value: 'TEZREK' },
     { label: 'Адрес', value: '중구 을지로42길16 우즈스타아시아' },
     { label: 'Город / Индекс', value: '서울, 04561' },
@@ -4640,7 +4681,11 @@ const defaultWarehouses = [
     { label: 'Город', value: '广州市' },
     { label: 'Провинция', value: '广东省' },
     { label: 'Телефон', value: '13130149876' }
-  ]}
+  ]},
+  { id: 'tr', flag: '🇹🇷', country: 'Турция (Стамбул)', comingSoon: true, fields: [] },
+  { id: 'uk', flag: '🇬🇧', country: 'Великобритания (Лондон)', comingSoon: true, fields: [] },
+  { id: 'ca', flag: '🇨🇦', country: 'Канада (Торонто)', comingSoon: true, fields: [] },
+  { id: 'jp', flag: '🇯🇵', country: 'Япония (Токио)', comingSoon: true, fields: [] },
 ];
 
 // Default tariffs
@@ -4678,40 +4723,46 @@ function renderWarehouses(data) {
   const list = document.getElementById('warehousesList');
   if (!list) return;
   list.innerHTML = data.map(wh => {
-    const isKorea = wh.id === 'kr';
-    return `
-    <div class="warehouse-card" style="flex-direction:column;gap:12px;position:relative;${isKorea ? 'overflow:hidden;' : ''}">
+    const cs = !!wh.comingSoon;
+    if (cs) {
+      // Карточка "Скоро" — без полей, без блюра
+      return `
+    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:28px;">${wh.flag}</span>
         <div>
           <div class="wh-country">${wh.country}</div>
-          ${isKorea
-            ? '<span class="wh-badge" style="background:#FEF3C7;color:#92400E;">⏳ Скоро</span>'
-            : '<span class="wh-badge active">✓ Активен</span>'
-          }
+          <span class="wh-badge" style="background:#FEF3C7;color:#92400E;">⏳ Скоро</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:24px 0;border:1.5px dashed #FDE68A;border-radius:14px;background:#FFFBEB;">
+        <div style="font-size:28px;">🔜</div>
+        <div style="font-size:14px;font-weight:700;color:#92400E;">Склад откроется в ближайшее время</div>
+      </div>
+    </div>`;
+    }
+    // Обычная карточка с адресом
+    return `
+    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:28px;">${wh.flag}</span>
+        <div>
+          <div class="wh-country">${wh.country}</div>
+          <span class="wh-badge active">✓ Активен</span>
         </div>
       </div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Нажмите на поле чтобы скопировать 👇</div>
-      <div style="${isKorea ? 'filter:blur(6px);user-select:none;pointer-events:none;' : ''}">
-        ${wh.fields.map(f => `
-          <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
-            <div>
-              <div class="copy-field-label">${f.label}</div>
-              <div class="copy-field-value">${f.value}</div>
-            </div>
-            <span class="copy-field-icon">📋</span>
+      ${wh.fields.map(f => `
+        <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
+          <div>
+            <div class="copy-field-label">${f.label}</div>
+            <div class="copy-field-value">${f.value}</div>
           </div>
-        `).join('')}
-      </div>
-      ${isKorea ? `
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,0.08);backdrop-filter:blur(2px);border-radius:inherit;">
-          <div style="font-size:32px;">🔜</div>
-          <div style="font-size:16px;font-weight:800;color:var(--text-primary);">Скоро</div>
-          <div style="font-size:12px;color:var(--text-secondary);text-align:center;max-width:180px;">Склад в Корее откроется в ближайшее время</div>
+          <span class="copy-field-icon">📋</span>
         </div>
-      ` : ''}
-    </div>
-  `}).join('');
+      `).join('')}
+    </div>`;
+  }).join('');
 }
 
 function showWarehousesPage() {
