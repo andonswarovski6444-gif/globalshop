@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Shop KZ — Доставка из-за рубежа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,10 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app-check.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, runTransaction, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-  console.log('🔥 Firebase module: начало инициализации');
 
   const firebaseConfig = {
     apiKey: "AIzaSyDdKh80aMIaxu0dJ3vhTdDQmh815qA8Hpc",
@@ -24,9 +22,23 @@
     appId: "1:932645174272:web:1396721db80db2571aece5"
   };
 
-  // App Check полностью убран — он блокировал запросы на незарегистрированных доменах
-
   const app = initializeApp(firebaseConfig);
+
+  // === Firebase App Check (reCAPTCHA v3) ===
+  // Для локальной разработки (localhost) включи debug-токен:
+  // в консоли браузера введи: self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+  // затем перезагрузи страницу — в консоли появится debug-токен,
+  // скопируй его и добавь в Firebase Console → App Check → Apps → Manage debug tokens
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6Ldc3L0sAAAAAOBTTuReIIf32DcSSBygnsgzTvYr'),
+      isTokenAutoRefreshEnabled: true
+    });
+    console.log('✅ Firebase App Check активирован');
+  } catch (err) {
+    console.warn('⚠️ App Check не инициализирован:', err.message);
+  }
+
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -48,24 +60,21 @@
   window.firebaseLimit = limit;
   window.firebaseGetDocs = getDocs;
   window.firebaseWhere = where;
-  window.firebaseSendEmailVerification = sendEmailVerification;
-  window._firebaseReady = true;
-
-  console.log('✅ Firebase module: все функции назначены на window');
 
   onAuthStateChanged(auth, (user) => {
-    console.log('👤 onAuthStateChanged:', user ? user.email : 'нет пользователя');
     if (user) {
       window.currentUser = user;
       const nameDisplay = document.getElementById('userNameDisplay');
       if (nameDisplay) nameDisplay.textContent = user.email.split('@')[0];
+      // Загружаем посылки юзера в фон
       if (typeof window.loadUserParcels === 'function') {
         window.loadUserParcels().catch(() => {});
       }
     } else {
       window.currentUser = null;
-      window.sampleParcels = [];
+      if (typeof window !== 'undefined') window.sampleParcels = [];
     }
+    // Update nav once auth state is known
     if (typeof updateNav === 'function') {
       updateNav(!!user, false);
     }
@@ -264,7 +273,7 @@
   .auth-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
   .form-field { margin-bottom: 16px; }
   .form-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-  .form-field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: 'Manrope', sans-serif; outline: none; transition: border-color 0.2s; background: var(--bg-card); color: var(--text-primary); }
+  .form-field input { width: 100%; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: 'Manrope', sans-serif; outline: none; transition: border-color 0.2s; }
   .form-field input:focus { border-color: var(--accent); }
   .btn-full { width: 100%; padding: 14px; border: none; border-radius: 12px; background: var(--accent); color: white; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Manrope', sans-serif; transition: all 0.2s; margin-top: 8px; }
   .btn-full:hover { background: var(--accent-hover); }
@@ -568,7 +577,7 @@
       </button>
       <div id="langMenu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:white;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);min-width:160px;z-index:200;overflow:hidden;">
         <div onclick="setLang('ru')" class="lang-opt" data-lang="ru">🇷🇺 Русский</div>
-        <div onclick="setLang('en')" class="lang-opt" data-lang="en" style="color:var(--text-secondary);">🇺🇸 English <span style="font-size:11px;">(скоро)</span></div>
+        <div onclick="setLang('en')" class="lang-opt" data-lang="en">🇺🇸 English</div>
         <div onclick="setLang('kk')" class="lang-opt" data-lang="kk" style="color:var(--text-secondary);">🇰🇿 Қазақша <span style="font-size:11px;">(скоро)</span></div>
         <div onclick="setLang('zh')" class="lang-opt" data-lang="zh" style="color:var(--text-secondary);">🇨🇳 中文 <span style="font-size:11px;">(скоро)</span></div>
         <div onclick="setLang('uz')" class="lang-opt" data-lang="uz" style="color:var(--text-secondary);">🇺🇿 O'zbek <span style="font-size:11px;">(скоро)</span></div>
@@ -702,7 +711,7 @@
           <a href="https://t.me/global_shop_kazakhstan" target="_blank" style="cursor:pointer;">✈️ Telegram</a>
           <a href="https://instagram.com/global_shop_kazakhstan" target="_blank" style="cursor:pointer;">📸 Instagram</a>
           <a href="tel:+77064128196" style="cursor:pointer;">📞 +7 706 412 8196</a>
-          <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="cursor:pointer;">📍 Абылай Хана 3, этаж 0, бутик 02</a>
+          <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="cursor:pointer;">📍 Абылай Хана 30, бутик 02</a>
         </div>
       </div>
     </div>
@@ -999,23 +1008,22 @@
       </div>
       <div class="auth-title">Добро пожаловать</div>
       <div class="auth-sub">Войдите в свой аккаунт Global Shop KZ</div>
-      <div id="firebaseStatus" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;text-align:center;"></div>
       <div id="loginError" style="display:none;background:#FEE2E2;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;"></div>
       <div class="form-field">
         <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="example@mail.com" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()" />
+        <input type="email" id="loginEmail" placeholder="example@mail.com" />
       </div>
-<div class="form-field">
-  <label>Пароль</label>
-<input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
-</div>
-<button class="btn-full" id="loginBtn" onclick="doLogin()">Войти</button>
-<div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
-  <div style="flex:1;height:1px;background:var(--border);"></div>
-  <span style="font-size:12px;color:var(--text-secondary);">или</span>
-  <div style="flex:1;height:1px;background:var(--border);"></div>
-</div>
-<button onclick="doGoogleLogin()" style="width:100%;padding:13px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-card);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-primary);display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;">
+      <div class="form-field">
+        <label>Пароль</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <button class="btn-full" id="loginBtn" onclick="doLogin()">Войти</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:12px;color:var(--text-secondary);">или</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+      <button onclick="doGoogleLogin()" style="width:100%;padding:13px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-card);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-primary);display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Войти через Google
       </button>
@@ -1116,12 +1124,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </span>
       <span class="tab-item-label">Профиль</span>
-    </div>
-    <div class="tab-item" id="tab_logout" onclick="doLogout()" style="color:#EF4444;">
-      <span class="tab-item-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </span>
-      <span class="tab-item-label">Выйти</span>
     </div>
   </nav>
 </div>
@@ -1229,42 +1231,36 @@
       <div style="font-size:15px;color:var(--text-secondary);margin-top:4px;" id="payAmountKzt">≈ 0 ₸</div>
     </div>
 
-    <!-- Freedom Pay кнопка -->
-    <button onclick="payWithFreedomPay()" id="freedomPayBtn" style="width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#1A6BFF,#0052E0);color:white;font-size:16px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:10px;">
-      💳 Оплатить картой
-    </button>
-
-    <!-- Логотипы платёжных систем -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;">
-      <div style="background:white;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:800;color:#1A1F71;letter-spacing:1px;">VISA</div>
-      <div style="background:white;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;display:flex;gap:3px;align-items:center;">
-        <div style="width:14px;height:14px;border-radius:50%;background:#EB001B;"></div>
-        <div style="width:14px;height:14px;border-radius:50%;background:#F79E1B;margin-left:-6px;"></div>
-        <span style="font-size:10px;font-weight:700;color:#333;margin-left:3px;">Mastercard</span>
+    <div style="background:var(--accent-soft);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:10px;">📱 ОПЛАТА ЧЕРЕЗ KASPI</div>
+      <div style="font-size:14px;line-height:1.6;color:var(--text-primary);margin-bottom:10px;">
+        Переведите сумму на номер:
       </div>
-      <div style="background:white;border:1px solid #e5e7eb;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;color:#E31837;">Freedom Pay</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:white;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:17px;font-weight:800;color:var(--text-primary);letter-spacing:0.5px;" id="payKaspiNumber">+7 777 000 00 00</div>
+        <button onclick="copyKaspiNumber()" style="padding:6px 12px;border:1.5px solid var(--accent);background:var(--accent);color:white;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Копировать</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">
+        В комментарии к переводу укажите <b id="payOrderId">—</b>
+      </div>
     </div>
 
-    <!-- Разделитель -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--text-secondary);">или</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;color:var(--text-primary);">📎 Скриншот чека (необязательно)</label>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">
+        Сохраните скрин перевода — он может понадобиться если админ не увидит платёж
+      </div>
     </div>
 
-    <!-- Kaspi как резервный вариант -->
-    <div style="background:var(--bg);border:1.5px solid var(--card-border);border-radius:12px;padding:14px;margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">📱 ПЕРЕВОД ЧЕРЕЗ KASPI</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="font-size:15px;font-weight:800;color:var(--text-primary);" id="payKaspiNumber">+7 777 000 00 00</div>
-        <button onclick="copyKaspiNumber()" style="padding:6px 12px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Копировать</button>
+    <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:12px;padding:12px 14px;margin-bottom:18px;">
+      <div style="font-size:12px;color:#9A3412;line-height:1.5;">
+        ℹ️ После перевода нажмите «Я оплатил» — менеджер проверит поступление в течение 30 минут и подтвердит оплату. Статус посылки обновится автоматически.
       </div>
-      <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;">В комментарии укажите <b id="payOrderId">—</b></div>
     </div>
 
     <div style="display:flex;gap:10px;">
       <button onclick="closePaymentModal()" style="flex:1;padding:12px;border:1.5px solid var(--card-border);border-radius:12px;background:transparent;font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Отмена</button>
-      <button onclick="confirmPayment()" id="confirmPayBtn" class="btn-full" style="flex:2;margin-top:0;">✅ Я оплатил (Kaspi)</button>
+      <button onclick="confirmPayment()" id="confirmPayBtn" class="btn-full" style="flex:2;margin-top:0;">✅ Я оплатил</button>
     </div>
   </div>
 </div>
@@ -1309,7 +1305,6 @@
       <div class="admin-nav-item" onclick="showAdmin('loyalty_admin')"><span>🏆</span> Лояльность</div>
       <div class="admin-nav-item" onclick="showAdmin('promo_admin')"><span>🎟</span> Промокоды</div>
       <div class="admin-nav-item" onclick="showAdmin('recipients')"><span>🪪</span> Получатели</div>
-      <div class="admin-nav-item" onclick="showAdmin('documents')"><span>📋</span> Документы</div>
       <div class="admin-nav-item" onclick="showAdmin('managers')"><span>👤</span> Менеджеры</div>
       <div class="admin-nav-item" onclick="showAdmin('broadcast')"><span>📢</span> Рассылка</div>
 
@@ -1348,14 +1343,6 @@ function comingSoon(featureName) {
 }
 window.comingSoon = comingSoon;
 
-// ===== ТЕМА (объявляем рано, чтобы doLogin мог использовать) =====
-function applyTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : '');
-  window.currentTheme = theme;
-  localStorage.setItem('gs_theme', theme);
-}
-window.applyTheme = applyTheme;
-
 function updateNav(loggedIn, isAdminUser) {
   const auth = document.getElementById('authButtons');
   if (!auth) return;
@@ -1365,32 +1352,6 @@ function updateNav(loggedIn, isAdminUser) {
       : `<button class="btn-pink" onclick="showPage('dashboard')">Личный кабинет</button><button class="btn-outline" style="margin-left:8px;" onclick="doLogout()">Выйти</button>`;
   } else {
     auth.innerHTML = `<button class="btn-outline" onclick="showPage('login')">Войти</button><button class="btn-pink" onclick="showPage('register')">Регистрация</button>`;
-  }
-}
-
-// Показываем статус Firebase на странице логина
-function updateFirebaseStatusBanner() {
-  const el = document.getElementById('firebaseStatus');
-  if (!el) return;
-  if (window._firebaseReady) {
-    el.style.display = 'none'; // всё ок — баннер скрыт
-  } else {
-    el.style.display = 'block';
-    el.style.background = '#FEF3C7';
-    el.style.color = '#92400E';
-    el.textContent = '⏳ Подключение к серверу...';
-    // Проверяем ещё раз через 1.5 сек
-    setTimeout(() => {
-      const el2 = document.getElementById('firebaseStatus');
-      if (!el2) return;
-      if (window._firebaseReady) {
-        el2.style.display = 'none';
-      } else {
-        el2.style.background = '#FEE2E2';
-        el2.style.color = '#991B1B';
-        el2.textContent = '❌ Не удалось подключиться к серверу. Проверьте интернет и обновите страницу.';
-      }
-    }, 1500);
   }
 }
 
@@ -1440,10 +1401,8 @@ function showPageDirect(page) {
   if (page === 'admin') { window.isAdmin = true; showAdmin('dashboard'); }
   if (page === 'warehouses') showWarehousesPage();
   if (page === 'calculator') loadTariffs();
-  if (page === 'shops') { if (typeof renderShops === 'function') renderShops(); if (typeof loadCustomShops === 'function') loadCustomShops(); }
   if (page === 'home') { window.isAdmin = false; if (typeof updateHomeCurrencyWidget === 'function') updateHomeCurrencyWidget(); }
   if (page === 'oferta' || page === 'privacy') { if (typeof loadLegalDocsDates === 'function') loadLegalDocsDates(); }
-  if (page === 'login' || page === 'register') { updateFirebaseStatusBanner(); }
   // Показываем/скрываем таб-бар ЛК
   if (typeof updateTabBarVisibility === 'function') updateTabBarVisibility(page);
   window.scrollTo(0, 0);
@@ -1466,13 +1425,6 @@ async function doAdminLogin() {
   const pass = document.getElementById('adminPassword').value;
   const err = document.getElementById('adminLoginError');
   err.style.display = 'none';
-
-  if (!window.firebaseSignIn || !window.firebaseAuth) {
-    err.textContent = 'Сервис авторизации загружается, попробуйте снова';
-    err.style.display = 'block';
-    return;
-  }
-
   try {
     const cred = await window.firebaseSignIn(window.firebaseAuth, email, pass);
     const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
@@ -1713,27 +1665,15 @@ const adminViews = {
       </div>
     </div>
 
-    <!-- Все магазины -->
+    <!-- Список добавленных магазинов -->
     <div class="acard">
-      <div class="acard-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <span>Все магазины</span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="adminShopsSearch" placeholder="🔍 Поиск..." oninput="adminFilterAllShops(this.value)"
-            style="padding:7px 12px;border:1.5px solid var(--input-border);border-radius:8px;font-size:12px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);width:180px;" />
-          <select id="adminShopsFilter" onchange="adminFilterAllShops(document.getElementById('adminShopsSearch').value)"
-            style="padding:7px 10px;border:1.5px solid var(--input-border);border-radius:8px;font-size:12px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);">
-            <option value="">Все страны</option>
-            <option value="usa">🇺🇸 США</option>
-            <option value="eu">🇪🇺 Европа</option>
-            <option value="uk">🇬🇧 UK</option>
-            <option value="cn">🇨🇳 Китай</option>
-            <option value="kr">🇰🇷 Корея</option>
-            <option value="jp">🇯🇵 Япония</option>
-          </select>
+      <div class="acard-title">Магазины, добавленные вручную</div>
+      <div id="admShopsList">
+        <div style="padding:32px 20px;text-align:center;color:var(--text-secondary);">
+          <div style="font-size:36px;margin-bottom:8px;">🛍</div>
+          <div style="font-size:14px;font-weight:700;">Пока нет добавленных магазинов</div>
+          <div style="font-size:12px;margin-top:4px;">Встроенный каталог из 30 магазинов отображается на странице «Магазины» автоматически</div>
         </div>
-      </div>
-      <div id="admShopsAllList" style="overflow-x:auto;">
-        <div style="padding:24px;text-align:center;color:var(--text-secondary);">⏳ Загрузка...</div>
       </div>
     </div>`,
 
@@ -1803,28 +1743,6 @@ const adminViews = {
           <div style="font-size:15px;font-weight:700;">Ничего не найдено</div>
           <div style="font-size:13px;margin-top:4px;">Попробуйте другой запрос</div>
         </div>
-      </div>
-    </div>`,
-
-  documents: `
-    <div class="dash-greeting">📋 Проверка документов</div>
-    <div class="dash-sub">Удостоверения личности пользователей</div>
-    <div class="metrics">
-      <div class="metric-card"><div class="metric-label">НА ПРОВЕРКЕ</div><div class="metric-value" id="docsPending">—</div></div>
-      <div class="metric-card"><div class="metric-label">ПОДТВЕРЖДЕНО</div><div class="metric-value" id="docsVerified">—</div></div>
-      <div class="metric-card"><div class="metric-label">ОТКЛОНЕНО</div><div class="metric-value" id="docsRejected">—</div></div>
-    </div>
-    <div class="acard">
-      <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <select id="docFilterStatus" onchange="adminLoadDocuments()" style="padding:10px 14px;border:1.5px solid #E0EAFF;border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);cursor:pointer;">
-          <option value="">Все документы</option>
-          <option value="pending">На проверке</option>
-          <option value="verified">Подтверждены</option>
-          <option value="rejected">Отклонены</option>
-        </select>
-      </div>
-      <div id="adminDocsList" style="display:flex;flex-direction:column;gap:12px;">
-        <div style="text-align:center;padding:32px;color:var(--text-secondary);">⏳ Загрузка...</div>
       </div>
     </div>`,
 
@@ -2356,9 +2274,18 @@ const adminViews = {
 
   warehouses: `
     <div class="dash-greeting">🏪 Склады</div>
-    <div class="dash-sub">Управление адресами складов — изменения сразу видны клиентам</div>
-    <div id="adminWarehousesList" style="display:flex;flex-direction:column;gap:12px;">
-      <div style="text-align:center;padding:32px;color:var(--text-secondary);">⏳ Загрузка...</div>
+    <div class="dash-sub">Управление адресами складов</div>
+    <div class="acard">
+      <div class="acard-title">Склады <button class="btn-pink" style="padding:6px 16px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="comingSoon(&#39;Добавление склада&#39;)">+ Добавить склад 🔜</button></div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Страна</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Адрес</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th><th style="padding:10px 12px;"></th></tr></thead>
+        <tbody>
+          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇺🇸 США</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">463 Carson Drive, Bear, Delaware</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
+          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇩🇪 Германия</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">Bayernstraße 30a, Langenhagen</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
+          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇨🇳 Китай</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">广州市白云区, IS8196</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
+          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇰🇷 Корея</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">중구 을지로42길16, Сеул</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
+        </tbody>
+      </table>
     </div>`,
 
   promo_admin: `
@@ -2500,31 +2427,31 @@ const adminViews = {
     <div class="dash-greeting">🏆 Программа лояльности</div>
     <div class="dash-sub">Статистика уровней клиентов</div>
 
-    <!-- Статистика по уровням — реальные данные -->
+    <!-- Статистика по уровням -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;">
       <div class="acard" style="text-align:center;padding:16px;">
         <div style="font-size:28px;margin-bottom:6px;">⚪</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text-primary);" id="loyaltyCountStandard">—</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text-primary);">89</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Стандарт</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#FDE68A;">
         <div style="font-size:28px;margin-bottom:6px;">🥉</div>
-        <div style="font-size:20px;font-weight:800;color:#92400E;" id="loyaltyCountBronze">—</div>
+        <div style="font-size:20px;font-weight:800;color:#92400E;">24</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Бронза</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#CBD5E1;">
         <div style="font-size:28px;margin-bottom:6px;">🥈</div>
-        <div style="font-size:20px;font-weight:800;color:#475569;" id="loyaltyCountSilver">—</div>
+        <div style="font-size:20px;font-weight:800;color:#475569;">10</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Сильвер</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#FDE68A;">
         <div style="font-size:28px;margin-bottom:6px;">🥇</div>
-        <div style="font-size:20px;font-weight:800;color:#B45309;" id="loyaltyCountGold">—</div>
+        <div style="font-size:20px;font-weight:800;color:#B45309;">3</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Золото</div>
       </div>
       <div class="acard" style="text-align:center;padding:16px;border-color:#C7D2FE;">
         <div style="font-size:28px;margin-bottom:6px;">💎</div>
-        <div style="font-size:20px;font-weight:800;color:#3730A3;" id="loyaltyCountPlatinum">—</div>
+        <div style="font-size:20px;font-weight:800;color:#3730A3;">1</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Платина</div>
       </div>
     </div>
@@ -2578,7 +2505,7 @@ const adminViews = {
         </tbody>
       </table>
     </div>`
-}
+};
 
 function showAdmin(view) {
   document.getElementById('adminContent').innerHTML = adminViews[view] || adminViews.dashboard;
@@ -2607,13 +2534,6 @@ function showAdmin(view) {
   }
   if (view === 'shops_admin' && typeof adminInitShops === 'function') {
     adminInitShops();
-  }
-  if (view === 'warehouses') setTimeout(adminLoadWarehouses, 100);
-  if (view === 'documents') {
-    setTimeout(adminLoadDocuments, 100);
-  }
-  if (view === 'loyalty_admin') {
-    setTimeout(adminLoadLoyaltyStats, 100);
   }
   if (view === 'settings' && typeof adminLoadSettingsView === 'function') {
     setTimeout(adminLoadSettingsView, 80);
@@ -3110,103 +3030,6 @@ window.confirmIntake = confirmIntake;
 // ===== ОПЛАТА ПЕРЕВОДОМ =====
 window._currentPayment = null;
 
-// ===== FREEDOM PAY ИНТЕГРАЦИЯ =====
-const FREEDOM_PROJECT_ID = '584599';
-const FREEDOM_SECRET_KEY = '6NqEqTZnX3WS9Toh';
-const FREEDOM_API_URL = 'https://api.freedompay.kz';
-
-async function payWithFreedomPay() {
-  if (!window._currentPayment) return;
-  const p = window._currentPayment;
-  const btn = document.getElementById('freedomPayBtn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Создаём платёж...'; }
-
-  try {
-    const orderId = 'GS-' + Date.now() + '-' + window.currentUser.uid.substring(0, 6);
-    const amountKzt = p.priceKzt;
-
-    // Сохраняем платёж в Firestore со статусом pending
-    const payId = 'fpay_' + Date.now() + '_' + window.currentUser.uid.substring(0, 8);
-    await window.firebaseSetDoc(
-      window.firebaseDoc(window.firebaseDb, 'payments', payId),
-      {
-        id: payId,
-        orderId: orderId,
-        parcelId: p.parcelId,
-        parcelName: p.name,
-        userId: window.currentUser.uid,
-        userEmail: window.currentUser.email,
-        amountUsd: p.priceUsd,
-        amountKzt: amountKzt,
-        method: 'freedom_pay',
-        status: 'pending',
-        createdAt: Date.now()
-      }
-    );
-
-    // Формируем ссылку на оплату Freedom Pay
-    const returnUrl = window.location.href.split('?')[0] + '?payment=success&order=' + orderId;
-    const failUrl = window.location.href.split('?')[0] + '?payment=fail&order=' + orderId;
-
-    // Создаём hash подпись (sha256 от projectId + orderId + amount + secretKey)
-    const hashStr = FREEDOM_PROJECT_ID + orderId + amountKzt + FREEDOM_SECRET_KEY;
-    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashStr));
-    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
-
-    const params = new URLSearchParams({
-      pg_merchant_id: FREEDOM_PROJECT_ID,
-      pg_order_id: orderId,
-      pg_amount: amountKzt,
-      pg_currency: 'KZT',
-      pg_description: 'Оплата заказа Global Shop KZ: ' + p.name,
-      pg_salt: orderId,
-      pg_sig: hashHex,
-      pg_result_url: 'https://globalshop-kz.firebaseapp.com/payment-callback',
-      pg_success_url: returnUrl,
-      pg_failure_url: failUrl,
-      pg_user_email: window.currentUser.email || '',
-      pg_lifetime: '3600'
-    });
-
-    // Открываем страницу оплаты Freedom Pay
-    const payUrl = FREEDOM_API_URL + '/payment?' + params.toString();
-    closePaymentModal();
-    window.open(payUrl, '_blank');
-
-  } catch(e) {
-    alert('❌ Ошибка: ' + (e.message || e));
-    if (btn) { btn.disabled = false; btn.textContent = '💳 Оплатить картой'; }
-  }
-}
-window.payWithFreedomPay = payWithFreedomPay;
-
-// Проверяем результат оплаты при загрузке страницы
-window.addEventListener('load', () => {
-  const params = new URLSearchParams(window.location.search);
-  const payStatus = params.get('payment');
-  const orderId = params.get('order');
-  if (payStatus === 'success' && orderId) {
-    setTimeout(() => {
-      const banner = document.createElement('div');
-      banner.style.cssText = 'position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:16px 24px;border-radius:14px;background:#D1FAE5;color:#065F46;font-size:15px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;text-align:center;';
-      banner.innerHTML = '✅ Оплата прошла успешно! Заказ ' + orderId + ' оплачен.';
-      document.body.appendChild(banner);
-      setTimeout(() => banner.remove(), 6000);
-      // Убираем параметры из URL
-      window.history.replaceState({}, '', window.location.pathname);
-    }, 1500);
-  } else if (payStatus === 'fail') {
-    setTimeout(() => {
-      const banner = document.createElement('div');
-      banner.style.cssText = 'position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:16px 24px;border-radius:14px;background:#FEE2E2;color:#991B1B;font-size:15px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;text-align:center;';
-      banner.innerHTML = '❌ Оплата не прошла. Попробуйте ещё раз.';
-      document.body.appendChild(banner);
-      setTimeout(() => banner.remove(), 5000);
-      window.history.replaceState({}, '', window.location.pathname);
-    }, 1500);
-  }
-});
-
 async function openPaymentModal(parcelId, priceStr, name) {
   if (!window.currentUser) { alert('⚠️ Войдите в аккаунт'); return; }
   // Загружаем номер Kaspi из настроек (если админ задал)
@@ -3433,101 +3256,11 @@ function adminInitShops() {
   resetShopForm();
   renderShopIconPreview();
   adminLoadShopsList();
-  adminRenderAllShops();
   // Привязываем live preview к полю icon
   const iconInp = document.getElementById('shopIcon');
   if (iconInp) iconInp.oninput = renderShopIconPreview;
 }
 window.adminInitShops = adminInitShops;
-
-// Рендерим ВСЕ магазины (встроенные + добавленные вручную)
-window._adminAllShops = [];
-async function adminRenderAllShops() {
-  const container = document.getElementById('admShopsAllList');
-  if (!container) return;
-
-  // Загружаем добавленные вручную из Firestore
-  let customShops = [];
-  try {
-    const snap = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, 'shops'));
-    snap.forEach(d => {
-      const s = d.data();
-      if (!s.__deleted) customShops.push({ ...s, __docId: d.id, __custom: true });
-    });
-  } catch(e) {}
-
-  // Объединяем: сначала встроенные, потом кастомные
-  const builtIn = (typeof shopsData !== 'undefined' ? shopsData : []).map(s => ({ ...s, __builtin: true }));
-  const all = [...builtIn, ...customShops];
-  window._adminAllShops = all;
-  adminRenderShopsTable(all);
-}
-
-function adminFilterAllShops(query) {
-  const q = (query || '').toLowerCase();
-  const country = (document.getElementById('adminShopsFilter') || {}).value || '';
-  const filtered = (window._adminAllShops || []).filter(s => {
-    const matchQ = !q || (s.name||'').toLowerCase().includes(q) || (s.url||'').toLowerCase().includes(q);
-    const matchC = !country || s.country === country;
-    return matchQ && matchC;
-  });
-  adminRenderShopsTable(filtered);
-}
-
-function adminRenderShopsTable(shops) {
-  const container = document.getElementById('admShopsAllList');
-  if (!container) return;
-  if (!shops.length) {
-    container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);">Ничего не найдено</div>';
-    return;
-  }
-  container.innerHTML = '<table style="width:100%;border-collapse:collapse;">'
-    + '<thead><tr style="background:var(--bg);">'
-    + '<th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;"></th>'
-    + '<th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;">Название</th>'
-    + '<th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;">Страна</th>'
-    + '<th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;">Категории</th>'
-    + '<th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;">Тип</th>'
-    + '<th style="padding:10px 12px;"></th>'
-    + '</tr></thead><tbody>'
-    // Используйте обратные кавычки ` или комбинацию с двойными \"
-const logo = isImg
-  ? `<img src="${s.icon}" style="width:28px;height:28px;object-fit:contain;border-radius:6px;" onerror="this.outerHTML='🛍️';" />`
-  : `<span style="font-size:20px;">${s.icon || '🛍️'}</span>`;
-
-         const editBtn = s.__custom
-  ? `<button onclick="editShop('${s.__docId}')" style="padding:5px 12px;border:1.5px solid var(--border);border-radius:8px;background:transparent;font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);margin-right:4px;">✏️</button>`
-    + `<button onclick="deleteShop('${s.__docId}', '${(s.name || '').replace(/'/g, "\\'")}')" style="padding:5px 10px;border:1.5px solid #FECACA;border-radius:8px;background:transparent;font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:#991B1B;">🗑</button>`
-  : `<button onclick="adminEditBuiltinShop('${s.id}')" style="padding:5px 12px;border:1.5px solid var(--border);border-radius:8px;background:transparent;font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">✏️ Изменить</button>`;
-
-
-function adminEditBuiltinShop(shopId) {
-  // Для встроенного — заполняем форму добавления чтобы создать override
-  const s = (typeof shopsData !== 'undefined' ? shopsData : []).find(x => x.id === shopId);
-  if (!s) return;
-  const set = (id, v='') => { const el = document.getElementById(id); if (el) el.value = v; };
-  set('shopEditId', '');  // пустой — создаст новый
-  set('shopName', s.name || '');
-  set('shopUrl', s.url || '');
-  set('shopIcon', s.icon || '');
-  set('shopDesc', s.desc || '');
-  set('shopCountry', s.country || '');
-  set('shopCountryLabel', s.countryLabel || '');
-  const vpn = document.getElementById('shopVpn'); if (vpn) vpn.checked = !!s.vpn;
-  const cats = s.cats || [];
-  document.querySelectorAll('#shopCatsPicker input[type="checkbox"]').forEach(c => c.checked = cats.includes(c.value));
-  const mode = (s.icon && s.icon.startsWith('http')) ? 'url' : 'emoji';
-  setShopLogoMode(mode);
-  const title = document.getElementById('shopFormTitle');
-  if (title) title.textContent = '✏️ Редактировать: ' + s.name;
-  const btn = document.getElementById('saveShopBtn');
-  if (btn) btn.textContent = '💾 Сохранить изменения';
-  renderShopIconPreview();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-window.adminEditBuiltinShop = adminEditBuiltinShop;
-window.adminRenderAllShops = adminRenderAllShops;
-window.adminFilterAllShops = adminFilterAllShops;
 
 function setShopLogoMode(mode) {
   const emojiBtn = document.getElementById('shopLogoModeEmoji');
@@ -3654,12 +3387,11 @@ async function adminLoadShopsList() {
     );
     const rows = [];
     snap.forEach(d => rows.push({ ...d.data(), __docId: d.id }));
-    const visibleRows = rows.filter(r => !r.__deleted);
-    if (visibleRows.length === 0) {
+    if (rows.length === 0) {
       list.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:8px;">🛍</div><div style="font-size:14px;font-weight:700;">Пока нет добавленных магазинов</div><div style="font-size:12px;margin-top:4px;">Встроенный каталог из 30 магазинов отображается на странице «Магазины» автоматически</div></div>';
       return;
     }
-    visibleRows.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
+    rows.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
     list.innerHTML = `
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:var(--bg);">
@@ -3671,7 +3403,7 @@ async function adminLoadShopsList() {
           <th style="padding:10px 12px;"></th>
         </tr></thead>
         <tbody>
-          ${visibleRows.map(s => {
+          ${rows.map(s => {
             const isImg = s.icon && (s.icon.startsWith('http://') || s.icon.startsWith('https://'));
             const logo = isImg
               ? `<img src="${s.icon}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;" onerror="this.outerHTML='🛍';" />`
@@ -3947,13 +3679,6 @@ async function doRegister() {
   if (password.length < 6) { err.textContent = 'Пароль минимум 6 символов'; err.style.display='block'; document.getElementById('regPassword').focus(); return; }
   if (passwordConfirm && password !== passwordConfirm) { err.textContent = 'Пароли не совпадают'; err.style.display='block'; document.getElementById('regPasswordConfirm').focus(); return; }
 
-  // Firebase ещё не загружен
-  if (!window.firebaseCreateUser || !window.firebaseAuth) {
-    err.textContent = 'Сервис авторизации загружается, попробуйте снова через секунду';
-    err.style.display = 'block';
-    return;
-  }
-
   btn.textContent = 'Регистрация...';
   btn.disabled = true;
   err.style.display = 'none';
@@ -3965,9 +3690,7 @@ async function doRegister() {
       name, phone, email, clientId,
       createdAt: new Date().toISOString(), role: 'client', theme: 'light'
     });
-    if (typeof window.firebaseSendEmailVerification === 'function') {
-      await window.firebaseSendEmailVerification(cred.user);
-    }
+    await sendEmailVerification(cred.user);
     // Показываем сообщение о подтверждении email
     err.style.display = 'block';
     err.style.background = '#D1FAE5';
@@ -3977,16 +3700,12 @@ async function doRegister() {
     btn.disabled = false;
     return;
   } catch(e) {
-    console.error('doRegister error:', e.code, e.message);
     const msgs = {
-      'auth/email-already-in-use':   'Этот email уже зарегистрирован',
-      'auth/invalid-email':          'Неверный формат email',
-      'auth/weak-password':          'Пароль слишком простой',
-      'auth/network-request-failed': 'Нет соединения с интернетом',
+      'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+      'auth/invalid-email': 'Неверный формат email',
+      'auth/weak-password': 'Пароль слишком простой'
     };
-    err.textContent = msgs[e.code] || ('Ошибка: ' + (e.message || e.code || 'неизвестная'));
-    err.style.background = '#FEE2E2';
-    err.style.color = '#991B1B';
+    err.textContent = msgs[e.code] || 'Ошибка регистрации';
     err.style.display = 'block';
   } finally {
     btn.textContent = 'Зарегистрироваться';
@@ -4032,73 +3751,42 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   const err = document.getElementById('loginError');
 
-  // Сбрасываем стиль ошибки на красный (мог остаться зелёный от регистрации)
-  err.style.background = '#FEE2E2';
-  err.style.color = '#991B1B';
-
-  if (!email || !password) {
-    err.textContent = 'Заполните все поля';
-    err.style.display = 'block';
-    return;
-  }
-
-  // Проверка готовности Firebase
-  if (!window._firebaseReady || !window.firebaseSignIn || !window.firebaseAuth) {
-    err.textContent = '⏳ Firebase ещё загружается. Подождите секунду и нажмите снова.';
-    err.style.display = 'block';
-    return;
-  }
+  if (!email || !password) { err.textContent = 'Заполните все поля'; err.style.display='block'; return; }
 
   btn.textContent = 'Вход...';
   btn.disabled = true;
   err.style.display = 'none';
 
   try {
-    console.log('🔑 doLogin: попытка входа для', email);
     const cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
-    console.log('✅ doLogin: успешный вход', cred.user.uid);
     window.currentUser = cred.user;
-
-    let role = 'client';
-    try {
-      const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
-      if (userDoc.exists()) {
-        window.currentUserData = userDoc.data();
-        window.currentClientId = userDoc.data().clientId || null;
-        role = userDoc.data().role || 'client';
-        const savedTheme = userDoc.data().theme || 'light';
-        if (typeof applyTheme === 'function') applyTheme(savedTheme);
+    const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
+    if (userDoc.exists()) {
+      window.currentUserData = userDoc.data();
+      window.currentClientId = userDoc.data().clientId || null;
+      // Apply saved theme
+      const savedTheme = userDoc.data().theme || 'light';
+      applyTheme(savedTheme);
+      if (userDoc.data().role === 'admin') {
+        window.isAdmin = true;
+        updateNav(true, true);
+        showPage('admin');
+      } else {
+        updateNav(true, false);
+        showPage('dashboard');
       }
-    } catch (dbErr) {
-      console.warn('⚠️ doLogin: не удалось загрузить профиль:', dbErr.message);
-      // Продолжаем — авторизация прошла, профиль можно загрузить позже
-    }
-
-    if (role === 'admin') {
-      window.isAdmin = true;
-      updateNav(true, true);
-      showPage('admin');
     } else {
       updateNav(true, false);
       showPage('dashboard');
     }
-
-  } catch (e) {
-    console.error('❌ doLogin error — code:', e.code, '| message:', e.message);
+  } catch(e) {
     const msgs = {
-      'auth/user-not-found':          '❌ Пользователь не найден',
-      'auth/wrong-password':          '❌ Неверный пароль',
-      'auth/invalid-credential':      '❌ Неверный email или пароль',
-      'auth/invalid-email':           '❌ Неверный формат email',
-      'auth/too-many-requests':       '⏳ Слишком много попыток. Подождите и попробуйте снова',
-      'auth/network-request-failed':  '🌐 Нет соединения с интернетом',
-      'auth/user-disabled':           '🚫 Аккаунт заблокирован',
-      'auth/app-check-token-expired': '🔒 Ошибка App Check. Обновите страницу (F5)',
+      'auth/user-not-found': 'Пользователь не найден',
+      'auth/wrong-password': 'Неверный пароль',
+      'auth/invalid-credential': 'Неверный email или пароль',
+      'auth/invalid-email': 'Неверный формат email'
     };
-    const display = msgs[e.code] || ('Ошибка [' + (e.code || 'unknown') + ']: ' + (e.message || 'неизвестная ошибка'));
-    err.textContent = display;
-    err.style.background = '#FEE2E2';
-    err.style.color = '#991B1B';
+    err.textContent = msgs[e.code] || 'Ошибка входа';
     err.style.display = 'block';
   } finally {
     btn.textContent = 'Войти';
@@ -4701,8 +4389,8 @@ function renderDash(view) {
         <!-- Запрос на удаление аккаунта -->
         <div style="border-top:1px solid var(--card-border);padding-top:20px;">
           <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">Удаление аккаунта</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">После запроса у вас будет <b>30 дней</b> чтобы передумать и восстановить аккаунт.</div>
-          <button onclick="startDeleteFlow()" style="padding:10px 20px;border:1.5px solid #EF4444;border-radius:10px;background:white;color:#EF4444;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Все ваши данные будут удалены в течение 30 дней. Это действие необратимо.</div>
+          <button onclick="requestAccountDeletion()" style="padding:10px 20px;border:1.5px solid #EF4444;border-radius:10px;background:white;color:#EF4444;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
             🗑️ Запросить удаление аккаунта
           </button>
         </div>
@@ -4918,39 +4606,41 @@ function updateOrderDelivery() {
 
 // Default warehouses data
 const defaultWarehouses = [
-  { id: 'usa', flag: '🇺🇸', country: 'США', city: 'Delaware', active: true, fields: [
+  { id: 'usa', flag: '🇺🇸', country: 'США (Delaware)', fields: [
     { label: 'Получатель', value: 'TEZREK' },
     { label: 'Адрес', value: '463 Carson Drive, Bear' },
     { label: 'Штат / Индекс', value: 'Delaware (DE), 19701' },
     { label: 'Страна', value: 'USA' },
     { label: 'Телефон', value: '+1 347 752 6954' }
-  ], tariffs: { standard: 11, silver: 10, gold: 9 }},
-  { id: 'de', flag: '🇩🇪', country: 'Германия', city: 'Langenhagen', active: true, fields: [
+  ]},
+  { id: 'de', flag: '🇩🇪', country: 'Германия (Langenhagen)', fields: [
     { label: 'Получатель', value: 'TEZREK' },
     { label: 'Адрес', value: 'Bayernstraße 30a' },
     { label: 'Город / Индекс', value: 'Langenhagen, 30855' },
     { label: 'Страна', value: 'Germany (DE)' },
     { label: 'Телефон', value: '+49 0511 67 69 5277' }
-  ], tariffs: { standard: 11, silver: 10, gold: 9 }},
-  { id: 'cn', flag: '🇨🇳', country: 'Китай', city: 'Гуанчжоу', active: true, fields: [
+  ]},
+  { id: 'kr', flag: '🇰🇷', country: 'Южная Корея (Сеул)', fields: [
+    { label: 'Получатель', value: 'TEZREK' },
+    { label: 'Адрес', value: '중구 을지로42길16 우즈스타아시아' },
+    { label: 'Город / Индекс', value: '서울, 04561' },
+    { label: 'Страна', value: '대한민국' },
+    { label: 'Телефон', value: '01071057770' }
+  ]},
+  { id: 'cn', flag: '🇨🇳', country: 'Китай (Гуанчжоу)', fields: [
     { label: 'Получатель', value: 'IS8196' },
     { label: 'Адрес', value: '石门街道沙路石井工业区三横路3号F8栋106' },
     { label: 'Город', value: '广州市' },
     { label: 'Провинция / Район', value: '广东省 / 白云区' },
     { label: 'Телефон', value: '17819688685' }
-  ], tariffs: { standard: 5, silver: 4.5, gold: 4 }},
-  { id: 'cn_express', flag: '🇨🇳', country: 'Китай Экспресс', city: '1-4 дня', active: true, fields: [
+  ]},
+  { id: 'cn_express', flag: '🇨🇳', country: 'Китай Экспресс (1-4 дня)', fields: [
     { label: 'Получатель', value: 'AE895154' },
     { label: 'Адрес', value: '白云区/松洲街高桥路三街25号 枚桂新港云仓E2栋2505档' },
     { label: 'Город', value: '广州市' },
     { label: 'Провинция', value: '广东省' },
     { label: 'Телефон', value: '13130149876' }
-  ], tariffs: { standard: 12, silver: 11, gold: 10 }},
-  { id: 'kr', flag: '🇰🇷', country: 'Южная Корея', city: 'Сеул', active: false, comingSoon: true, fields: [], tariffs: { standard: 15, silver: 13, gold: 12 }},
-  { id: 'uk', flag: '🇬🇧', country: 'Великобритания', city: 'Лондон', active: false, comingSoon: true, fields: [], tariffs: { standard: 12, silver: 11, gold: 10 }},
-  { id: 'jp', flag: '🇯🇵', country: 'Япония', city: 'Токио', active: false, comingSoon: true, fields: [], tariffs: { standard: 14, silver: 13, gold: 12 }},
-  { id: 'tr', flag: '🇹🇷', country: 'Турция', city: 'Стамбул', active: false, comingSoon: true, fields: [], tariffs: { standard: 10, silver: 9, gold: 8 }},
-  { id: 'ca', flag: '🇨🇦', country: 'Канада', city: 'Торонто', active: false, comingSoon: true, fields: [], tariffs: { standard: 12, silver: 11, gold: 10 }}
+  ]}
 ];
 
 // Default tariffs
@@ -4984,69 +4674,30 @@ function fallbackCopy(value, onSuccess) {
   document.body.removeChild(ta);
 }
 
-function getUserLoyaltyLevel() {
-  try { return (JSON.parse(localStorage.getItem('gs_loyalty') || '{}')).level || 'standard'; }
-  catch(e) { return 'standard'; }
-}
-
 function renderWarehouses(data) {
-  window._loadedWarehouses = data;
   const list = document.getElementById('warehousesList');
   if (!list) return;
-  const userLevel = getUserLoyaltyLevel();
-  const levelLabel = { standard:'Стандарт', bronze:'Бронза', silver:'Сильвер', gold:'Золото', platinum:'Платина' };
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;">';
-  data.forEach(wh => {
-    html += '<button onclick="toggleWarehouse(\''+wh.id+'\')" id="whBtn_'+wh.id+'" style="padding:10px 16px;border-radius:12px;border:2px solid var(--border);background:var(--card-bg);cursor:'+(wh.comingSoon?'default':'pointer')+';display:flex;align-items:center;gap:8px;font-family:Manrope,sans-serif;transition:all 0.2s;'+(wh.comingSoon?'opacity:0.55;':'')+'">'
-      + '<span style="font-size:22px;">'+wh.flag+'</span>'
-      + '<span style="font-size:13px;font-weight:700;color:var(--text-primary);">'+wh.country+'</span>'
-      + (wh.comingSoon ? '<span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:2px 7px;border-radius:20px;font-weight:700;">Скоро</span>' : '')
-      + '</button>';
-  });
-  html += '</div>';
-  data.forEach(wh => {
-    html += '<div id="whPanel_'+wh.id+'" style="display:none;margin-bottom:12px;">';
-    if (wh.comingSoon) {
-      html += '<div style="background:var(--card-bg);border-radius:18px;border:1px solid var(--border);padding:32px;text-align:center;"><div style="font-size:48px;margin-bottom:12px;">'+wh.flag+'</div><div style="font-size:18px;font-weight:800;margin-bottom:8px;">'+wh.country+' — Скоро</div><div style="font-size:14px;color:var(--text-secondary);">Этот склад скоро откроется!</div></div>';
-    } else {
-      const myTariff = wh.tariffs ? (wh.tariffs[userLevel] || wh.tariffs.standard) : '';
-      html += '<div class="warehouse-card" style="flex-direction:column;gap:12px;">'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
-        + '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:28px;">'+wh.flag+'</span><div><div class="wh-country">'+wh.country+' ('+wh.city+')</div><span class="wh-badge active">✓ Активен</span></div></div>'
-        + (wh.tariffs ? '<div style="background:var(--accent-soft);border-radius:10px;padding:8px 14px;text-align:right;"><div style="font-size:13px;font-weight:800;color:var(--accent);">$'+myTariff+'/кг</div><div style="font-size:10px;color:var(--text-secondary);">'+(levelLabel[userLevel]||userLevel)+'</div>'+(userLevel==='standard'?'<div style="font-size:10px;color:var(--text-secondary);margin-top:2px;">🥈 $'+wh.tariffs.silver+' · 🥇 $'+wh.tariffs.gold+'</div>':'')+'</div>' : '')
-        + '</div>'
-        + '<div style="font-size:12px;color:var(--text-secondary);">Нажмите на поле чтобы скопировать 👇</div>';
-      wh.fields.forEach(f => {
-        const safeVal = f.value.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        html += '<div class="copy-field" onclick="copyField(this,\''+safeVal+'\')">'
-          + '<div><div class="copy-field-label">'+f.label+'</div><div class="copy-field-value">'+f.value+'</div></div>'
-          + '<span class="copy-field-icon">📋</span></div>';
-      });
-      html += '</div>';
-    }
-    html += '</div>';
-  });
-  list.style.display = 'block';
-  list.innerHTML = html;
-}
-
-function toggleWarehouse(id) {
-  const allWh = window._loadedWarehouses || defaultWarehouses;
-  const wh = allWh.find(w => w.id === id);
-  const panel = document.getElementById('whPanel_' + id);
-  const btn = document.getElementById('whBtn_' + id);
-  allWh.forEach(w => {
-    if (w.id !== id) {
-      const p = document.getElementById('whPanel_' + w.id);
-      const b = document.getElementById('whBtn_' + w.id);
-      if (p) p.style.display = 'none';
-      if (b && !w.comingSoon) { b.style.borderColor = 'var(--border)'; b.style.background = 'var(--card-bg)'; }
-    }
-  });
-  if (!panel) return;
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (btn && wh && !wh.comingSoon) { btn.style.borderColor = isOpen ? 'var(--border)' : 'var(--accent)'; btn.style.background = isOpen ? 'var(--card-bg)' : 'var(--accent-soft)'; }
+  list.innerHTML = data.map(wh => `
+    <div class="warehouse-card" style="flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:28px;">${wh.flag}</span>
+        <div>
+          <div class="wh-country">${wh.country}</div>
+          <span class="wh-badge active">✓ Активен</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Нажмите на поле чтобы скопировать 👇</div>
+      ${wh.fields.map(f => `
+        <div class="copy-field" onclick="copyField(this, '${f.value.replace(/'/g,"\\'")}')">
+          <div>
+            <div class="copy-field-label">${f.label}</div>
+            <div class="copy-field-value">${f.value}</div>
+          </div>
+          <span class="copy-field-icon">📋</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
 }
 
 function showWarehousesPage() {
@@ -5424,14 +5075,12 @@ function toggleLangMenu() {
   m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
 document.addEventListener('click', e => {
-  const switcher = document.getElementById('langSwitcher');
-  const menu = document.getElementById('langMenu');
-  if (switcher && menu && !switcher.contains(e.target)) {
-    menu.style.display = 'none';
+  if (!document.getElementById('langSwitcher').contains(e.target)) {
+    document.getElementById('langMenu').style.display = 'none';
   }
 });
 function setLang(lang) {
-  if (lang !== 'ru') {
+  if (lang !== 'ru' && lang !== 'en' && lang !== 'kk') {
     alert('Этот язык скоро появится! 🚧');
     document.getElementById('langMenu').style.display = 'none';
     return;
@@ -5654,7 +5303,7 @@ async function adminLoadUsersFromFirestore() {
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     set('admUsersTotal', _adminUsersData.length);
     set('admUsersNew', newLast30);
-    set('admUsersActive', _adminUsersData.filter(u => u.parcels > 0).length);
+    set('admUsersActive', _adminUsersData.length); // пока = всего
     set('admUsersWithParcels', withParcels);
     // Перерисовать если таблица открыта
     if (document.getElementById('adminUsersTbody')) {
@@ -5764,9 +5413,9 @@ async function saveTheme(theme) {
         { theme }, { merge: true }
       );
     } catch(e) {}
- }
+  }
 }
-}</script>
+</script>
 
 <script>
 // ===== СИСТЕМА ЛОЯЛЬНОСТИ =====
@@ -6534,7 +6183,7 @@ window.renderDash = function(view) {
         <div style="width:52px;height:52px;background:#F3F4F6;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📍</div>
         <div style="flex:1;">
           <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Адрес</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Алматы, ул. Абылай Хана 3, этаж 0, бутик 02 · <b>Global Buy</b></div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Алматы, ул. Абылай Хана 30, этаж 0, бутик 02 · <b>Global Buy</b></div>
           <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="padding:8px 20px;background:#1A73E8;color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-block;">Открыть на карте</a>
         </div>
       </div>
@@ -6605,7 +6254,7 @@ window.renderDash = function(view) {
 
       <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
       <p style="margin-bottom:8px;">1.1. Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки и защиты персональных данных пользователей сайта Global Shop KZ.</p>
-      <p style="margin-bottom:8px;">1.2. Оператором персональных данных является <b>ИП Журавлёв</b>, ИИН 030816501796, Республика Казахстан, г. Алматы, ул. Абылай Хана 3, этаж 0, бутик 02.</p>
+      <p style="margin-bottom:8px;">1.2. Оператором персональных данных является <b>ИП Журавлёв</b>, ИИН 030816501796, Республика Казахстан, г. Алматы, ул. Абылай Хана 30, бутик 02.</p>
       <p style="margin-bottom:8px;">1.3. Политика разработана в соответствии с Законом Республики Казахстан «О персональных данных и их защите» № 94-V от 21 мая 2013 года.</p>
       <p style="margin-bottom:24px;">1.4. Используя сайт и регистрируясь на нём, вы выражаете согласие с настоящей Политикой.</p>
 
@@ -6651,7 +6300,7 @@ window.renderDash = function(view) {
       <p style="margin-bottom:8px;">По вопросам обработки персональных данных обращайтесь:</p>
       <p style="margin-bottom:4px;">📧 Email: <a href="mailto:globalshopkz@gmail.com" style="color:var(--accent);">globalshopkz@gmail.com</a></p>
       <p style="margin-bottom:4px;">💬 WhatsApp: <a href="https://wa.me/77064128196" style="color:var(--accent);">+7 706 412 8196</a></p>
-      <p style="margin-bottom:0;">📍 Алматы, ул. Абылай Хана 3, этаж 0, бутик 02</p>
+      <p style="margin-bottom:0;">📍 Алматы, ул. Абылай Хана 30, бутик 02</p>
     </div>
   </div>
 
@@ -6991,309 +6640,11 @@ async function uploadDocument(input) {
   }
 }
 
-// ===== АДМИН: РЕДАКТИРОВАНИЕ СКЛАДОВ =====
-async function adminLoadWarehouses() {
-  const container = document.getElementById('adminWarehousesList');
-  if (!container) return;
-  let warehouses = defaultWarehouses;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
-    if (snap.exists() && snap.data().list) warehouses = snap.data().list;
-  } catch(e) {}
-
-  container.innerHTML = warehouses.map(wh => `
-    <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);padding:20px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:28px;">${wh.flag}</span>
-          <div>
-            <div style="font-size:15px;font-weight:800;color:var(--text-primary);">${wh.country}</div>
-            <div style="font-size:12px;color:var(--text-secondary);">${wh.city || ''}</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:${wh.comingSoon ? '#FEF3C7' : '#D1FAE5'};color:${wh.comingSoon ? '#92400E' : '#065F46'};">${wh.comingSoon ? '⏳ Скоро' : '✅ Активен'}</span>
-          ${!wh.comingSoon ? `<button onclick="adminEditWarehouse('${wh.id}')" style="padding:7px 16px;border:1.5px solid var(--accent);border-radius:9px;background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">✏️ Редактировать</button>` : ''}
-        </div>
-      </div>
-      ${wh.tariffs ? `
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-        <div style="background:var(--bg);border-radius:8px;padding:6px 12px;font-size:12px;"><b>Стандарт:</b> $${wh.tariffs.standard}/кг</div>
-        <div style="background:#F8FAFC;border-radius:8px;padding:6px 12px;font-size:12px;"><b>🥈 Сильвер:</b> $${wh.tariffs.silver}/кг</div>
-        <div style="background:#FFFDF0;border-radius:8px;padding:6px 12px;font-size:12px;"><b>🥇 Голд:</b> $${wh.tariffs.gold}/кг</div>
-        <button onclick="adminEditTariffs('${wh.id}')" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;font-size:11px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">💰 Изменить тарифы</button>
-      </div>` : ''}
-      ${!wh.comingSoon && wh.fields && wh.fields.length ? `
-      <div style="font-size:12px;color:var(--text-secondary);">${wh.fields.map(f => f.label + ': ' + f.value).join(' · ')}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-async function adminEditWarehouse(whId) {
-  let warehouses = defaultWarehouses;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
-    if (snap.exists() && snap.data().list) warehouses = snap.data().list;
-  } catch(e) {}
-  const wh = warehouses.find(w => w.id === whId);
-  if (!wh) return;
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
-  let fieldsHtml = wh.fields.map((f, i) => `
-    <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;">
-      <input value="${f.label}" id="whLabel_${i}" placeholder="Название поля" style="padding:8px 10px;border:1.5px solid var(--input-border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
-      <input value="${f.value}" id="whValue_${i}" placeholder="Значение" style="padding:8px 10px;border:1.5px solid var(--input-border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
-    </div>
-  `).join('');
-
-  modal.innerHTML = `
-    <div style="background:var(--card-bg);border-radius:20px;padding:28px;max-width:520px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto;">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;">${wh.flag} Редактировать — ${wh.country}</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Изменения сразу увидят все клиенты</div>
-      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:10px;display:grid;grid-template-columns:1fr 2fr;gap:8px;"><span>Название поля</span><span>Значение</span></div>
-      ${fieldsHtml}
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Отмена</button>
-        <button onclick="adminSaveWarehouseFields('${whId}',${wh.fields.length})" style="flex:2;padding:12px;border:none;border-radius:10px;background:var(--accent);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">💾 Сохранить</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-}
-
-async function adminSaveWarehouseFields(whId, count) {
-  let warehouses = defaultWarehouses;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
-    if (snap.exists() && snap.data().list) warehouses = snap.data().list;
-  } catch(e) {}
-  const wh = warehouses.find(w => w.id === whId);
-  if (!wh) return;
-  const newFields = [];
-  for (let i = 0; i < count; i++) {
-    const label = (document.getElementById('whLabel_' + i) || {}).value || '';
-    const value = (document.getElementById('whValue_' + i) || {}).value || '';
-    if (label) newFields.push({ label, value });
-  }
-  wh.fields = newFields;
-  try {
-    await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'), { list: warehouses });
-    document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]')?.remove();
-    alert('✅ Адрес склада сохранён! Клиенты сразу увидят изменения.');
-    adminLoadWarehouses();
-  } catch(e) { alert('Ошибка: ' + e.message); }
-}
-
-async function adminEditTariffs(whId) {
-  let warehouses = defaultWarehouses;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
-    if (snap.exists() && snap.data().list) warehouses = snap.data().list;
-  } catch(e) {}
-  const wh = warehouses.find(w => w.id === whId);
-  if (!wh || !wh.tariffs) return;
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
-  modal.innerHTML = `
-    <div style="background:var(--card-bg);border-radius:20px;padding:28px;max-width:400px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
-      <div style="font-size:18px;font-weight:800;margin-bottom:4px;">${wh.flag} Тарифы — ${wh.country}</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;">Стоимость доставки в $/кг</div>
-      ${['standard','silver','gold'].map(lvl => {
-        const labels = {standard:'⚪ Стандарт', silver:'🥈 Сильвер', gold:'🥇 Золото'};
-        return `<div style="margin-bottom:12px;"><label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:5px;">${labels[lvl]}</label>
-          <input type="number" id="tariff_${lvl}" value="${wh.tariffs[lvl]}" step="0.5" style="width:100%;padding:10px 12px;border:1.5px solid var(--input-border);border-radius:8px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" /></div>`;
-      }).join('')}
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Отмена</button>
-        <button onclick="adminSaveTariffsByLevel('${whId}')" style="flex:2;padding:12px;border:none;border-radius:10px;background:var(--accent);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">💾 Сохранить</button>
-      </div>
-    </div>`;
-  document.body.appendChild(modal);
-}
-
-async function adminSaveTariffsByLevel(whId) {
-  let warehouses = defaultWarehouses;
-  try {
-    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
-    if (snap.exists() && snap.data().list) warehouses = snap.data().list;
-  } catch(e) {}
-  const wh = warehouses.find(w => w.id === whId);
-  if (!wh) return;
-  wh.tariffs = {
-    standard: parseFloat(document.getElementById('tariff_standard').value) || wh.tariffs.standard,
-    silver: parseFloat(document.getElementById('tariff_silver').value) || wh.tariffs.silver,
-    gold: parseFloat(document.getElementById('tariff_gold').value) || wh.tariffs.gold
-  };
-  try {
-    await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'), { list: warehouses });
-    document.querySelector('div[style*="position:fixed"][style*="z-index:1000"]')?.remove();
-    alert('✅ Тарифы сохранены! Клиенты сразу увидят новые цены.');
-    adminLoadWarehouses();
-  } catch(e) { alert('Ошибка: ' + e.message); }
-}
-
-// ===== РЕАЛЬНАЯ СТАТИСТИКА ЛОЯЛЬНОСТИ =====
-async function adminLoadLoyaltyStats() {
-  try {
-    const snap = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, 'loyalty'));
-    const counts = { standard: 0, bronze: 0, silver: 0, gold: 0, platinum: 0 };
-    snap.forEach(d => {
-      const level = (d.data().level || 'standard').toLowerCase();
-      if (counts[level] !== undefined) counts[level]++;
-      else counts.standard++;
-    });
-    // Если нет данных в loyalty — считаем по users
-    if (snap.size === 0) {
-      const usersSnap = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, 'users'));
-      usersSnap.forEach(d => { counts.standard++; });
-    }
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('loyaltyCountStandard', counts.standard);
-    set('loyaltyCountBronze',   counts.bronze);
-    set('loyaltyCountSilver',   counts.silver);
-    set('loyaltyCountGold',     counts.gold);
-    set('loyaltyCountPlatinum', counts.platinum);
-  } catch(e) { console.warn('loyaltyStats error:', e); }
-}
-window.adminLoadLoyaltyStats = adminLoadLoyaltyStats;
-
-
-window._deleteStep = 0;
-
-function startDeleteFlow() {
-  window._deleteStep = 0;
-  showDeleteStep(0);
-}
-
-const _deleteSteps = [
-  {
-    title: 'Вы уверены?',
-    text: 'Вы собираетесь запросить удаление аккаунта. Все ваши данные, история заказов и документы будут удалены через 30 дней.',
-    btn: 'Да, продолжить',
-    cancel: true
-  },
-  {
-    title: 'У вас есть активные заказы?',
-    text: 'Перед удалением убедитесь что все ваши посылки получены. Незавершённые заказы будут отменены.',
-    btn: 'Заказов нет, продолжить',
-    cancel: true
-  },
-  {
-    title: 'Вы потеряете бонусы',
-    text: 'Все накопленные бонусные баллы и ваш уровень лояльности будут безвозвратно удалены.',
-    btn: 'Понимаю, продолжить',
-    cancel: true
-  },
-  {
-    title: 'Последний шанс отменить',
-    text: 'После подтверждения у вас будет 30 дней чтобы передумать. Напишите нам в поддержку и мы восстановим аккаунт.',
-    btn: 'Всё равно удалить',
-    cancel: true
-  },
-  {
-    title: 'Введите слово УДАЛИТЬ',
-    text: 'Для подтверждения введите слово <b>УДАЛИТЬ</b> заглавными буквами.',
-    btn: 'Подтвердить удаление',
-    input: true,
-    cancel: true
-  }
-];
-
-function showDeleteStep(step) {
-  const existing = document.getElementById('deleteModal');
-  if (existing) existing.remove();
-
-  const s = _deleteSteps[step];
-  const total = _deleteSteps.length;
-
-  const modal = document.createElement('div');
-  modal.id = 'deleteModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-  modal.innerHTML = `
-    <div style="background:var(--card-bg);border-radius:20px;padding:28px;max-width:420px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <div style="font-size:12px;color:var(--text-secondary);font-weight:600;">Шаг ${step+1} из ${total}</div>
-        <div style="display:flex;gap:4px;">${Array.from({length:total},(_,i)=>`<div style="width:28px;height:4px;border-radius:2px;background:${i<=step?'#EF4444':'var(--border)'}"></div>`).join('')}</div>
-      </div>
-      <div style="font-size:22px;margin-bottom:8px;">⚠️</div>
-      <div style="font-size:17px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">${s.title}</div>
-      <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">${s.text}</div>
-      ${s.input ? `<input id="deleteConfirmInput" type="text" placeholder="УДАЛИТЬ" style="width:100%;padding:12px 14px;border:2px solid #EF4444;border-radius:10px;font-size:15px;font-family:Manrope,sans-serif;outline:none;margin-bottom:16px;text-align:center;font-weight:700;letter-spacing:2px;" />` : ''}
-      <div style="display:flex;gap:10px;">
-        <button onclick="document.getElementById('deleteModal').remove()" style="flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:transparent;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Отмена</button>
-        <button onclick="nextDeleteStep(${step})" style="flex:1;padding:12px;border:none;border-radius:10px;background:#EF4444;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">${s.btn}</button>
-      </div>
-    </div>`;
-
-  document.body.appendChild(modal);
-}
-
-
-async function nextDeleteStep(current) {
-  const next = current + 1;
-
-  // Последний шаг — проверяем слово
-  if (current === 4) {
-    const val = (document.getElementById('deleteConfirmInput') || {}).value || '';
-    if (val.trim() !== 'УДАЛИТЬ') {
-      const inp = document.getElementById('deleteConfirmInput');
-      if (inp) { inp.style.borderColor = '#EF4444'; inp.style.background = '#FEE2E2'; inp.focus(); }
-      return;
-    }
-    // Финальное удаление
-    document.getElementById('deleteModal').remove();
-    await submitAccountDeletion();
-    return;
-  }
-
-  showDeleteStep(next);
-}
-
-async function submitAccountDeletion() {
-  try {
-    // Помечаем в Firestore что аккаунт запрошен к удалению
-    if (window.currentUser) {
-      const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
-      await window.firebaseSetDoc(userRef, {
-        deletionRequested: true,
-        deletionRequestedAt: new Date().toISOString(),
-        deletionDeadline: new Date(Date.now() + 30*24*60*60*1000).toISOString()
-      }, { merge: true });
-    }
-  const email = window.currentUser?.email || 'не указан';
-
-  try {
-    const msg = `Запрос на удаление аккаунта\n\nEmail: ${email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПросьба подтвердить удаление через 30 дней.`;
-
-    // Открываем WhatsApp
-    window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
-
-    // Убираем дубликаты
-    const existing = document.getElementById('delete-account-modal');
-    if (existing) existing.remove();
-
-    // Показываем финальное сообщение
-    const done = document.createElement('div');
-    done.id = 'delete-account-modal';
-    done.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
-    done.innerHTML = `
-      <div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:400px;width:100%;text-align:center;">
-        <div style="font-size:48px;margin-bottom:16px;">📨</div>
-        <div style="font-size:18px;font-weight:800;margin-bottom:10px;">Запрос отправлен</div>
-        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">Ваш аккаунт будет удалён через <b>30 дней</b>.</div>
-        <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">Чтобы <b>восстановить</b> аккаунт — напишите в поддержку до истечения срока.</div>
-        <button onclick="document.getElementById('delete-account-modal').remove()" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Понятно</button>
-      </div>`;
-    document.body.appendChild(done);
-  } catch(e) {
-    alert('Ошибка: ' + e.message);
-  }
-}
-}
 function requestAccountDeletion() {
-  startDeleteFlow();
+  if (!confirm('Запросить удаление аккаунта?\n\nВсе ваши данные, история заказов и документы будут удалены в течение 30 дней. Это действие необратимо.')) return;
+  const msg = `Запрос на удаление аккаунта\n\nEmail: ${window.currentUser?.email}\nДата: ${new Date().toLocaleString('ru-RU')}\n\nПожалуйста, подтвердите удаление.`;
+  window.open('https://wa.me/77064128196?text=' + encodeURIComponent(msg), '_blank');
+  alert('✅ Запрос отправлен!\n\nОбработаем в течение 5 рабочих дней.\nПодтверждение придёт на ваш email.');
 }
 
 // Перехватываем открытие модала получателя — показываем сначала согласие
@@ -7606,164 +6957,6 @@ window.showAdmin = function(view) {
   if (view === 'dashboard') setTimeout(loadAdminMetrics, 400);
   if (view === 'users')     setTimeout(renderAdminUsersTable, 300);
 };
-
-// ===== ПРОВЕРКА ДОКУМЕНТОВ (АДМИН) =====
-async function adminLoadDocuments() {
-  const container = document.getElementById('adminDocsList');
-  if (!container) return;
-  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-secondary);">⏳ Загрузка...</div>';
-
-  const filterStatus = (document.getElementById('docFilterStatus') || {}).value || '';
-
-  try {
-    const usersSnap = await window.firebaseGetDocs(window.firebaseCollection(window.firebaseDb, 'users'));
-    let allDocs = [];
-    usersSnap.forEach(userDoc => {
-      const u = userDoc.data();
-      const docs = u.documents || [];
-      docs.forEach((d, i) => {
-        const status = d.status || 'pending';
-        if (filterStatus && status !== filterStatus) return;
-        allDocs.push({ uid: userDoc.id, docIndex: i, url: d.url, uploadedAt: d.uploadedAt, status, userName: u.name || '—', userEmail: u.email || '—', clientId: u.clientId || '—' });
-      });
-    });
-
-    // Счётчики
-    const all = [];
-    usersSnap.forEach(u => (u.data().documents || []).forEach(d => all.push(d.status || 'pending')));
-    const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
-    el('docsPending',  all.filter(s => s === 'pending').length);
-    el('docsVerified', all.filter(s => s === 'verified').length);
-    el('docsRejected', all.filter(s => s === 'rejected').length);
-
-    if (!allDocs.length) {
-      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:12px;">📭</div><div>Документов нет</div></div>';
-      return;
-    }
-
-    const statusLabel = { pending: { text: 'На проверке', bg: '#FEF3C7', color: '#92400E' }, verified: { text: 'Подтверждён', bg: '#D1FAE5', color: '#065F46' }, rejected: { text: 'Отклонён', bg: '#FEE2E2', color: '#991B1B' } };
-
-    container.innerHTML = allDocs.map(d => {
-      const st = statusLabel[d.status] || statusLabel.pending;
-      return `<div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:20px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
-        // Пример более безопасной вставки для кнопок:
-${d.status !== 'verified' ? `
-  <button onclick="adminVerifyDoc('${d.uid}', ${Number(d.docIndex)}, 'verified')" 
-          style="...">
-    ✅ Подтвердить
-  </button>` : ''}
-
-    }).join('');
-  } catch(e) {
-    container.innerHTML = '<div style="padding:20px;color:#EF4444;">Ошибка загрузки: ' + e.message + '</div>';
-  }
-}
-
-async function adminVerifyDoc(uid, docIndex, newStatus) {
-  try {
-    const userRef = window.firebaseDoc(window.firebaseDb, 'users', uid);
-    const snap = await window.firebaseGetDoc(userRef);
-    if (!snap.exists()) return;
-    const docs = snap.data().documents || [];
-    if (!docs[docIndex]) return;
-    docs[docIndex].status = newStatus;
-    docs[docIndex].reviewedAt = new Date().toISOString();
-
-    // Сохраняем уведомление для пользователя
-    const notifMsg = newStatus === 'verified'
-      ? { text: '✅ Ваш документ подтверждён', color: '#065F46', bg: '#D1FAE5' }
-      : { text: '❌ Ваш документ отклонён. Пожалуйста, загрузите другое фото удостоверения.', color: '#991B1B', bg: '#FEE2E2' };
-
-    const notifications = snap.data().notifications || [];
-    notifications.unshift({ message: notifMsg.text, color: notifMsg.color, bg: notifMsg.bg, createdAt: new Date().toISOString(), read: false });
-
-    await window.firebaseSetDoc(userRef, { documents: docs, notifications }, { merge: true });
-    alert(newStatus === 'verified' ? '✅ Документ подтверждён!' : '❌ Документ отклонён. Уведомление отправлено.');
-    adminLoadDocuments();
-  } catch(e) {
-    alert('Ошибка: ' + e.message);
-  }
-}
-
-// ===== УВЕДОМЛЕНИЯ В ЛИЧНОМ КАБИНЕТЕ =====
-
-// ===== ИСПРАВЛЕННЫЕ УВЕДОМЛЕНИЯ (только одна версия) =====
-async function loadUserNotifications() {
-  if (!window.currentUser) return;
-  try {
-    const userRef = window.firebaseDoc(window.firebaseDb, 'users', window.currentUser.uid);
-    const snap = await window.firebaseGetDoc(userRef);
-    if (!snap.exists()) return;
-
-    let { notifications = [] } = snap.data();
-    const unread = notifications.filter(n => !n.read);
-    
-    if (unread.length > 0) {
-      const lastNotif = unread[0];
-      
-      const banner = document.createElement('div');
-      banner.style.cssText = `position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:999;padding:14px 20px;border-radius:14px;background:${lastNotif.bg || '#EFF6FF'};color:${lastNotif.color || '#1A6BFF'};font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.15);max-width:480px;width:90%;display:flex;align-items:center;gap:12px;`;
-      
-      banner.innerHTML = `
-        <span style="flex:1;">${lastNotif.message}</span>
-        <button style="background:none;border:none;font-size:18px;cursor:pointer;color:${lastNotif.color || '#1A6BFF'};line-height:1;">✕</button>
-      `;
-      
-      banner.querySelector('button').onclick = () => banner.remove();
-      document.body.appendChild(banner);
-      
-      setTimeout(() => { if (banner.parentNode) banner.remove(); }, 6000);
-
-      // Помечаем как прочитанные
-      const updatedNotifications = notifications.map(notif => ({ ...notif, read: true }));
-      await window.firebaseSetDoc(userRef, { notifications: updatedNotifications }, { merge: true });
-    }
-  } catch(e) { 
-    console.error("Notify error:", e); 
-  }
-}
-
-// ===== ЗАГЛУШКА ДЛЯ ОТСУТСТВУЮЩИХ ФУНКЦИЙ (защита от ошибок) =====
-window.showPage = window.showPage || function(page) {
-  console.warn('showPage called with', page);
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById('page-' + page);
-  if (target) target.classList.add('active');
-};
-
-window.renderDash = window.renderDash || function(view) {
-  console.warn('renderDash called with', view);
-};
-
-window.setDashTab = window.setDashTab || function(el, tab) {
-  console.warn('setDashTab called with', tab);
-};
-
-// ===== Google Login (исправленный) =====
-async function doGoogleLogin() {
-  try {
-    if (!window._firebaseReady) {
-      alert('Firebase еще не инициализирован. Обновите страницу.');
-      return;
-    }
-    const result = await window.firebaseSignInWithPopup(window.firebaseAuth, window.firebaseGoogleProvider);
-    console.log('Google login success:', result.user.email);
-    showPage('dashboard');
-  } catch (error) {
-    console.error(error);
-    alert('Ошибка входа через Google: ' + (error.message || 'Неизвестная ошибка'));
-  }
-}
-
-// ===== Вызов уведомлений после загрузки =====
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    if (typeof loadUserNotifications === 'function') loadUserNotifications();
-  }, 1500);
-});
-
-// Ваш остальной JS-код (loadUserParcels, adminLoadDocuments и т.д.) можно оставить ниже этого блока.
-// Если будут ошибки — добавляйте функции по одной и проверяйте консоль.
 
 </script>
 
