@@ -3393,8 +3393,14 @@ async function saveShop() {
   if (btn) { btn.disabled = true; btn.textContent = 'Сохраняем...'; }
 
   try {
+    const isBuiltinOverride = editId && editId.startsWith('builtin_');
     const docId = editId || ('shop_' + Date.now());
-    const numericId = editId ? Number(editId.replace(/\D/g, '')) || (1000 + Date.now() % 100000) : (1000 + Date.now() % 100000);
+    let numericId;
+    if (isBuiltinOverride) {
+      numericId = parseInt(editId.replace('builtin_', ''), 10);
+    } else {
+      numericId = editId ? Number(editId.replace(/\D/g, '')) || (1000 + Date.now() % 100000) : (1000 + Date.now() % 100000);
+    }
     const data = {
       id: numericId,
       name, url, icon, desc, country, countryLabel,
@@ -3402,6 +3408,7 @@ async function saveShop() {
       updatedAt: Date.now(),
       updatedBy: window.currentUser?.email || 'admin'
     };
+    if (isBuiltinOverride) data.__builtin_override = true;
     if (!editId) data.createdAt = Date.now();
 
     await window.firebaseSetDoc(
@@ -3462,7 +3469,7 @@ async function adminLoadShopsList() {
             const actions = s.__custom
               ? `<button onclick="editShop('${s.__docId}')" class="btn-outline" style="padding:5px 12px;font-size:11px;margin-right:4px;">✏️</button>
                  <button onclick="deleteShop('${s.__docId}','${(s.name||'').replace(/'/g,'&#39;')}')" class="btn-outline" style="padding:5px 12px;font-size:11px;border-color:#FECACA;color:#991B1B;">🗑</button>`
-              : `<span style="font-size:11px;color:var(--text-secondary);">встроенный</span>`;
+              : `<button onclick="editBuiltinShop(${s.id})" class="btn-outline" style="padding:5px 12px;font-size:11px;">✏️ Изменить</button>`;
             return `
               <tr style="border-top:1px solid var(--card-border);">
                 <td style="padding:12px;">${logo}</td>
@@ -3508,6 +3515,43 @@ async function editShop(docId) {
   } catch(e) { alert('❌ ' + (e.message || e)); }
 }
 window.editShop = editShop;
+
+// Редактирование встроенного магазина — данные из shopsData, сохранение в Firestore как builtin_<id>
+async function editBuiltinShop(shopId) {
+  const s = (typeof shopsData !== 'undefined' ? shopsData : []).find(x => x.id === shopId);
+  if (!s) { alert('Магазин не найден'); return; }
+
+  // Проверяем, есть ли уже переопределение в Firestore
+  const builtinDocId = 'builtin_' + shopId;
+  let overrideData = null;
+  try {
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'shops', builtinDocId));
+    if (snap.exists() && !snap.data().__deleted) overrideData = snap.data();
+  } catch(e) {}
+
+  const src = overrideData || s;
+  const set = (id, v='') => { const el = document.getElementById(id); if (el) el.value = v; };
+  set('shopEditId', builtinDocId);
+  set('shopName', src.name || '');
+  set('shopUrl', src.url || '');
+  set('shopIcon', src.icon || '');
+  set('shopDesc', src.desc || '');
+  set('shopCountry', src.country || '');
+  set('shopCountryLabel', src.countryLabel || '');
+  const vpn = document.getElementById('shopVpn'); if (vpn) vpn.checked = !!src.vpn;
+  const nm  = document.getElementById('shopNeedsManager'); if (nm) nm.checked = !!src.needsManager;
+  const cats = src.cats || [];
+  document.querySelectorAll('#shopCatsPicker input[type="checkbox"]').forEach(c => c.checked = cats.includes(c.value));
+  const mode = (src.icon && (src.icon.startsWith('http://') || src.icon.startsWith('https://'))) ? 'url' : 'emoji';
+  setShopLogoMode(mode);
+  const title = document.getElementById('shopFormTitle');
+  if (title) title.textContent = 'Редактирование встроенного: ' + (s.name || '');
+  const btn = document.getElementById('saveShopBtn');
+  if (btn) btn.textContent = 'Сохранить изменения';
+  renderShopIconPreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+window.editBuiltinShop = editBuiltinShop;
 
 async function deleteShop(docId, name) {
   if (!confirm('Удалить магазин "' + name + '"?')) return;
@@ -5002,9 +5046,17 @@ async function loadCustomShops() {
     );
     // Удаляем ранее загруженные кастомные (id >= 1000) чтобы не дублировать
     shopsData = shopsData.filter(s => !s.__custom);
+    // Сначала применяем переопределения встроенных магазинов
     snap.forEach(d => {
       const s = d.data();
-      if (s.__deleted) return; // пропускаем удалённые
+      if (s.__deleted) return;
+      if (s.__builtin_override) {
+        const idx = shopsData.findIndex(x => x.id === s.id);
+        if (idx !== -1) {
+          shopsData[idx] = { ...shopsData[idx], ...s, __builtin: true, __docId: undefined };
+        }
+        return;
+      }
       shopsData.push({
         id: s.id || (1000 + shopsData.length),
         name: s.name || '—',
