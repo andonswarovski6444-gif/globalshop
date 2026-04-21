@@ -155,8 +155,8 @@
   }
   .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--text-primary); transition: color 0.3s; }
   .nav-logo-dot { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; font-weight: 800; }
-  .nav-links { display: flex; gap: 32px; }
-  .nav-links a { text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+  .nav-links { display: flex; gap: 24px; white-space: nowrap; }
+  .nav-links a { text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; transition: color 0.2s; cursor: pointer; white-space: nowrap; }
   .nav-links a:hover { color: var(--accent); }
   .nav-actions { display: flex; gap: 12px; }
   .btn-outline { padding: 8px 20px; border: 1.5px solid var(--btn-out-border); border-radius: 10px; background: var(--btn-out-bg); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-primary); transition: all 0.2s; font-family: 'Manrope', sans-serif; }
@@ -557,14 +557,14 @@
     <div id="backBtn" style="display:none;">
       <button onclick="goBack()" style="padding:6px 12px;border:1.5px solid #F0F0F0;border-radius:8px;background:white;cursor:pointer;font-size:13px;font-family:Manrope,sans-serif;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">← Назад</button>
     </div>
-    <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer;">
+    <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer;white-space:nowrap;">
       <div class="nav-logo-dot">G</div>
       <span id="navTitle">Global Shop KZ</span>
     </div>
   </div>
   <div class="nav-links" id="navLinks">
     <a onclick="showPage('home')">Главная</a>
-    <a onclick="showPage('shops')">🛍 Магазины</a>
+    <a onclick="showPage('shops')">Магазины</a>
     <a onclick="showPage('tracking')">Отслеживание</a>
     <a onclick="showPage('warehouses')">Склады</a>
     <a onclick="showPage('calculator')">Калькулятор</a>
@@ -621,7 +621,6 @@
           <span>🇨🇳 <span id="hTrCnExp">—</span></span>
           <span>🇺🇸 <span id="hTrUsa">—</span></span>
           <span>🇩🇪 <span id="hTrEu">—</span></span>
-          <span>🇰🇷 <span id="hTrKr">—</span></span>
         </div>
       </div>
       <button onclick="showPage('calculator')" style="padding:11px 22px;background:white;color:var(--accent);border:none;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;">Калькулятор →</button>
@@ -711,7 +710,7 @@
           <a href="https://t.me/global_shop_kazakhstan" target="_blank" style="cursor:pointer;">✈️ Telegram</a>
           <a href="https://instagram.com/global_shop_kazakhstan" target="_blank" style="cursor:pointer;">📸 Instagram</a>
           <a href="tel:+77064128196" style="cursor:pointer;">📞 +7 706 412 8196</a>
-          <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="cursor:pointer;">📍 Абылай Хана 30, бутик 02</a>
+          <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="cursor:pointer;">📍 Абылай Хана 3, этаж 0, бутик 02</a>
         </div>
       </div>
     </div>
@@ -5305,13 +5304,13 @@ function applyLang(lang) {
 }
 const langStrings = {
   ru: {
-    nav_home:'Главная', nav_shops:'🛍 Магазины', nav_tracking:'Отслеживание',
+    nav_home:'Главная', nav_shops:'Магазины', nav_tracking:'Отслеживание',
     nav_warehouses:'Склады', nav_calc:'Калькулятор',
     hero_title:'Доставим всё что<br>вы хотите <span>из‑за рубежа</span>',
     hero_sub:'Выкуп брендов из США, Европы, Китая и Кореи. Честный курс, быстрая логистика, оригинальные товары.',
   },
   en: {
-    nav_home:'Home', nav_shops:'🛍 Shops', nav_tracking:'Tracking',
+    nav_home:'Home', nav_shops:'Shops', nav_tracking:'Tracking',
     nav_warehouses:'Warehouses', nav_calc:'Calculator',
     hero_title:'We\'ll deliver anything<br>you want <span>from abroad</span>',
     hero_sub:'Buy brands from USA, Europe, China and Korea. Fair rates, fast logistics, genuine products.',
@@ -6381,7 +6380,7 @@ window.renderDash = function(view) {
         <div style="width:52px;height:52px;background:#F3F4F6;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">📍</div>
         <div style="flex:1;">
           <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Адрес</div>
-          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Алматы, ул. Абылай Хана 30, этаж 0, бутик 02 · <b>Global Buy</b></div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Алматы, ул. Абылай Хана 3, этаж 0, бутик 02 · <b>Global Buy</b></div>
           <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="padding:8px 20px;background:#1A73E8;color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-block;">Открыть на карте</a>
         </div>
       </div>
@@ -6452,7 +6451,7 @@ window.renderDash = function(view) {
 
       <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
       <p style="margin-bottom:8px;">1.1. Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки и защиты персональных данных пользователей сайта Global Shop KZ.</p>
-      <p style="margin-bottom:8px;">1.2. Оператором персональных данных является <b>ИП Журавлёв</b>, ИИН 030816501796, Республика Казахстан, г. Алматы, ул. Абылай Хана 30, бутик 02.</p>
+      <p style="margin-bottom:8px;">1.2. Оператором персональных данных является <b>ИП Журавлёв</b>, ИИН 030816501796, Республика Казахстан, г. Алматы, ул. Абылай Хана 3, этаж 0, бутик 02.</p>
       <p style="margin-bottom:8px;">1.3. Политика разработана в соответствии с Законом Республики Казахстан «О персональных данных и их защите» № 94-V от 21 мая 2013 года.</p>
       <p style="margin-bottom:24px;">1.4. Используя сайт и регистрируясь на нём, вы выражаете согласие с настоящей Политикой.</p>
 
@@ -6498,7 +6497,7 @@ window.renderDash = function(view) {
       <p style="margin-bottom:8px;">По вопросам обработки персональных данных обращайтесь:</p>
       <p style="margin-bottom:4px;">📧 Email: <a href="mailto:globalshopkz@gmail.com" style="color:var(--accent);">globalshopkz@gmail.com</a></p>
       <p style="margin-bottom:4px;">💬 WhatsApp: <a href="https://wa.me/77064128196" style="color:var(--accent);">+7 706 412 8196</a></p>
-      <p style="margin-bottom:0;">📍 Алматы, ул. Абылай Хана 30, бутик 02</p>
+      <p style="margin-bottom:0;">📍 Алматы, ул. Абылай Хана 3, этаж 0, бутик 02</p>
     </div>
   </div>
 
