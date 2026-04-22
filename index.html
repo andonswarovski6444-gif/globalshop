@@ -61,7 +61,7 @@
   window.firebaseGetDocs = getDocs;
   window.firebaseWhere = where;
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
       window.currentUser = user;
       const nameDisplay = document.getElementById('userNameDisplay');
@@ -1531,6 +1531,11 @@ async function doAdminLogin() {
       window.currentUser = cred.user;
       updateNav(true, true);
       showPage('admin');
+    } else if (userDoc.exists() && userDoc.data().role === 'china_manager') {
+      await window.firebaseSignOut(window.firebaseAuth);
+      window.isChinaManager = true;
+      window.isAdmin = false;
+      showPageDirect('china_manager');
     } else {
       await window.firebaseSignOut(window.firebaseAuth);
       err.textContent = 'Нет прав администратора';
@@ -3964,10 +3969,16 @@ async function doLogin() {
       // Apply saved theme
       const savedTheme = userDoc.data().theme || 'light';
       applyTheme(savedTheme);
-      if (userDoc.data().role === 'admin') {
+      const role = userDoc.data().role;
+      if (role === 'admin') {
         window.isAdmin = true;
         updateNav(true, true);
         showPage('admin');
+      } else if (role === 'china_manager') {
+        window.isChinaManager = true;
+        window.isAdmin = false;
+        window.currentUser = null; // не даём доступ к клиентскому кабинету
+        showPageDirect('china_manager');
       } else {
         updateNav(true, false);
         showPage('dashboard');
