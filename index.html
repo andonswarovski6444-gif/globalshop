@@ -62,9 +62,6 @@
   window.firebaseWhere = where;
 
   onAuthStateChanged(auth, (user) => {
-    // Менеджер Китая — не трогаем его страницу
-    if (window.isChinaManager) return;
-
     if (user) {
       window.currentUser = user;
       const nameDisplay = document.getElementById('userNameDisplay');
@@ -1293,106 +1290,53 @@
 </div>
 
 <!-- CHINA MANAGER PAGE -->
-<div class="page" id="page-china_manager" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;transition:background 0.3s;">
-
-<style>
-  #page-china_manager.cn-dark  { background:#0f1923; }
-  #page-china_manager.cn-light { background:#f0f4f8; }
-
-  /* texts */
-  .cn-dark  .cn-title    { color:#ffffff; }
-  .cn-light .cn-title    { color:#0D1B3E; }
-  .cn-dark  .cn-sub      { color:rgba(255,255,255,0.6); }
-  .cn-light .cn-sub      { color:#5B7199; }
-  .cn-dark  .cn-logo-sub { color:rgba(255,255,255,0.55); }
-  .cn-light .cn-logo-sub { color:#5B7199; }
-
-  /* cards */
-  .cn-dark  .cn-card  { background:#1a2433; border:1px solid rgba(255,255,255,0.08); }
-  .cn-light .cn-card  { background:#ffffff; border:1px solid #D8E8FF; box-shadow:0 4px 20px rgba(0,0,0,0.06); }
-
-  /* label */
-  .cn-dark  .cn-label { color:rgba(255,255,255,0.55); }
-  .cn-light .cn-label { color:#5B7199; }
-
-  /* input */
-  .cn-dark  .cn-input { background:#0f1923; border:2px solid rgba(255,255,255,0.15); color:#ffffff; }
-  .cn-light .cn-input { background:#f8faff; border:2px solid #C8DEFF; color:#0D1B3E; }
-
-  /* log section label */
-  .cn-dark  .cn-log-label { color:rgba(255,255,255,0.45); }
-  .cn-light .cn-log-label { color:#5B7199; }
-
-  /* log row */
-  .cn-dark  .cn-log-row { background:rgba(255,255,255,0.04); border:1px solid rgba(16,185,129,0.15); }
-  .cn-light .cn-log-row { background:#f0fdf4; border:1px solid rgba(16,185,129,0.25); }
-  .cn-dark  .cn-log-track { color:#ffffff; }
-  .cn-light .cn-log-track { color:#0D1B3E; }
-  .cn-dark  .cn-log-time  { color:rgba(255,255,255,0.35); }
-  .cn-light .cn-log-time  { color:#5B7199; }
-
-  /* empty log */
-  .cn-dark  .cn-empty { color:rgba(255,255,255,0.3); }
-  .cn-light .cn-empty { color:#9CA3AF; }
-
-  /* exit button */
-  .cn-dark  .cn-exit-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.75); }
-  .cn-light .cn-exit-btn { background:#ffffff; border:1px solid #C8DEFF; color:#5B7199; }
-
-  /* theme toggle */
-  .cn-dark  .cn-theme-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.75); }
-  .cn-light .cn-theme-btn { background:#ffffff; border:1px solid #C8DEFF; color:#5B7199; }
-</style>
+<div class="page" id="page-china_manager" style="min-height:100vh;background:#0f1923;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;">
 
   <!-- Header -->
   <div style="width:100%;max-width:560px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:40px;height:40px;background:#e63946;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🇨🇳</div>
+      <div style="width:40px;height:40px;background:#e63946;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🇨🇳</div>
       <div>
-        <div class="cn-title" style="font-weight:800;font-size:16px;transition:color 0.3s;">中国仓库管理员</div>
-        <div class="cn-logo-sub" style="font-size:12px;transition:color 0.3s;">Global Shop KZ · 中国仓库</div>
+        <div style="color:white;font-weight:800;font-size:16px;">中国仓库管理员</div>
+        <div style="color:rgba(255,255,255,0.45);font-size:12px;">Global Shop KZ · 中国仓库</div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="cnToggleTheme()" class="cn-theme-btn" style="padding:7px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.2s;" title="Сменить тему">☀️</button>
-      <button onclick="window.isChinaManager=false;showPage('adminlogin')" class="cn-exit-btn" style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.2s;">退出 · Выйти</button>
-    </div>
+    <button onclick="window.isChinaManager=false;showPage('admin_login')" style="padding:7px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">退出登录</button>
   </div>
 
   <!-- Scanner card -->
-  <div class="cn-card" style="width:100%;max-width:560px;border-radius:24px;padding:36px 32px;margin-bottom:20px;transition:background 0.3s,border 0.3s;">
+  <div style="width:100%;max-width:560px;background:#1a2433;border-radius:24px;padding:36px 32px;border:1px solid rgba(255,255,255,0.07);margin-bottom:20px;">
     <div style="text-align:center;margin-bottom:28px;">
-      <div class="cn-label" style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;transition:color 0.3s;">扫描包裹 / СКАНИРОВАТЬ ПОСЫЛКУ</div>
-      <div class="cn-sub" style="font-size:13px;transition:color 0.3s;">输入或扫描条形码 · Введите или отсканируйте штрих-код</div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">扫描包裹 / Сканировать посылку</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.35);">输入或扫描条形码 · Введите или отсканируйте штрих-код</div>
     </div>
 
     <!-- Scan input -->
     <div style="position:relative;margin-bottom:20px;">
       <input id="cnScanInput" type="text" placeholder="GS-XXXXXXXX"
-        class="cn-input"
-        style="width:100%;padding:20px 56px 20px 20px;border-radius:14px;font-size:22px;font-weight:800;font-family:Manrope,sans-serif;outline:none;text-align:center;letter-spacing:2px;transition:border-color 0.2s,background 0.3s,color 0.3s;"
+        style="width:100%;padding:20px 56px 20px 20px;background:#0f1923;border:2px solid rgba(255,255,255,0.12);border-radius:14px;font-size:22px;font-weight:800;color:white;font-family:Manrope,sans-serif;outline:none;text-align:center;letter-spacing:2px;transition:border-color 0.2s;"
         oninput="cnScanInputChange(this)"
         onkeydown="if(event.key==='Enter')cnProcessScan()"
-        onfocus="this.style.borderColor='rgba(230,57,70,0.7)'"
-        onblur="cnResetInputBorder(this)"
+        onfocus="this.style.borderColor='rgba(230,57,70,0.6)'"
+        onblur="this.style.borderColor='rgba(255,255,255,0.12)'"
       />
-      <span style="position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:22px;opacity:0.35;">📦</span>
+      <span style="position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:22px;opacity:0.4;">📦</span>
     </div>
 
     <button onclick="cnProcessScan()" id="cnScanBtn"
-      style="width:100%;padding:16px;background:linear-gradient(135deg,#e63946,#c1121f);border:none;border-radius:14px;font-size:16px;font-weight:800;color:white;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.5px;transition:opacity 0.2s;box-shadow:0 6px 20px rgba(230,57,70,0.35);">
+      style="width:100%;padding:16px;background:linear-gradient(135deg,#e63946,#c1121f);border:none;border-radius:14px;font-size:16px;font-weight:800;color:white;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.5px;transition:all 0.2s;">
       ✅ 确认入库 · Принять на склад
     </button>
   </div>
 
   <!-- Result flash -->
-  <div id="cnResult" style="width:100%;max-width:560px;display:none;border-radius:18px;padding:24px 28px;text-align:center;margin-bottom:20px;transition:transform 0.2s;"></div>
+  <div id="cnResult" style="width:100%;max-width:560px;display:none;border-radius:18px;padding:24px 28px;text-align:center;margin-bottom:20px;transition:all 0.3s;"></div>
 
   <!-- Today's log -->
-  <div class="cn-card" style="width:100%;max-width:560px;border-radius:20px;padding:24px;transition:background 0.3s,border 0.3s;">
-    <div class="cn-log-label" style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;transition:color 0.3s;">今日记录 · ПРИНЯТО СЕГОДНЯ</div>
-    <div id="cnTodayLog" style="display:flex;flex-direction:column;gap:8px;">
-      <div class="cn-empty" style="text-align:center;padding:20px;font-size:13px;transition:color 0.3s;">还没有记录 · Записей пока нет</div>
+  <div style="width:100%;max-width:560px;background:#1a2433;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.07);">
+    <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px;">今日记录 · Принято сегодня</div>
+    <div id="cnTodayLog" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">还没有记录 · Записей пока нет</div>
     </div>
   </div>
 
@@ -1472,7 +1416,7 @@ const pageTitles = {
   admin: 'Админ панель', adminlogin: 'Вход для администратора',
   about: 'О нас', contacts: 'Контакты', rassrochka: 'Рассрочка', oferta: 'Публичная оферта', privacy: 'Политика конфиденциальности'
 };
-const publicPages = ['home', 'login', 'register', 'tracking', 'calculator', 'warehouses', 'shops', 'about', 'contacts', 'rassrochka', 'oferta', 'privacy', 'china_manager'];
+const publicPages = ['home', 'login', 'register', 'tracking', 'calculator', 'warehouses', 'shops', 'about', 'contacts', 'rassrochka', 'oferta', 'privacy'];
 
 function goBack() {
   if (pageHistory.length > 1) {
@@ -1486,6 +1430,9 @@ function goBack() {
 
 function showPageDirect(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Явно сбрасываем display у страницы менеджера Китая при уходе с неё
+  const cnPage = document.getElementById('page-china_manager');
+  if (cnPage && page !== 'china_manager') cnPage.style.display = 'none';
   const el = document.getElementById('page-' + page);
   if (el) el.classList.add('active');
 
@@ -1493,10 +1440,17 @@ function showPageDirect(page) {
   const nav = document.querySelector('nav');
   const tabBar = document.getElementById('dashTabBar');
   if (page === 'china_manager') {
+    // Доступ только менеджеру Китая
+    if (!window.isChinaManager) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const homePage = document.getElementById('page-home');
+      if (homePage) homePage.classList.add('active');
+      if (nav) nav.style.display = '';
+      return;
+    }
     if (nav) nav.style.display = 'none';
     if (tabBar) tabBar.style.display = 'none';
-    if (el) { el.style.paddingTop = '0'; el.style.minHeight = '100vh'; }
-    cnApplyTheme();
+    if (el) { el.style.display = 'flex'; el.style.paddingTop = '0'; el.style.minHeight = '100vh'; }
     setTimeout(function(){ var inp = document.getElementById('cnScanInput'); if (inp) inp.focus(); }, 200);
     return;
   } else {
@@ -1537,6 +1491,11 @@ function showPage(page) {
     showPageDirect('china_manager');
     return;
   }
+  // Страница менеджера Китая — только для isChinaManager
+  if (page === 'china_manager' && !window.isChinaManager) {
+    showPageDirect('home');
+    return;
+  }
   // Guard: protected pages require login
   const protected_ = ['dashboard', 'warehouses'];
   if (protected_.includes(page) && !window.currentUser && !window.isAdmin) {
@@ -1560,9 +1519,6 @@ async function doAdminLogin() {
   if (email === CN_MANAGER_EMAIL && pass === CN_MANAGER_PASS) {
     window.isChinaManager = true;
     window.isAdmin = false;
-    window.currentUser = null;
-    // Выходим из Firebase чтобы старая сессия не перебивала экран
-    try { await window.firebaseSignOut(window.firebaseAuth); } catch(e) {}
     showPage('china_manager');
     return;
   }
@@ -1571,7 +1527,6 @@ async function doAdminLogin() {
     const cred = await window.firebaseSignIn(window.firebaseAuth, email, pass);
     const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
     if (userDoc.exists() && userDoc.data().role === 'admin') {
-      window.isChinaManager = false;
       window.isAdmin = true;
       window.currentUser = cred.user;
       updateNav(true, true);
@@ -3981,7 +3936,7 @@ async function doGoogleLogin() {
     }
     window.currentUser = user;
     updateNav(true, false);
-    if (!window.isChinaManager) showPage('dashboard');
+    showPage('dashboard');
   } catch(e) {
     alert('Ошибка входа через Google: ' + (e.message || e.code));
   }
@@ -4015,11 +3970,11 @@ async function doLogin() {
         showPage('admin');
       } else {
         updateNav(true, false);
-        if (!window.isChinaManager) showPage('dashboard');
+        showPage('dashboard');
       }
     } else {
       updateNav(true, false);
-      if (!window.isChinaManager) showPage('dashboard');
+      showPage('dashboard');
     }
   } catch(e) {
     const msgs = {
@@ -7337,30 +7292,6 @@ window.showAdmin = function(view) {
 };
 // ===== CHINA MANAGER SCANNER =====
 var cnTodayLog = [];
-var cnTheme = 'dark'; // 'dark' | 'light'
-
-function cnApplyTheme() {
-  var page = document.getElementById('page-china_manager');
-  if (!page) return;
-  page.classList.remove('cn-dark', 'cn-light');
-  page.classList.add('cn-' + cnTheme);
-  // Обновляем иконку кнопки темы
-  var btn = page.querySelector('.cn-theme-btn');
-  if (btn) btn.textContent = cnTheme === 'dark' ? '☀️' : '🌙';
-  // Placeholder цвет для инпута
-  var inp = document.getElementById('cnScanInput');
-  if (inp) inp.style.setProperty('--ph', cnTheme === 'dark' ? 'rgba(255,255,255,0.3)' : '#9CA3AF');
-}
-
-function cnToggleTheme() {
-  cnTheme = cnTheme === 'dark' ? 'light' : 'dark';
-  cnApplyTheme();
-  cnRenderLog();
-}
-
-function cnResetInputBorder(el) {
-  el.style.borderColor = cnTheme === 'dark' ? 'rgba(255,255,255,0.15)' : '#C8DEFF';
-}
 
 function cnScanInputChange(el) {
   el.value = el.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
@@ -7462,14 +7393,14 @@ function cnRenderLog() {
   var container = document.getElementById('cnTodayLog');
   if (!container) return;
   if (!cnTodayLog.length) {
-    container.innerHTML = '<div class="cn-empty" style="text-align:center;padding:20px;font-size:13px;transition:color 0.3s;">还没有记录 · Записей пока нет</div>';
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">还没有记录 · Записей пока нет</div>';
     return;
   }
-  container.innerHTML = cnTodayLog.slice(0, 30).map(function(item) {
-    return '<div class="cn-log-row" style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;transition:background 0.3s,border 0.3s;">'
-      + '<div style="width:30px;height:30px;border-radius:8px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:#10B981;font-weight:800;">✓</div>'
-      + '<div class="cn-log-track" style="flex:1;font-size:15px;font-weight:800;font-family:monospace;letter-spacing:1px;transition:color 0.3s;">' + item.trackId + '</div>'
-      + '<div class="cn-log-time" style="font-size:12px;flex-shrink:0;font-weight:600;transition:color 0.3s;">' + item.time + '</div>'
+  container.innerHTML = cnTodayLog.slice(0, 30).map(function(item, i) {
+    return '<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(16,185,129,0.15);">'
+      + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:rgba(16,185,129,0.9);">✓</div>'
+      + '<div style="flex:1;font-size:14px;font-weight:800;color:white;font-family:monospace;letter-spacing:1px;">' + item.trackId + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,0.3);flex-shrink:0;">' + item.time + '</div>'
       + '</div>';
   }).join('');
 }
