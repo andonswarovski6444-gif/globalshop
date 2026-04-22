@@ -62,6 +62,9 @@
   window.firebaseWhere = where;
 
   onAuthStateChanged(auth, (user) => {
+    // Менеджер Китая — не трогаем его страницу
+    if (window.isChinaManager) return;
+
     if (user) {
       window.currentUser = user;
       const nameDisplay = document.getElementById('userNameDisplay');
@@ -1557,6 +1560,9 @@ async function doAdminLogin() {
   if (email === CN_MANAGER_EMAIL && pass === CN_MANAGER_PASS) {
     window.isChinaManager = true;
     window.isAdmin = false;
+    window.currentUser = null;
+    // Выходим из Firebase чтобы старая сессия не перебивала экран
+    try { await window.firebaseSignOut(window.firebaseAuth); } catch(e) {}
     showPage('china_manager');
     return;
   }
@@ -3974,7 +3980,7 @@ async function doGoogleLogin() {
     }
     window.currentUser = user;
     updateNav(true, false);
-    showPage('dashboard');
+    if (!window.isChinaManager) showPage('dashboard');
   } catch(e) {
     alert('Ошибка входа через Google: ' + (e.message || e.code));
   }
@@ -4008,11 +4014,11 @@ async function doLogin() {
         showPage('admin');
       } else {
         updateNav(true, false);
-        showPage('dashboard');
+        if (!window.isChinaManager) showPage('dashboard');
       }
     } else {
       updateNav(true, false);
-      showPage('dashboard');
+      if (!window.isChinaManager) showPage('dashboard');
     }
   } catch(e) {
     const msgs = {
