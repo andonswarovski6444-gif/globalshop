@@ -1355,7 +1355,7 @@
     </div>
     <div style="display:flex;gap:8px;">
       <button onclick="cnToggleTheme()" class="cn-theme-btn" style="padding:7px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.2s;" title="Сменить тему">☀️</button>
-      <button onclick="window.isChinaManager=false;showPage('admin_login')" class="cn-exit-btn" style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.2s;">退出 · Выйти</button>
+      <button onclick="window.isChinaManager=false;showPage('adminlogin')" class="cn-exit-btn" style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.2s;">退出 · Выйти</button>
     </div>
   </div>
 
@@ -1571,6 +1571,7 @@ async function doAdminLogin() {
     const cred = await window.firebaseSignIn(window.firebaseAuth, email, pass);
     const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
     if (userDoc.exists() && userDoc.data().role === 'admin') {
+      window.isChinaManager = false;
       window.isAdmin = true;
       window.currentUser = cred.user;
       updateNav(true, true);
