@@ -3962,6 +3962,20 @@ async function doLogin() {
   try {
     const cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
     window.currentUser = cred.user;
+
+    // Проверка по email — менеджер Китая (на случай если документ в Firestore не найден)
+    const userEmailLower = (cred.user.email || '').toLowerCase();
+    if (userEmailLower === 'китай@globalshop.kz' || userEmailLower === 'china@globalshop.kz') {
+      await window.firebaseSignOut(window.firebaseAuth);
+      window.currentUser = null;
+      window.isChinaManager = true;
+      window.isAdmin = false;
+      showPageDirect('china_manager');
+      btn.textContent = 'Войти';
+      btn.disabled = false;
+      return;
+    }
+
     const userDoc = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', cred.user.uid));
     if (userDoc.exists()) {
       window.currentUserData = userDoc.data();
@@ -3975,9 +3989,10 @@ async function doLogin() {
         updateNav(true, true);
         showPage('admin');
       } else if (role === 'china_manager') {
+        await window.firebaseSignOut(window.firebaseAuth);
+        window.currentUser = null;
         window.isChinaManager = true;
         window.isAdmin = false;
-        window.currentUser = null; // не даём доступ к клиентскому кабинету
         showPageDirect('china_manager');
       } else {
         updateNav(true, false);
