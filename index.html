@@ -7322,7 +7322,8 @@ window.showAdmin = function(view) {
 // ===== CHINA MANAGER =====
 
 function cnScanInputChange(el) {
-  el.value = el.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+  // Блокируем только кириллицу, всё остальное разрешено
+  el.value = el.value.replace(/[а-яёА-ЯЁ]/g, '').toUpperCase();
 }
 
 async function cnProcessScan() {
@@ -7430,19 +7431,24 @@ async function cnLoadWarehouse() {
       return;
     }
 
-    container.innerHTML = parcels.map(function(p) {
+    window._cnWarehouseParcels = parcels;
+
+    var headerHtml = '<div style="margin-bottom:14px;">'
+      + '<button onclick="cnShipAll()" '
+      + 'style="width:100%;padding:14px;background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:12px;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.3px;">'
+      + '✈️ Отправить всё в путь (' + parcels.length + ' посылок)'
+      + '</button>'
+      + '</div>';
+
+    container.innerHTML = headerHtml + parcels.map(function(p) {
       var date = p.warehouseAt ? new Date(p.warehouseAt).toLocaleDateString('ru-RU') : '—';
       var name = p.itemName || p.name || p.trackId;
-      return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.07);">'
+      return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:6px;">'
         + '<div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📦</div>'
         + '<div style="flex:1;min-width:0;">'
         +   '<div style="font-size:14px;font-weight:800;color:white;font-family:monospace;letter-spacing:1px;">' + (p.trackId || p.id) + '</div>'
         +   '<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">' + name + ' · ' + date + '</div>'
         + '</div>'
-        + '<button onclick="cnConfirmShip(\'' + p.id + '\',\'' + (p.trackId || p.id) + '\')" '
-        +   'style="padding:8px 16px;background:linear-gradient(135deg,#1A6BFF,#0052E0);border:none;border-radius:9px;color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;flex-shrink:0;">'
-        +   '✈️ Отправить'
-        + '</button>'
         + '</div>';
     }).join('');
 
@@ -7474,6 +7480,45 @@ async function cnShipParcel(docId, trackId) {
   } catch(e) {
     cnShowResult('error', '❌', 'Ошибка', e.message || 'Попробуйте снова');
   }
+}
+
+
+async function cnShipAll() {
+  var parcels = window._cnWarehouseParcels || [];
+  if (!parcels.length) { return; }
+
+  var btn = document.querySelector('[onclick="cnShipAll()"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Отправляем...'; }
+
+  var db = window.firebaseDb;
+  var now = Date.now();
+  var successCount = 0; var errorCount = 0;
+
+  for (var i = 0; i < parcels.length; i++) {
+    try {
+      var ref = window.firebaseDoc(db, 'parcels', parcels[i].id);
+      var snap = await window.firebaseGetDoc(ref);
+      if (!snap.exists()) { errorCount++; continue; }
+      var data = snap.data();
+      data.status = 'shipped';
+      data.statusHistory = data.statusHistory || [];
+      data.statusHistory.push({ status: 'shipped', at: now, by: 'china_manager', note: 'Отправлено из склада Китая' });
+      data.shippedAt = now;
+      await window.firebaseSetDoc(ref, data);
+      successCount++;
+    } catch(e) { errorCount++; }
+  }
+
+  window._cnWarehouseParcels = [];
+
+  if (errorCount === 0) {
+    cnShowResult('success', '✈️', 'Все в пути!', successCount + ' посылок отправлено');
+  } else {
+    cnShowResult('success', '⚠️', 'Готово', successCount + ' отправлено, ' + errorCount + ' ошибок');
+  }
+
+  // Очищаем список — страница готова к новым посылкам
+  setTimeout(cnLoadWarehouse, 1200);
 }
 
 // Загружаем список при открытии страницы менеджера
