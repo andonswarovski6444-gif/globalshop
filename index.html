@@ -4103,8 +4103,8 @@ async function doLogin() {
     // Проверка по email — менеджер Китая (на случай если документ в Firestore не найден)
     const userEmailLower = (cred.user.email || '').toLowerCase();
     if (userEmailLower === 'китай@globalshop.kz' || userEmailLower === 'china@globalshop.kz') {
-      await window.firebaseSignOut(window.firebaseAuth);
-      window.currentUser = null;
+      // Не делаем signOut — менеджер остаётся авторизован в Firebase
+      window.currentUser = cred.user;
       window.isChinaManager = true;
       window.isAdmin = false;
       showPageDirect('china_manager');
@@ -4126,8 +4126,8 @@ async function doLogin() {
         updateNav(true, true);
         showPage('admin');
       } else if (role === 'china_manager') {
-        await window.firebaseSignOut(window.firebaseAuth);
-        window.currentUser = null;
+        // Не делаем signOut — менеджер остаётся авторизован в Firebase
+        window.currentUser = cred.user;
         window.isChinaManager = true;
         window.isAdmin = false;
         showPageDirect('china_manager');
