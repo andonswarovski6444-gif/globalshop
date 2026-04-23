@@ -854,41 +854,7 @@
         <input class="track-input" id="trackInput" placeholder="Введите номер трек-кода (напр. GS-2025-001)" />
         <button class="btn-pink" style="padding:14px 24px;border-radius:12px;font-size:14px;font-weight:700;" onclick="trackParcel()">Найти</button>
       </div>
-      <div class="track-result" id="trackResult">
-        <div class="track-status">
-          <div class="track-icon">✈️</div>
-          <div>
-            <div style="font-weight:700;font-size:15px;">GS-2025-001 — Nike Air Max 90</div>
-            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">Ожидаемая доставка: 25 апреля 2025</div>
-          </div>
-        </div>
-        <div class="track-steps">
-          <div class="track-step">
-            <div class="step-dot done">✓</div>
-            <div class="step-info"><div class="step-title">Заказ оформлен</div><div class="step-date">10 апр, 14:32</div></div>
-          </div>
-          <div class="track-step">
-            <div class="step-dot done">✓</div>
-            <div class="step-info"><div class="step-title">Выкуплен в магазине</div><div class="step-date">11 апр, 09:15 · США</div></div>
-          </div>
-          <div class="track-step">
-            <div class="step-dot done">✓</div>
-            <div class="step-info"><div class="step-title">Прибыл на склад</div><div class="step-date">12 апр, 18:00 · Нью-Йорк</div></div>
-          </div>
-          <div class="track-step">
-            <div class="step-dot active">✈</div>
-            <div class="step-info"><div class="step-title">В пути — авиаперелёт</div><div class="step-date">14 апр · Летит в Алматы</div></div>
-          </div>
-          <div class="track-step">
-            <div class="step-dot pending">5</div>
-            <div class="step-info"><div class="step-title">Таможенное оформление</div><div class="step-date">Ожидается</div></div>
-          </div>
-          <div class="track-step">
-            <div class="step-dot pending">6</div>
-            <div class="step-info"><div class="step-title">Доставлено клиенту</div><div class="step-date">Ожидается</div></div>
-          </div>
-        </div>
-      </div>
+      <div class="track-result" id="trackResult"></div>
     </div>
   </div>
 </div>
@@ -3104,6 +3070,8 @@ async function adminLoadParcels() {
     const rows = [];
     snap.forEach(d => {
       const p = d.data();
+      p.__docId = d.id;
+      if (p.__deleted) return; // не показываем удалённые
       total++;
       if (p.status === 'flying') flying++;
       else if (p.status === 'customs') customs++;
@@ -3134,6 +3102,7 @@ async function adminLoadParcels() {
             <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Страна</th>
             <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th>
             <th style="padding:10px 12px;"></th>
+            <th style="padding:10px 12px;"></th>
           </tr></thead>
           <tbody>
             ${rows.map(p => `
@@ -3144,6 +3113,7 @@ async function adminLoadParcels() {
                 <td style="padding:12px;font-size:13px;">${p.country||'—'}</td>
                 <td style="padding:12px;font-size:13px;">${statusLabels[p.status]||p.status||'—'}</td>
                 <td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="adminChangeParcelStatus('${(p.trackId||'')+'_'+(p.userId||'')}','${p.trackId||''}','${p.status||'warehouse'}')">Изменить</button></td>
+                <td style="padding:12px;"><button style="padding:4px 12px;font-size:11px;border:1.5px solid #FECACA;border-radius:7px;background:white;color:#991B1B;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;" onclick="adminDeleteParcel('${p.__docId||''}','${p.trackId||''}')">🗑 Удалить</button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -3204,7 +3174,64 @@ async function adminChangeParcelStatus(docId, trackId, currentStatus) {
     alert('❌ Ошибка: ' + (e.message || e));
   }
 }
-// ===== НИЖНИЙ ТАБ-БАР =====
+// ===== УДАЛЕНИЕ ПОСЫЛКИ АДМИНОМ =====
+async function adminDeleteParcel(docId, trackId) {
+  const label = trackId || docId || 'посылку';
+
+  // Двойное подтверждение
+  const first = confirm(
+    '🗑 Удалить посылку?\n\n' +
+    '📦 Трек: ' + label + '\n\n' +
+    'Это действие нельзя отменить.\nПосылка будет полностью удалена из системы.'
+  );
+  if (!first) return;
+
+  const second = confirm(
+    '⚠️ Вы уверены?\n\n' +
+    'Посылка «' + label + '» будет удалена НАВСЕГДА.\n\n' +
+    'Нажмите OK для подтверждения удаления.'
+  );
+  if (!second) return;
+
+  try {
+    let ref = null;
+
+    // Если есть docId — используем напрямую
+    if (docId) {
+      ref = window.firebaseDoc(window.firebaseDb, 'parcels', docId);
+      const snap = await window.firebaseGetDoc(ref);
+      if (!snap.exists()) ref = null;
+    }
+
+    // Если не нашли по docId — ищем по trackId
+    if (!ref && trackId) {
+      const q = window.firebaseQuery(
+        window.firebaseCollection(window.firebaseDb, 'parcels'),
+        window.firebaseWhere('trackId', '==', trackId),
+        window.firebaseLimit(1)
+      );
+      const qs = await window.firebaseGetDocs(q);
+      if (qs.empty) { alert('❌ Посылка не найдена в базе'); return; }
+      qs.forEach(d => { ref = d.ref; });
+    }
+
+    if (!ref) { alert('❌ Не удалось найти посылку'); return; }
+
+    // Мягкое удаление — помечаем как deleted (безопаснее чем физическое удаление)
+    const snap = await window.firebaseGetDoc(ref);
+    const data = snap.data() || {};
+    data.__deleted = true;
+    data.__deletedAt = Date.now();
+    data.__deletedBy = window.currentUser?.email || 'admin';
+    await window.firebaseSetDoc(ref, data);
+
+    alert('✅ Посылка «' + label + '» удалена');
+    adminLoadParcels();
+  } catch(e) {
+    alert('❌ Ошибка удаления: ' + (e.message || e));
+  }
+}
+window.adminDeleteParcel = adminDeleteParcel;
 function tabNavigate(view) {
   // Переключаем вкладку в ЛК
   setDashTab(null, view);
@@ -3903,8 +3930,86 @@ async function loadAdminDashboardMetrics() {
 showAdmin('dashboard');
 
 
-function trackParcel() {
-  const val = document.getElementById('trackInput').value.trim();
+// ===== TRACKING =====
+
+// Таймзоны по стране посылки
+function getTimezoneForCountry(country) {
+  const map = {
+    'usa': 'America/New_York',      // Делавэр
+    'us':  'America/New_York',
+    'eu':  'Europe/Berlin',          // Германия
+    'de':  'Europe/Berlin',
+    'uk':  'Europe/London',
+    'gb':  'Europe/London',
+    'cn':  'Asia/Shanghai',          // Китай
+    'china': 'Asia/Shanghai',
+    'kr':  'Asia/Seoul',             // Корея
+    'jp':  'Asia/Tokyo',             // Япония
+    'tr':  'Europe/Istanbul',        // Турция
+    // В Казахстане — UTC+5
+    'kz':  'Asia/Almaty',
+  };
+  return map[(country || '').toLowerCase()] || null;
+}
+
+// Форматирование времени с учётом таймзоны
+function formatTrackTime(ts, country, currentStatus) {
+  if (!ts) return 'Ожидается';
+  const date = new Date(ts);
+
+  // Если посылка уже в КЗ (customs, kazakhstan, pickup, delivered) — показываем время КЗ
+  const kzStatuses = ['customs', 'kazakhstan', 'pickup', 'delivered'];
+  const useKz = kzStatuses.includes(currentStatus);
+
+  const tz = useKz ? 'Asia/Almaty' : (getTimezoneForCountry(country) || 'Asia/Almaty');
+
+  try {
+    const opts = {
+      timeZone: tz,
+      day: 'numeric', month: 'short',
+      hour: '2-digit', minute: '2-digit',
+      hour12: false
+    };
+    const str = date.toLocaleString('ru-RU', opts);
+    // Добавляем пометку таймзоны
+    const tzLabel = useKz ? ' · КЗ' : getTzLabel(tz);
+    return str + tzLabel;
+  } catch(e) {
+    return date.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+function getTzLabel(tz) {
+  const labels = {
+    'America/New_York': ' · EST',
+    'Europe/Berlin':    ' · CET',
+    'Europe/London':    ' · GMT',
+    'Asia/Shanghai':    ' · CST',
+    'Asia/Seoul':       ' · KST',
+    'Asia/Tokyo':       ' · JST',
+    'Europe/Istanbul':  ' · TRT',
+    'Asia/Almaty':      ' · КЗ',
+  };
+  return labels[tz] || '';
+}
+
+// Конфиг статусов — иконка, название, цвет
+const trackStatusConfig = {
+  added:      { icon: '📋', label: 'Заказ добавлен',          dotIcon: '📋', color: '#6366F1' },
+  pending:    { icon: '📋', label: 'Заказ добавлен',          dotIcon: '📋', color: '#6366F1' },
+  bought:     { icon: '🛒', label: 'Выкуплен в магазине',     dotIcon: '✓',  color: '#3B82F6' },
+  warehouse:  { icon: '🏪', label: 'Принят на склад',         dotIcon: '✓',  color: '#8B5CF6' },
+  shipped:    { icon: '✈️', label: 'Отправлен из склада',     dotIcon: '✈',  color: '#06B6D4' },
+  flying:     { icon: '✈️', label: 'В пути',                  dotIcon: '✈',  color: '#06B6D4' },
+  customs:    { icon: '🛃', label: 'Таможенное оформление',   dotIcon: '🛃', color: '#F59E0B' },
+  kazakhstan: { icon: '🇰🇿', label: 'Прибыл в Казахстан',    dotIcon: '✓',  color: '#10B981' },
+  pickup:     { icon: '📬', label: 'Ожидает получения',       dotIcon: '📬', color: '#EF4444' },
+  delivered:  { icon: '✅', label: 'Доставлено клиенту',      dotIcon: '✅', color: '#10B981' },
+  cancelled:  { icon: '❌', label: 'Отменено',                dotIcon: '✕',  color: '#EF4444' },
+};
+
+async function trackParcel() {
+  const val = document.getElementById('trackInput').value.trim().toUpperCase();
   const result = document.getElementById('trackResult');
   if (!val) {
     document.getElementById('trackInput').style.borderColor = 'var(--accent-hover)';
@@ -3912,7 +4017,115 @@ function trackParcel() {
     return;
   }
   document.getElementById('trackInput').style.borderColor = '';
+
+  // Показываем лоадер
   result.classList.add('show');
+  result.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-secondary);">⏳ Поиск посылки...</div>';
+
+  try {
+    const db = window.firebaseDb;
+
+    // Ищем по trackId
+    const q = window.firebaseQuery(
+      window.firebaseCollection(db, 'parcels'),
+      window.firebaseWhere('trackId', '==', val),
+      window.firebaseLimit(1)
+    );
+    const qs = await window.firebaseGetDocs(q);
+
+    if (qs.empty) {
+      result.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Посылка не найдена</div>
+          <div style="font-size:13px;color:var(--text-secondary);">Проверьте трек-номер и попробуйте снова</div>
+        </div>`;
+      return;
+    }
+
+    let parcel = null;
+    qs.forEach(d => { parcel = { id: d.id, ...d.data() }; });
+
+    renderTrackResult(result, parcel);
+
+  } catch(e) {
+    result.innerHTML = `<div style="text-align:center;padding:32px;color:#EF4444;">❌ Ошибка поиска: ${e.message}</div>`;
+  }
+}
+
+function renderTrackResult(container, p) {
+  const status = p.status || 'added';
+  const cfg = trackStatusConfig[status] || trackStatusConfig.added;
+  const country = p.country || '';
+  const itemName = p.itemName || p.name || 'Посылка';
+  const trackId = p.trackId || p.id;
+
+  // Текущий статус — шапка
+  const headerHtml = `
+    <div class="track-status" style="margin-bottom:24px;">
+      <div class="track-icon">${cfg.icon}</div>
+      <div>
+        <div style="font-weight:700;font-size:15px;">${trackId}${itemName && itemName !== trackId ? ' — ' + itemName : ''}</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">
+          Текущий статус: <b style="color:${cfg.color};">${cfg.label}</b>
+          ${p.countryLabel ? ' · ' + p.countryLabel : ''}
+        </div>
+      </div>
+    </div>`;
+
+  // Строим шаги из statusHistory (реальные данные)
+  const history = p.statusHistory || [];
+
+  // Если история есть — показываем её
+  // Если нет — показываем только текущий статус
+  let stepsHtml = '';
+
+  if (history.length > 0) {
+    // Сортируем по времени
+    const sorted = [...history].sort((a, b) => (a.at || 0) - (b.at || 0));
+
+    stepsHtml = '<div class="track-steps">';
+    sorted.forEach((step, i) => {
+      const sCfg = trackStatusConfig[step.status] || trackStatusConfig.added;
+      const isLast = i === sorted.length - 1;
+      const timeStr = formatTrackTime(step.at, country, step.status);
+      const note = step.note ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${step.note}</div>` : '';
+
+      stepsHtml += `
+        <div class="track-step">
+          <div class="step-dot done" style="background:${sCfg.color};font-size:11px;">${sCfg.dotIcon}</div>
+          <div class="step-info">
+            <div class="step-title">${sCfg.label}</div>
+            <div class="step-date">${timeStr}</div>
+            ${note}
+          </div>
+        </div>`;
+    });
+    stepsHtml += '</div>';
+  } else {
+    // Нет истории — показываем только добавление и текущий статус
+    const createdTime = p.createdAt ? formatTrackTime(p.createdAt, country, 'added') : '—';
+    stepsHtml = `
+      <div class="track-steps">
+        <div class="track-step">
+          <div class="step-dot done" style="background:#6366F1;font-size:11px;">📋</div>
+          <div class="step-info">
+            <div class="step-title">Заказ добавлен</div>
+            <div class="step-date">${createdTime}</div>
+          </div>
+        </div>
+        ${status !== 'added' && status !== 'pending' ? `
+        <div class="track-step">
+          <div class="step-dot active" style="background:${cfg.color};font-size:11px;">${cfg.dotIcon}</div>
+          <div class="step-info">
+            <div class="step-title">${cfg.label}</div>
+            <div class="step-date">—</div>
+          </div>
+        </div>` : ''}
+      </div>`;
+  }
+
+  container.innerHTML = headerHtml + stepsHtml;
 }
 
 let currentUnit = 'cm';
