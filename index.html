@@ -2694,6 +2694,31 @@ const adminViews = {
       </div>
     </div>
 
+    <!-- Тарифы по уровням лояльности -->
+    <div class="acard" style="margin-bottom:20px;">
+      <div class="acard-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>💰 Тарифы по уровням лояльности ($/кг)</span>
+        <button onclick="adminSaveLoyaltyRates()" class="btn-pink" style="padding:8px 20px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">💾 Сохранить всё</button>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Укажите цену за кг для каждого уровня и направления. Клиенты автоматически видят свою цену.</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:600px;" id="loyaltyRatesTable">
+          <thead>
+            <tr style="background:var(--bg);">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">Направление</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">⚪ Стандарт</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#92400E;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥉 Бронза</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥈 Серебро</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#B45309;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥇 Золото</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#3730A3;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">💎 Платина</th>
+            </tr>
+          </thead>
+          <tbody id="loyaltyRatesTbody"></tbody>
+        </table>
+      </div>
+      <div id="loyaltyRatesSaveMsg" style="display:none;margin-top:12px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;"></div>
+    </div>
+
     <!-- Топ клиенты по кг -->
     <div class="acard">
       <div class="acard-title">Топ клиенты этого месяца</div>
@@ -2747,6 +2772,7 @@ function showAdmin(view) {
   }
   if (view === 'loyalty_admin') {
     setTimeout(adminLoadLoyaltyStats, 80);
+    setTimeout(adminLoadLoyaltyRates, 120);
   }
 }
 
@@ -2787,6 +2813,103 @@ async function adminLoadLoyaltyStats() {
   }
 }
 window.adminLoadLoyaltyStats = adminLoadLoyaltyStats;
+
+// ===== ТАРИФЫ ПО УРОВНЯМ ЛОЯЛЬНОСТИ =====
+// Дефолтные значения согласно ТЗ
+let appLoyaltyRates = {
+  usa:        { standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9 },
+  eu:         { standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9 },
+  cn_express: { standard: 13, bronze: 12, silver: 11, gold: 11, platinum: 11 },
+  cn:         { standard:  5, bronze:  5, silver:  5, gold:  4, platinum:  4 }
+};
+
+const loyaltyRouteLabels = {
+  usa:        '🇺🇸 США',
+  eu:         '🇩🇪 Германия',
+  cn_express: '🇨🇳 Китай Экспресс',
+  cn:         '🇨🇳 Китай Стандарт'
+};
+const loyaltyLevels = ['standard','bronze','silver','gold','platinum'];
+
+async function adminLoadLoyaltyRates() {
+  try {
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'));
+    if (snap.exists()) {
+      appLoyaltyRates = { ...appLoyaltyRates, ...snap.data() };
+    }
+  } catch(e) { console.warn('loyaltyRates load error:', e); }
+  renderLoyaltyRatesTable();
+}
+
+function renderLoyaltyRatesTable() {
+  const tbody = document.getElementById('loyaltyRatesTbody');
+  if (!tbody) return;
+  const inputStyle = 'width:70px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;text-align:center;background:var(--card-bg);color:var(--text-primary);';
+  const rowBg = ['','#FEF9EC','#F8FAFC','#FFFDF0','#F0F3FF'];
+  tbody.innerHTML = Object.entries(loyaltyRouteLabels).map(([routeKey, routeLabel], ri) => {
+    const rates = appLoyaltyRates[routeKey] || {};
+    const cells = loyaltyLevels.map((lvl, li) =>
+      `<td style="padding:10px 14px;text-align:center;border-bottom:1px solid var(--border);">
+        <input type="number" min="0" step="0.5"
+          id="lr_${routeKey}_${lvl}"
+          value="${rates[lvl] !== undefined ? rates[lvl] : ''}"
+          style="${inputStyle}background:${rowBg[li] || 'var(--card-bg)'};"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+      </td>`
+    ).join('');
+    return `<tr>
+      <td style="padding:10px 14px;font-size:13px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);white-space:nowrap;">${routeLabel}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+}
+
+async function adminSaveLoyaltyRates() {
+  const updated = {};
+  Object.keys(loyaltyRouteLabels).forEach(routeKey => {
+    updated[routeKey] = {};
+    loyaltyLevels.forEach(lvl => {
+      const el = document.getElementById('lr_' + routeKey + '_' + lvl);
+      if (el) updated[routeKey][lvl] = parseFloat(el.value) || 0;
+    });
+  });
+  appLoyaltyRates = updated;
+
+  const msg = document.getElementById('loyaltyRatesSaveMsg');
+  try {
+    await window.firebaseSetDoc(
+      window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'),
+      appLoyaltyRates
+    );
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.background = '#D1FAE5';
+      msg.style.color = '#065F46';
+      msg.textContent = '✅ Тарифы по уровням сохранены! Клиенты видят актуальные цены.';
+      setTimeout(() => { msg.style.display = 'none'; }, 4000);
+    }
+  } catch(e) {
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.background = '#FEE2E2';
+      msg.style.color = '#991B1B';
+      msg.textContent = '❌ Ошибка сохранения: ' + (e.message || 'попробуйте снова');
+      setTimeout(() => { msg.style.display = 'none'; }, 5000);
+    }
+  }
+}
+
+// Загрузка тарифов по уровням при старте (для использования в калькуляторе/кабинете)
+async function loadLoyaltyRates() {
+  try {
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'));
+    if (snap.exists()) appLoyaltyRates = { ...appLoyaltyRates, ...snap.data() };
+  } catch(e) {}
+}
+window.appLoyaltyRates = appLoyaltyRates;
+window.adminSaveLoyaltyRates = adminSaveLoyaltyRates;
 
 // Загружает даты юр. документов в панели настроек
 async function adminLoadSettingsView() {
