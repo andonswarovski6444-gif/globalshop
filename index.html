@@ -1290,30 +1290,110 @@
 </div>
 
 <!-- CHINA MANAGER PAGE -->
+<style>
+  /* China Manager Theme */
+  #page-china_manager { transition: background 0.3s; }
+  #page-china_manager.cn-light {
+    background: #f0f4f8 !important;
+  }
+  #page-china_manager.cn-light .cn-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #1a202c !important;
+  }
+  #page-china_manager.cn-light .cn-card-header {
+    color: #4a5568 !important;
+  }
+  #page-china_manager.cn-light .cn-input {
+    background: #f7fafc !important;
+    border-color: #cbd5e0 !important;
+    color: #1a202c !important;
+  }
+  #page-china_manager.cn-light .cn-input:focus {
+    border-color: rgba(230,57,70,0.6) !important;
+  }
+  #page-china_manager.cn-light .cn-parcel-item {
+    background: rgba(0,0,0,0.03) !important;
+    border-color: rgba(0,0,0,0.07) !important;
+  }
+  #page-china_manager.cn-light .cn-parcel-title {
+    color: #1a202c !important;
+  }
+  #page-china_manager.cn-light .cn-parcel-sub {
+    color: rgba(0,0,0,0.4) !important;
+  }
+  #page-china_manager.cn-light .cn-refresh-btn {
+    background: rgba(0,0,0,0.04) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+    color: #4a5568 !important;
+  }
+  #page-china_manager.cn-light .cn-logout-btn {
+    background: rgba(0,0,0,0.06) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+    color: #4a5568 !important;
+  }
+  #page-china_manager.cn-light .cn-theme-btn {
+    background: rgba(0,0,0,0.06) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+    color: #4a5568 !important;
+  }
+  #page-china_manager.cn-light .cn-subtitle {
+    color: rgba(0,0,0,0.35) !important;
+  }
+  #page-china_manager.cn-light .cn-logo-sub {
+    color: rgba(0,0,0,0.4) !important;
+  }
+  #page-china_manager.cn-light .cn-empty-text {
+    color: rgba(0,0,0,0.25) !important;
+  }
+  #page-china_manager.cn-light .cn-list-title {
+    color: rgba(0,0,0,0.4) !important;
+  }
+  #page-china_manager.cn-light .cn-scan-title {
+    color: rgba(0,0,0,0.5) !important;
+  }
+</style>
+
 <div class="page" id="page-china_manager" style="min-height:100vh;background:#0f1923;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;">
 
   <!-- Header -->
-  <div style="width:100%;max-width:760px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;">
+  <div style="width:100%;max-width:760px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:12px;">
       <div style="width:40px;height:40px;background:#e63946;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🇨🇳</div>
       <div>
-        <div style="color:white;font-weight:800;font-size:16px;">中国仓库管理员</div>
-        <div style="color:rgba(255,255,255,0.45);font-size:12px;">Global Shop KZ · 中国仓库</div>
+        <div style="color:white;font-weight:800;font-size:16px;">中国仓库管理员 · Менеджер склада</div>
+        <div class="cn-logo-sub" style="color:rgba(255,255,255,0.45);font-size:12px;">Global Shop KZ · 中国仓库 · Китайский склад</div>
       </div>
     </div>
-    <button onclick="window.isChinaManager=false;showPage('admin_login')" style="padding:7px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">退出登录</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <!-- Theme toggle -->
+      <button id="cnThemeBtn" class="cn-theme-btn" onclick="toggleCnTheme()"
+        style="padding:7px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;gap:5px;"
+        title="Тема / 主题">
+        <span id="cnThemeIcon">☀️</span> <span id="cnThemeLabel">明亮 / Светлая</span>
+      </button>
+      <!-- Logout -->
+      <button class="cn-logout-btn" onclick="window.isChinaManager=false;showPage('login')"
+        style="padding:7px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">
+        退出登录 · Выйти
+      </button>
+    </div>
   </div>
 
   <!-- Scanner card -->
-  <div style="width:100%;max-width:760px;background:#1a2433;border-radius:24px;padding:36px 32px;border:1px solid rgba(255,255,255,0.07);margin-bottom:20px;">
+  <div class="cn-card" style="width:100%;max-width:760px;background:#1a2433;border-radius:24px;padding:36px 32px;border:1px solid rgba(255,255,255,0.07);margin-bottom:20px;">
     <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">扫描包裹 / Сканировать посылку</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.35);">输入或扫描条形码 · Введите или отсканируйте штрих-код</div>
+      <div class="cn-scan-title" style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
+        扫描包裹 / Сканировать посылку
+      </div>
+      <div class="cn-subtitle" style="font-size:13px;color:rgba(255,255,255,0.35);">
+        输入或扫描条形码 · Введите или отсканируйте штрих-код
+      </div>
     </div>
 
     <!-- Scan input -->
     <div style="position:relative;margin-bottom:20px;">
-      <input id="cnScanInput" type="text" placeholder="GS-XXXXXXXX"
+      <input id="cnScanInput" class="cn-input" type="text" placeholder="GS-XXXXXXXX"
         style="width:100%;padding:20px 56px 20px 20px;background:#0f1923;border:2px solid rgba(255,255,255,0.12);border-radius:14px;font-size:22px;font-weight:800;color:white;font-family:Manrope,sans-serif;outline:none;text-align:center;letter-spacing:2px;transition:border-color 0.2s;"
         oninput="cnScanInputChange(this)"
         onkeydown="if(event.key==='Enter')cnProcessScan()"
@@ -1333,17 +1413,71 @@
   <div id="cnResult" style="width:100%;max-width:760px;display:none;border-radius:18px;padding:20px 28px;text-align:center;margin-bottom:16px;transition:all 0.3s;"></div>
 
   <!-- Warehouse parcels list -->
-  <div style="width:100%;max-width:760px;background:#1a2433;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.07);">
+  <div class="cn-card" style="width:100%;max-width:760px;background:#1a2433;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.07);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;">📦 Посылки на складе в Китае</div>
-      <button onclick="cnLoadWarehouse()" style="padding:6px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">🔄 Обновить</button>
+      <div class="cn-list-title" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;">
+        📦 仓库包裹 · Посылки на складе в Китае
+      </div>
+      <button class="cn-refresh-btn" onclick="cnLoadWarehouse()" style="padding:6px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">
+        🔄 刷新 / Обновить
+      </button>
     </div>
     <div id="cnWarehouseList" style="display:flex;flex-direction:column;gap:10px;">
-      <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">Загрузка...</div>
+      <div class="cn-empty-text" style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">加载中... / Загрузка...</div>
     </div>
   </div>
 
 </div>
+
+<script>
+// === China Manager Theme ===
+(function() {
+  var saved = localStorage.getItem('cn_theme') || 'dark';
+  if (saved === 'light') {
+    document.addEventListener('DOMContentLoaded', function() {
+      var p = document.getElementById('page-china_manager');
+      if (p) p.classList.add('cn-light');
+      updateCnThemeBtn(true);
+    });
+  }
+})();
+
+function toggleCnTheme() {
+  var p = document.getElementById('page-china_manager');
+  if (!p) return;
+  var isLight = p.classList.contains('cn-light');
+  if (isLight) {
+    p.classList.remove('cn-light');
+    localStorage.setItem('cn_theme', 'dark');
+    updateCnThemeBtn(false);
+  } else {
+    p.classList.add('cn-light');
+    localStorage.setItem('cn_theme', 'light');
+    updateCnThemeBtn(true);
+  }
+}
+
+function updateCnThemeBtn(isLight) {
+  var icon = document.getElementById('cnThemeIcon');
+  var label = document.getElementById('cnThemeLabel');
+  if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+  if (label) label.textContent = isLight ? '暗色 / Тёмная' : '明亮 / Светлая';
+}
+
+// Apply saved theme when china_manager page is shown
+var _origShowPageDirectCnTheme = window.showPageDirect;
+window.showPageDirect = function(page) {
+  if (typeof _origShowPageDirectCnTheme === 'function') _origShowPageDirectCnTheme(page);
+  if (page === 'china_manager') {
+    var saved = localStorage.getItem('cn_theme') || 'dark';
+    var p = document.getElementById('page-china_manager');
+    if (p) {
+      if (saved === 'light') { p.classList.add('cn-light'); updateCnThemeBtn(true); }
+      else { p.classList.remove('cn-light'); updateCnThemeBtn(false); }
+    }
+  }
+};
+</script>
 
 <!-- ADMIN PANEL PAGE -->
 <div class="page" id="page-admin">
@@ -7329,13 +7463,13 @@ function cnScanInputChange(el) {
 async function cnProcessScan() {
   var trackId = (document.getElementById('cnScanInput').value || '').trim().toUpperCase();
   if (!trackId || trackId.length < 3) {
-    cnShowResult('error', '⚠️', 'Ошибка', 'Введите корректный трек-номер');
+    cnShowResult('error', '⚠️', '输入错误 · Ошибка', '请输入正确的追踪号 · Введите корректный трек-номер');
     return;
   }
 
   var btn = document.getElementById('cnScanBtn');
   btn.disabled = true;
-  btn.textContent = 'Обработка...';
+  btn.textContent = '⏳ 处理中... / Обработка...';
 
   try {
     var db = window.firebaseDb;
@@ -7378,17 +7512,17 @@ async function cnProcessScan() {
       await window.firebaseSetDoc(window.firebaseDoc(db, 'parcels', newDocId), newData);
     }
 
-    cnShowResult('success', '✅', 'Принято на склад!', trackId);
+    cnShowResult('success', '✅', '已入库 · Принято на склад!', trackId);
     document.getElementById('cnScanInput').value = '';
     document.getElementById('cnScanInput').focus();
     setTimeout(cnLoadWarehouse, 800);
 
   } catch(e) {
-    cnShowResult('error', '❌', 'Ошибка', e.message || 'Попробуйте снова');
+    cnShowResult('error', '❌', '错误 · Ошибка', e.message || '请重试 · Попробуйте снова');
   }
 
   btn.disabled = false;
-  btn.textContent = '✅ Принять на склад';
+  btn.textContent = '✅ 确认入库 · Принять на склад';
 }
 
 function cnShowResult(type, icon, title, sub) {
@@ -7409,7 +7543,7 @@ function cnShowResult(type, icon, title, sub) {
 async function cnLoadWarehouse() {
   var container = document.getElementById('cnWarehouseList');
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">Загрузка...</div>';
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">加载中... / Загрузка...</div>';
 
   try {
     var db = window.firebaseDb;
@@ -7427,7 +7561,7 @@ async function cnLoadWarehouse() {
     parcels.sort(function(a, b) { return (b.warehouseAt || b.createdAt || 0) - (a.warehouseAt || a.createdAt || 0); });
 
     if (!parcels.length) {
-      container.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.25);font-size:14px;">📭 На складе нет посылок</div>';
+      container.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.25);font-size:14px;">📭 仓库暂无包裹 · На складе нет посылок</div>';
       return;
     }
 
@@ -7436,24 +7570,24 @@ async function cnLoadWarehouse() {
     var headerHtml = '<div style="margin-bottom:14px;">'
       + '<button onclick="cnShipAll()" '
       + 'style="width:100%;padding:14px;background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:12px;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.3px;">'
-      + '✈️ Отправить всё в путь (' + parcels.length + ' посылок)'
+      + '✈️ 全部发货 · Отправить всё в путь (' + parcels.length + ' 件包裹 / посылок)'
       + '</button>'
       + '</div>';
 
     container.innerHTML = headerHtml + parcels.map(function(p) {
       var date = p.warehouseAt ? new Date(p.warehouseAt).toLocaleDateString('ru-RU') : '—';
       var name = p.itemName || p.name || p.trackId;
-      return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:6px;">'
+      return '<div class="cn-parcel-item" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:6px;">'
         + '<div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📦</div>'
         + '<div style="flex:1;min-width:0;">'
-        +   '<div style="font-size:14px;font-weight:800;color:white;font-family:monospace;letter-spacing:1px;">' + (p.trackId || p.id) + '</div>'
-        +   '<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">' + name + ' · ' + date + '</div>'
+        +   '<div class="cn-parcel-title" style="font-size:14px;font-weight:800;color:white;font-family:monospace;letter-spacing:1px;">' + (p.trackId || p.id) + '</div>'
+        +   '<div class="cn-parcel-sub" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">' + name + ' · ' + date + '</div>'
         + '</div>'
         + '</div>';
     }).join('');
 
   } catch(e) {
-    container.innerHTML = '<div style="text-align:center;padding:20px;color:#e63946;font-size:13px;">Ошибка загрузки: ' + e.message + '</div>';
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:#e63946;font-size:13px;">加载失败 · Ошибка загрузки: ' + e.message + '</div>';
   }
 }
 
@@ -7467,7 +7601,7 @@ async function cnShipParcel(docId, trackId) {
     var db = window.firebaseDb;
     var ref = window.firebaseDoc(db, 'parcels', docId);
     var snap = await window.firebaseGetDoc(ref);
-    if (!snap.exists()) throw new Error('Посылка не найдена');
+    if (!snap.exists()) throw new Error('包裹未找到 · Посылка не найдена');
     var data = snap.data();
     var now = Date.now();
     data.status = 'shipped';
@@ -7475,10 +7609,10 @@ async function cnShipParcel(docId, trackId) {
     data.statusHistory.push({ status: 'shipped', at: now, by: 'china_manager', note: 'Отправлено из склада Китая' });
     data.shippedAt = now;
     await window.firebaseSetDoc(ref, data);
-    cnShowResult('success', '✈️', 'Отправлено!', trackId + ' — статус обновлён');
+    cnShowResult('success', '✈️', '已发货 · Отправлено!', trackId + ' — 状态已更新 · статус обновлён');
     setTimeout(cnLoadWarehouse, 800);
   } catch(e) {
-    cnShowResult('error', '❌', 'Ошибка', e.message || 'Попробуйте снова');
+    cnShowResult('error', '❌', '错误 · Ошибка', e.message || '请重试 · Попробуйте снова');
   }
 }
 
@@ -7488,7 +7622,7 @@ async function cnShipAll() {
   if (!parcels.length) { return; }
 
   var btn = document.querySelector('[onclick="cnShipAll()"]');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Отправляем...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 发货中... / Отправляем...'; }
 
   var db = window.firebaseDb;
   var now = Date.now();
@@ -7512,9 +7646,9 @@ async function cnShipAll() {
   window._cnWarehouseParcels = [];
 
   if (errorCount === 0) {
-    cnShowResult('success', '✈️', 'Все в пути!', successCount + ' посылок отправлено');
+    cnShowResult('success', '✈️', '全部发出 · Все в пути!', successCount + ' 件已发货 / посылок отправлено');
   } else {
-    cnShowResult('success', '⚠️', 'Готово', successCount + ' отправлено, ' + errorCount + ' ошибок');
+    cnShowResult('success', '⚠️', '完成 · Готово', successCount + ' 件发货 / отправлено, ' + errorCount + ' 件错误 / ошибок');
   }
 
   // Очищаем список — страница готова к новым посылкам
