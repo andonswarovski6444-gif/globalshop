@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Global Shop KZ — Доставка из-за рубежа</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231A6BFF'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' fill='white'%3EG%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231A6BFF'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' fill='white'%3EG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -478,6 +480,10 @@
     /* — Дашборд — */
     .dashboard { grid-template-columns: 1fr; }
     .sidebar { display: none; }
+    .dash-content { padding: 20px 16px !important; }
+    .metrics { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .metric-card { padding: 16px 14px; }
+    .dash-greeting { font-size: 20px; }
 
     /* — Карточки — */
     .shop-card { padding: 16px; }
@@ -521,7 +527,13 @@
   ============================================= */
   @media (max-width: 480px) {
     .admin-grid { grid-template-columns: 1fr; }
-    .metrics { grid-template-columns: 1fr 1fr; }
+    .metrics { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric-card { padding: 14px 12px; border-radius: 14px; }
+    .metric-value { font-size: 20px; }
+    .metric-label { font-size: 10px; letter-spacing: 0.3px; }
+    .dash-content { padding: 16px 14px !important; padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; }
+    .dash-greeting { font-size: 18px; }
+    .dash-sub { font-size: 12px; margin-bottom: 16px; }
     .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .stat-item { padding: 18px 10px; }
     .stat-num { font-size: 22px; }
@@ -543,6 +555,7 @@
       max-height: 75vh;
     }
     #aiChatBtn { bottom: 16px; right: 16px; width: 50px; height: 50px; font-size: 22px; }
+    #aiChatBtn.above-tabbar { bottom: calc(70px + env(safe-area-inset-bottom)); }
 
     /* Таб-бар — компактнее */
     .tab-item-label { font-size: 9px; }
@@ -3677,7 +3690,14 @@ window.tabNavigate = tabNavigate;
 function updateTabBarVisibility(page) {
   const bar = document.getElementById('dashTabBar');
   if (!bar) return;
-  bar.style.display = (page === 'dashboard') ? 'flex' : 'none';
+  const show = (page === 'dashboard');
+  bar.style.display = show ? 'flex' : 'none';
+  // Поднимаем кнопку робота над таб-баром на мобиле
+  const aiBtn = document.getElementById('aiChatBtn');
+  if (aiBtn) {
+    if (show) aiBtn.classList.add('above-tabbar');
+    else aiBtn.classList.remove('above-tabbar');
+  }
 }
 window.updateTabBarVisibility = updateTabBarVisibility;
 
@@ -5107,9 +5127,14 @@ function renderDash(view) {
         <div class="calc-grid">
           <div class="calc-field" style="margin-bottom:14px;">
             <label>Город доставки <span style="color:var(--accent);">*</span></label>
-            <select id="orderCity" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#F0F0F0'">
+            <select id="orderCity" onchange="onCityChange()" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#F0F0F0'">
               <option>Алматы</option><option>Астана</option><option>Шымкент</option><option>Актобе</option><option>Актау</option><option>Атырау</option><option>Другой</option>
             </select>
+            <div id="cityInfoBadges" style="display:none;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+            <div id="customCityWrap" style="display:none;margin-top:10px;">
+              <input type="text" id="customCityInput" placeholder="Введите название населённого пункта" style="width:100%;padding:11px 14px;border:1.5px solid #F0F0F0;border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#F0F0F0'" />
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:6px;padding:8px 10px;background:#FEF3C7;border-radius:8px;">📮 Доставка в малые населённые пункты — только через отделение <b>КазПочты</b>. Менеджер уточнит ближайшее отделение.</div>
+            </div>
           </div>
           <div class="calc-field" style="margin-bottom:14px;">
             <label style="display:flex;align-items:center;gap:6px;">
@@ -5558,12 +5583,133 @@ function previewPhoto(input, previewId, labelId) {
 }
 
 // --- Dynamic delivery by country ---
+
+// Города КЗ сгруппированы по областям с почтовыми индексами
+// Формат: { label, zip, pvz, express, standard }
+// pvz = есть ПВЗ, express = есть курьер/экспресс, standard = стандартная доставка курьером
+// если express=false и standard=false — только КазПочта
+const kzCitiesData = [
+  // ── Алматы и область ──────────────────────────────────
+  { label: 'Алматы',              zip: '050000', pvz: true,  express: true,  standard: true  },
+  { label: 'Талдыкорган',         zip: '040000', pvz: true,  express: true,  standard: true  },
+  { label: 'Жаркент',             zip: '040700', pvz: false, express: false, standard: true  },
+  { label: 'Есик',                zip: '040900', pvz: false, express: false, standard: true  },
+  { label: 'Капшагай',            zip: '040700', pvz: false, express: false, standard: true  },
+  { label: 'Текели',              zip: '041200', pvz: false, express: false, standard: true  },
+  // ── Астана (Нур-Султан) ───────────────────────────────
+  { label: 'Астана',              zip: '010000', pvz: true,  express: true,  standard: true  },
+  // ── Шымкент ───────────────────────────────────────────
+  { label: 'Шымкент',             zip: '160000', pvz: true,  express: true,  standard: true  },
+  // ── Туркестанская область ─────────────────────────────
+  { label: 'Туркестан',           zip: '161200', pvz: true,  express: false, standard: true  },
+  { label: 'Кентау',              zip: '161400', pvz: false, express: false, standard: true  },
+  { label: 'Арыс',                zip: '160800', pvz: false, express: false, standard: true  },
+  { label: 'Сарыагаш',            zip: '160300', pvz: false, express: false, standard: true  },
+  { label: 'Жетісай',             zip: '160100', pvz: false, express: false, standard: true  },
+  { label: 'Шардара',             zip: '160700', pvz: false, express: false, standard: true  },
+  // ── Жамбылская область ────────────────────────────────
+  { label: 'Тараз',               zip: '080000', pvz: true,  express: false, standard: true  },
+  { label: 'Каратау',             zip: '080900', pvz: false, express: false, standard: true  },
+  { label: 'Жанатас',             zip: '080800', pvz: false, express: false, standard: true  },
+  { label: 'Шу',                  zip: '080400', pvz: false, express: false, standard: true  },
+  // ── Алматинская (Жетісу) область ─────────────────────
+  { label: 'Конаев',              zip: '040300', pvz: false, express: false, standard: true  },
+  // ── Карагандинская область ────────────────────────────
+  { label: 'Қарағанды',          zip: '100000', pvz: true,  express: true,  standard: true  },
+  { label: 'Теміртау',            zip: '101400', pvz: false, express: false, standard: true  },
+  { label: 'Жезқазған',          zip: '100600', pvz: false, express: false, standard: true  },
+  { label: 'Балқаш',              zip: '100900', pvz: false, express: false, standard: true  },
+  { label: 'Абай',                zip: '101200', pvz: false, express: false, standard: true  },
+  { label: 'Сарань',              zip: '101300', pvz: false, express: false, standard: true  },
+  { label: 'Шахтинск',            zip: '101500', pvz: false, express: false, standard: true  },
+  // ── Восточно-Казахстанская область ───────────────────
+  { label: 'Өскемен',             zip: '070000', pvz: true,  express: false, standard: true  },
+  { label: 'Семей',               zip: '071400', pvz: true,  express: false, standard: true  },
+  { label: 'Риддер',              zip: '070300', pvz: false, express: false, standard: true  },
+  { label: 'Зыряновск',           zip: '070800', pvz: false, express: false, standard: true  },
+  { label: 'Алтай',               zip: '070200', pvz: false, express: false, standard: true  },
+  // ── Актюбинская область ───────────────────────────────
+  { label: 'Ақтөбе',              zip: '030000', pvz: true,  express: true,  standard: true  },
+  { label: 'Алға',                zip: '030400', pvz: false, express: false, standard: true  },
+  { label: 'Хромтау',             zip: '030500', pvz: false, express: false, standard: true  },
+  { label: 'Кандыагаш',           zip: '030300', pvz: false, express: false, standard: true  },
+  // ── Атырауская область ────────────────────────────────
+  { label: 'Атырау',              zip: '060000', pvz: true,  express: true,  standard: true  },
+  { label: 'Кульсары',            zip: '060300', pvz: false, express: false, standard: true  },
+  // ── Мангистауская область ─────────────────────────────
+  { label: 'Ақтау',               zip: '130000', pvz: true,  express: false, standard: true  },
+  { label: 'Жаңаөзен',            zip: '130200', pvz: false, express: false, standard: true  },
+  { label: 'Форт-Шевченко',       zip: '130100', pvz: false, express: false, standard: false },
+  // ── Западно-Казахстанская область ────────────────────
+  { label: 'Орал',                zip: '090000', pvz: true,  express: false, standard: true  },
+  { label: 'Ақсай',               zip: '090400', pvz: false, express: false, standard: true  },
+  // ── Павлодарская область ──────────────────────────────
+  { label: 'Павлодар',            zip: '140000', pvz: true,  express: true,  standard: true  },
+  { label: 'Екібастұз',           zip: '141200', pvz: false, express: false, standard: true  },
+  { label: 'Аксу',                zip: '141400', pvz: false, express: false, standard: true  },
+  // ── Северо-Казахстанская область ─────────────────────
+  { label: 'Петропавл',           zip: '150000', pvz: true,  express: false, standard: true  },
+  { label: 'Мамлютка',            zip: '150100', pvz: false, express: false, standard: false },
+  // ── Акмолинская область ───────────────────────────────
+  { label: 'Көкшетау',            zip: '020000', pvz: true,  express: false, standard: true  },
+  { label: 'Степногорск',         zip: '021600', pvz: false, express: false, standard: true  },
+  { label: 'Щучинск',             zip: '021700', pvz: false, express: false, standard: true  },
+  { label: 'Есіл',                zip: '020900', pvz: false, express: false, standard: true  },
+  // ── Костанайская область ──────────────────────────────
+  { label: 'Қостанай',            zip: '110000', pvz: true,  express: false, standard: true  },
+  { label: 'Рудный',              zip: '111500', pvz: false, express: false, standard: true  },
+  { label: 'Лисаковск',           zip: '111700', pvz: false, express: false, standard: true  },
+  { label: 'Аркалык',             zip: '110300', pvz: false, express: false, standard: true  },
+  // ── Кызылординская область ────────────────────────────
+  { label: 'Қызылорда',           zip: '120000', pvz: true,  express: false, standard: true  },
+  { label: 'Байқоңыр',            zip: '120300', pvz: false, express: false, standard: false },
+  { label: 'Арал',                zip: '120400', pvz: false, express: false, standard: false },
+  // ── Абайская область (новая) ──────────────────────────
+  { label: 'Семей (Абай обл.)',   zip: '071400', pvz: true,  express: false, standard: true  },
+  // ── Жетісу область ───────────────────────────────────
+  { label: 'Талдыкорган (Жетісу)',zip: '040000', pvz: true,  express: false, standard: true  },
+  // ── Улытау область ────────────────────────────────────
+  { label: 'Жезқазған (Улытау)', zip: '100600', pvz: false, express: false, standard: true  },
+];
+
+// Убираем дубли по label
+const _kzSeen = new Set();
+const kzCitiesUniq = kzCitiesData.filter(c => { if (_kzSeen.has(c.label)) return false; _kzSeen.add(c.label); return true; });
+
+// Для select — только названия + «Другой населённый пункт»
 const countryCities = {
-  kz: ['Алматы','Астана','Шымкент','Актобе','Актау','Атырау','Тараз','Павлодар','Усть-Каменогорск','Другой'],
-  ru: ['Москва','Санкт-Петербург','Новосибирск','Екатеринбург','Казань','Нижний Новгород','Челябинск','Другой'],
-  uz: ['Ташкент','Самарканд','Фергана','Бухара','Андижан','Намangan','Другой'],
-  kg: ['Бишкек','Ош','Джалал-Абад','Каракол','Другой']
+  kz: [...kzCitiesUniq.map(c => c.label + ' (' + c.zip + ')'), '🏘 Другой населённый пункт'],
+  ru: ['Москва (101000)', 'Санкт-Петербург (190000)', 'Новосибирск (630000)', 'Екатеринбург (620000)', 'Казань (420000)', '🏘 Другой населённый пункт'],
+  uz: ['Ташкент (100000)', 'Самарканд (140100)', 'Фергана (150100)', 'Бухара (200100)', 'Андижан (170100)', '🏘 Другой населённый пункт'],
+  kg: ['Бишкек (720000)', 'Ош (723500)', 'Джалал-Абад (715600)', '🏘 Другой населённый пункт']
 };
+
+// Подсказки по выбранному городу КЗ
+function getCityInfo(cityLabel) {
+  const name = cityLabel.split(' (')[0];
+  return kzCitiesUniq.find(c => c.label === name) || null;
+}
+
+function renderCityInfo(country, cityValue) {
+  const box = document.getElementById('cityInfoBadges');
+  if (!box) return;
+  if (country !== 'kz' || !cityValue || cityValue.startsWith('🏘')) { box.style.display = 'none'; return; }
+  const info = getCityInfo(cityValue);
+  if (!info) { box.style.display = 'none'; return; }
+  const badges = [
+    info.pvz     ? '<span style="background:#D1FAE5;color:#065F46;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">✅ ПВЗ есть</span>'
+                 : '<span style="background:#FEE2E2;color:#991B1B;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">❌ ПВЗ нет</span>',
+    info.express ? '<span style="background:#D1FAE5;color:#065F46;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">✅ Экспресс</span>'
+                 : '<span style="background:#FEF3C7;color:#92400E;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">⚠️ Без экспресса</span>',
+    info.standard ? '<span style="background:#D1FAE5;color:#065F46;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">✅ Стандарт</span>'
+                  : '<span style="background:#FEE2E2;color:#991B1B;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">❌ Стандарт</span>',
+  ];
+  if (!info.express && !info.standard) {
+    badges.push('<span style="background:#EDE9FE;color:#5B21B6;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">📮 Только КазПочта</span>');
+  }
+  box.innerHTML = badges.join(' ');
+  box.style.display = 'flex';
+}
 
 const countryPhones = {
   kz: { flag: '🇰🇿', prefix: '+7', placeholder: '777 000 00 00' },
