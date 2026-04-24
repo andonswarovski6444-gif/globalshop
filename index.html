@@ -1476,7 +1476,7 @@ window.showPageDirect = function(page) {
       <div class="admin-nav-item" onclick="showAdmin('shops_admin')"><span>🛍</span> Магазины</div>
       <div class="admin-nav-item" onclick="showAdmin('products')"><span>🏷️</span> Товары / ТНВЭД</div>
       <div class="admin-nav-item" onclick="showAdmin('cities')"><span>🏙️</span> Города доставки</div>
-      <div class="admin-nav-item" onclick="showAdmin('tariffs')"><span>💰</span> Тарифы</div>
+
       <div class="admin-nav-item" onclick="showAdmin('warehouses')"><span>🏪</span> Склады</div>
       <div class="admin-nav-item" onclick="showAdmin('settings')"><span>⚙️</span> Настройки</div>
 
@@ -2480,19 +2480,16 @@ const adminViews = {
 
   warehouses: `
     <div class="dash-greeting">🏪 Склады</div>
-    <div class="dash-sub">Управление адресами складов</div>
-    <div class="acard">
-      <div class="acard-title">Склады <button class="btn-pink" style="padding:6px 16px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="comingSoon(&#39;Добавление склада&#39;)">+ Добавить склад 🔜</button></div>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Страна</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Адрес</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th><th style="padding:10px 12px;"></th></tr></thead>
-        <tbody>
-          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇺🇸 США</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">463 Carson Drive, Bear, Delaware</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
-          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇩🇪 Германия</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">Bayernstraße 30a, Langenhagen</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
-          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇨🇳 Китай</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">广州市白云区, IS8196</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
-          <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇰🇷 Корея</td><td style="padding:12px;font-size:12px;color:var(--text-secondary);">중구 을지로42길16, Сеул</td><td style="padding:12px;"><span class="tag-yes">Активен</span></td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td></tr>
-        </tbody>
-      </table>
-    </div>`,
+    <div class="dash-sub">Управление адресами складов — изменения сразу видны клиентам</div>
+    <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1E40AF;">
+      💡 Все изменения мгновенно отображаются у клиентов на странице «Склады». Добавляйте, удаляйте и редактируйте склады и поля.
+    </div>
+    <div id="adminWhList"></div>
+    <div style="margin-top:16px;">
+      <button onclick="adminWhAddWarehouse()" class="btn-pink" style="padding:10px 24px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">+ Добавить склад</button>
+    </div>
+    <div id="adminWhSaveMsg" style="display:none;margin-top:16px;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;"></div>
+  `,
 
   promo_admin: `
     <div class="dash-greeting">🎟 Промокоды</div>
@@ -2697,20 +2694,23 @@ const adminViews = {
     <!-- Тарифы по уровням лояльности -->
     <div class="acard" style="margin-bottom:20px;">
       <div class="acard-title" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>💰 Тарифы по уровням лояльности ($/кг)</span>
+        <span>💰 Тарифы и сроки доставки по уровням лояльности</span>
         <button onclick="adminSaveLoyaltyRates()" class="btn-pink" style="padding:8px 20px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">💾 Сохранить всё</button>
       </div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">Укажите цену за кг для каждого уровня и направления. Клиенты автоматически видят свою цену.</div>
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1E40AF;">
+        💡 Цены ($/кг) применяются автоматически в калькуляторе и личном кабинете клиента в зависимости от его уровня лояльности. Стандарт — базовая цена для всех новых клиентов.
+      </div>
       <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;min-width:600px;" id="loyaltyRatesTable">
+        <table style="width:100%;border-collapse:collapse;min-width:720px;" id="loyaltyRatesTable">
           <thead>
             <tr style="background:var(--bg);">
               <th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">Направление</th>
-              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">⚪ Стандарт</th>
-              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#92400E;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥉 Бронза</th>
-              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥈 Серебро</th>
-              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#B45309;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥇 Золото</th>
-              <th style="padding:10px 14px;text-align:center;font-size:11px;color:#3730A3;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">💎 Платина</th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">📅 Срок<br><span style="font-size:9px;font-weight:500;opacity:0.7;">дней</span></th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">⚪ Стандарт<br><span style="font-size:9px;font-weight:500;opacity:0.7;">$/кг</span></th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:#92400E;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥉 Бронза<br><span style="font-size:9px;font-weight:500;opacity:0.7;">$/кг</span></th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥈 Серебро<br><span style="font-size:9px;font-weight:500;opacity:0.7;">$/кг</span></th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:#B45309;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">🥇 Золото<br><span style="font-size:9px;font-weight:500;opacity:0.7;">$/кг</span></th>
+              <th style="padding:10px 10px;text-align:center;font-size:11px;color:#3730A3;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);">💎 Платина<br><span style="font-size:9px;font-weight:500;opacity:0.7;">$/кг</span></th>
             </tr>
           </thead>
           <tbody id="loyaltyRatesTbody"></tbody>
@@ -2774,6 +2774,9 @@ function showAdmin(view) {
     setTimeout(adminLoadLoyaltyStats, 80);
     setTimeout(adminLoadLoyaltyRates, 120);
   }
+  if (view === 'warehouses') {
+    setTimeout(adminLoadWarehousesEditor, 80);
+  }
 }
 
 // ===== ЛОЯЛЬНОСТЬ: РЕАЛЬНАЯ СТАТИСТИКА =====
@@ -2815,12 +2818,12 @@ async function adminLoadLoyaltyStats() {
 window.adminLoadLoyaltyStats = adminLoadLoyaltyStats;
 
 // ===== ТАРИФЫ ПО УРОВНЯМ ЛОЯЛЬНОСТИ =====
-// Дефолтные значения согласно ТЗ
+// Единый источник правды: цены + сроки доставки
 let appLoyaltyRates = {
-  usa:        { standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9 },
-  eu:         { standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9 },
-  cn_express: { standard: 13, bronze: 12, silver: 11, gold: 11, platinum: 11 },
-  cn:         { standard:  5, bronze:  5, silver:  5, gold:  4, platinum:  4 }
+  usa:        { days: '10-18', standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9  },
+  eu:         { days: '10-18', standard: 13, bronze: 12, silver: 11, gold: 10, platinum: 9  },
+  cn_express: { days: '1-4',   standard: 13, bronze: 12, silver: 11, gold: 11, platinum: 11 },
+  cn:         { days: '10-18', standard:  5, bronze:  5, silver:  5, gold:  4, platinum:  4 }
 };
 
 const loyaltyRouteLabels = {
@@ -2829,13 +2832,39 @@ const loyaltyRouteLabels = {
   cn_express: '🇨🇳 Китай Экспресс',
   cn:         '🇨🇳 Китай Стандарт'
 };
-const loyaltyLevels = ['standard','bronze','silver','gold','platinum'];
+const loyaltyLevelKeys = ['standard','bronze','silver','gold','platinum'];
+
+// Получить тариф для конкретного маршрута и уровня пользователя
+function getLoyaltyRate(routeKey, levelKey) {
+  const route = appLoyaltyRates[routeKey];
+  if (!route) return appTariffs[routeKey] || 12;
+  return route[levelKey || 'standard'] ?? route['standard'] ?? 12;
+}
+
+// Получить срок доставки для маршрута
+function getDeliveryDays(routeKey) {
+  return (appLoyaltyRates[routeKey] || {}).days || '10-18';
+}
+
+// Определить текущий уровень пользователя для использования в калькуляторе
+function getCurrentUserLevelKey() {
+  try {
+    const info = getLoyaltyInfo();
+    return info.level.key || 'standard';
+  } catch(e) {
+    return 'standard';
+  }
+}
 
 async function adminLoadLoyaltyRates() {
   try {
     const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'));
     if (snap.exists()) {
-      appLoyaltyRates = { ...appLoyaltyRates, ...snap.data() };
+      const data = snap.data();
+      // Мёрдж: сохраняем defaults если ключ отсутствует
+      Object.keys(loyaltyRouteLabels).forEach(k => {
+        if (data[k]) appLoyaltyRates[k] = { ...appLoyaltyRates[k], ...data[k] };
+      });
     }
   } catch(e) { console.warn('loyaltyRates load error:', e); }
   renderLoyaltyRatesTable();
@@ -2844,24 +2873,49 @@ async function adminLoadLoyaltyRates() {
 function renderLoyaltyRatesTable() {
   const tbody = document.getElementById('loyaltyRatesTbody');
   if (!tbody) return;
-  const inputStyle = 'width:70px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;text-align:center;background:var(--card-bg);color:var(--text-primary);';
-  const rowBg = ['','#FEF9EC','#F8FAFC','#FFFDF0','#F0F3FF'];
-  tbody.innerHTML = Object.entries(loyaltyRouteLabels).map(([routeKey, routeLabel], ri) => {
-    const rates = appLoyaltyRates[routeKey] || {};
-    const cells = loyaltyLevels.map((lvl, li) =>
-      `<td style="padding:10px 14px;text-align:center;border-bottom:1px solid var(--border);">
+
+  const inputStyle = `width:62px;padding:6px 6px;border:1.5px solid var(--border);border-radius:8px;
+    font-size:13px;font-family:Manrope,sans-serif;outline:none;text-align:center;
+    background:var(--card-bg);color:var(--text-primary);transition:border-color 0.15s;`;
+  const daysStyle = `width:72px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;
+    font-size:13px;font-family:Manrope,sans-serif;outline:none;text-align:center;
+    background:#F0FDF4;color:#065F46;transition:border-color 0.15s;`;
+
+  const levelBg = {
+    standard: 'var(--card-bg)',
+    bronze:   '#FEF9EC',
+    silver:   '#F8FAFC',
+    gold:     '#FFFDF0',
+    platinum: '#F0F3FF'
+  };
+
+  tbody.innerHTML = Object.entries(loyaltyRouteLabels).map(([routeKey, routeLabel]) => {
+    const route = appLoyaltyRates[routeKey] || {};
+    const daysCell = `<td style="padding:10px 10px;text-align:center;border-bottom:1px solid var(--border);">
+      <input type="text" placeholder="10-18"
+        id="lr_${routeKey}_days"
+        value="${route.days || ''}"
+        style="${daysStyle}"
+        onfocus="this.style.borderColor='#059669'"
+        onblur="this.style.borderColor='var(--border)'"
+      />
+    </td>`;
+    const rateCells = loyaltyLevelKeys.map(lvl =>
+      `<td style="padding:10px 10px;text-align:center;border-bottom:1px solid var(--border);">
         <input type="number" min="0" step="0.5"
           id="lr_${routeKey}_${lvl}"
-          value="${rates[lvl] !== undefined ? rates[lvl] : ''}"
-          style="${inputStyle}background:${rowBg[li] || 'var(--card-bg)'};"
+          value="${route[lvl] !== undefined ? route[lvl] : ''}"
+          style="${inputStyle}background:${levelBg[lvl]};"
           onfocus="this.style.borderColor='var(--accent)'"
           onblur="this.style.borderColor='var(--border)'"
         />
       </td>`
     ).join('');
+
     return `<tr>
-      <td style="padding:10px 14px;font-size:13px;font-weight:700;color:var(--text-primary);border-bottom:1px solid var(--border);white-space:nowrap;">${routeLabel}</td>
-      ${cells}
+      <td style="padding:10px 14px;font-size:13px;font-weight:700;color:var(--text-primary);
+        border-bottom:1px solid var(--border);white-space:nowrap;">${routeLabel}</td>
+      ${daysCell}${rateCells}
     </tr>`;
   }).join('');
 }
@@ -2870,7 +2924,9 @@ async function adminSaveLoyaltyRates() {
   const updated = {};
   Object.keys(loyaltyRouteLabels).forEach(routeKey => {
     updated[routeKey] = {};
-    loyaltyLevels.forEach(lvl => {
+    const daysEl = document.getElementById('lr_' + routeKey + '_days');
+    if (daysEl) updated[routeKey].days = daysEl.value.trim() || '10-18';
+    loyaltyLevelKeys.forEach(lvl => {
       const el = document.getElementById('lr_' + routeKey + '_' + lvl);
       if (el) updated[routeKey][lvl] = parseFloat(el.value) || 0;
     });
@@ -2883,11 +2939,13 @@ async function adminSaveLoyaltyRates() {
       window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'),
       appLoyaltyRates
     );
+    // Обновить калькулятор с новыми тарифами
+    if (typeof updateCalcOptions === 'function') updateCalcOptions();
     if (msg) {
       msg.style.display = 'block';
       msg.style.background = '#D1FAE5';
       msg.style.color = '#065F46';
-      msg.textContent = '✅ Тарифы по уровням сохранены! Клиенты видят актуальные цены.';
+      msg.textContent = '✅ Тарифы и сроки сохранены! Калькулятор и кабинеты клиентов обновлены.';
       setTimeout(() => { msg.style.display = 'none'; }, 4000);
     }
   } catch(e) {
@@ -2901,14 +2959,27 @@ async function adminSaveLoyaltyRates() {
   }
 }
 
-// Загрузка тарифов по уровням при старте (для использования в калькуляторе/кабинете)
+// Загрузка при старте (публичная — для калькулятора и кабинета)
 async function loadLoyaltyRates() {
   try {
     const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'loyalty_rates'));
-    if (snap.exists()) appLoyaltyRates = { ...appLoyaltyRates, ...snap.data() };
+    if (snap.exists()) {
+      const data = snap.data();
+      Object.keys(loyaltyRouteLabels).forEach(k => {
+        if (data[k]) appLoyaltyRates[k] = { ...appLoyaltyRates[k], ...data[k] };
+      });
+    }
   } catch(e) {}
+  // Синхронизировать appTariffs со Стандарт-уровнем (fallback для старых вызовов)
+  Object.keys(loyaltyRouteLabels).forEach(k => {
+    if (appLoyaltyRates[k]?.standard !== undefined) appTariffs[k] = appLoyaltyRates[k].standard;
+  });
+  if (typeof updateCalcOptions === 'function') updateCalcOptions();
 }
+
 window.appLoyaltyRates = appLoyaltyRates;
+window.getLoyaltyRate  = getLoyaltyRate;
+window.getDeliveryDays = getDeliveryDays;
 window.adminSaveLoyaltyRates = adminSaveLoyaltyRates;
 
 // Загружает даты юр. документов в панели настроек
@@ -4272,7 +4343,8 @@ function setUnit(unit) {
 function calcPrice() {
   const toEur = { usd: 0.92, eur: 1, cny: 0.13, krw: 0.00068, gbp: 1.17, kzt: 0.0019 };
   const type = document.getElementById('calcType') ? document.getElementById('calcType').value : 'cn_express';
-  const rate = appTariffs[type] || 12;
+  const userLevel = (typeof getCurrentUserLevelKey === 'function') ? getCurrentUserLevelKey() : 'standard';
+  const rate = (typeof getLoyaltyRate === 'function') ? getLoyaltyRate(type, userLevel) : (appTariffs[type] || 12);
   const factWeight = parseFloat(document.getElementById('calcWeight').value) || 0;
   const value = parseFloat(document.getElementById('calcValue').value) || 0;
   const currency = document.getElementById('calcCurrency').value;
@@ -5518,25 +5590,31 @@ async function loadWarehouses() {
 }
 
 async function loadTariffs() {
+  // Сначала грузим тарифы по уровням (главный источник)
+  if (typeof loadLoyaltyRates === 'function') await loadLoyaltyRates();
+  // Потом fallback-тарифы (старый Firestore ключ, для обратной совместимости)
   try {
     const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'tariffs'));
     if (snap.exists()) {
       appTariffs = { ...appTariffs, ...snap.data() };
-      updateCalcOptions();
     }
-    if (typeof updateHomeCurrencyWidget === 'function') updateHomeCurrencyWidget();
   } catch(e) {}
+  updateCalcOptions();
+  if (typeof updateHomeCurrencyWidget === 'function') updateHomeCurrencyWidget();
 }
 
 function updateCalcOptions() {
   const sel = document.getElementById('calcType');
   if (!sel) return;
+  const lvl = (typeof getCurrentUserLevelKey === 'function') ? getCurrentUserLevelKey() : 'standard';
+  const r = appLoyaltyRates;
+  const price = (route) => (typeof getLoyaltyRate === 'function') ? getLoyaltyRate(route, lvl) : (appTariffs[route] || 12);
+  const days  = (route) => (typeof getDeliveryDays === 'function') ? getDeliveryDays(route) : '10-18';
   sel.innerHTML = `
-    <option value="cn_express">🇨🇳 Китай Экспресс — $${appTariffs.cn_express}/кг (1-4 дня)</option>
-    <option value="cn">🇨🇳 Китай — $${appTariffs.cn}/кг (10-18 дней)</option>
-    <option value="usa">🇺🇸 США — $${appTariffs.usa}/кг (10-18 дней)</option>
-    <option value="eu">🇩🇪 Германия — $${appTariffs.eu}/кг (10-18 дней)</option>
-    <option value="kr">🇰🇷 Корея — $${appTariffs.kr}/кг (10-18 дней)</option>
+    <option value="cn_express">🇨🇳 Китай Экспресс — $${price('cn_express')}/кг (${days('cn_express')} дней)</option>
+    <option value="cn">🇨🇳 Китай Стандарт — $${price('cn')}/кг (${days('cn')} дней)</option>
+    <option value="usa">🇺🇸 США — $${price('usa')}/кг (${days('usa')} дней)</option>
+    <option value="eu">🇩🇪 Германия — $${price('eu')}/кг (${days('eu')} дней)</option>
   `;
   calcPrice();
 }
@@ -5551,14 +5629,213 @@ async function adminSaveTariff(key, val) {
   } catch(e) { alert('Ошибка сохранения'); }
 }
 
-async function adminSaveWarehouse(id, fields) {
-  const wh = defaultWarehouses.find(w => w.id === id);
-  if (!wh) return;
-  wh.fields = fields;
+// ===== ADMIN WAREHOUSE EDITOR =====
+let adminWhData = []; // working copy for editor
+
+// Standard address field schema
+const ADDR_FIELDS = [
+  { key: 'firstName',  label: 'Имя',                     placeholder: 'John' },
+  { key: 'lastName',   label: 'Фамилия',                  placeholder: 'Smith' },
+  { key: 'address1',  label: 'Адрес 1',                  placeholder: '463 Carson Drive' },
+  { key: 'address2',  label: 'Адрес 2',                  placeholder: 'Suite 100 (необязательно)' },
+  { key: 'city',      label: 'Город',                    placeholder: 'Bear' },
+  { key: 'zip',       label: 'Почтовый индекс',          placeholder: '19701' },
+  { key: 'state',     label: 'Штат / Провинция / Район', placeholder: 'Delaware (DE)' },
+  { key: 'country',   label: 'Страна',                   placeholder: 'USA' },
+  { key: 'phone',     label: 'Номер телефона',           placeholder: '+1 347 752 6954' },
+];
+
+async function adminLoadWarehousesEditor() {
   try {
-    await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'), { list: defaultWarehouses });
-    alert('✅ Адрес склада обновлён для всех клиентов!');
-  } catch(e) { alert('Ошибка сохранения'); }
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'));
+    if (snap.exists() && snap.data().list) {
+      adminWhData = JSON.parse(JSON.stringify(snap.data().list));
+    } else {
+      adminWhData = JSON.parse(JSON.stringify(defaultWarehouses));
+    }
+  } catch(e) {
+    adminWhData = JSON.parse(JSON.stringify(defaultWarehouses));
+  }
+  // Migrate old field format → new structured format
+  adminWhData = adminWhData.map(wh => {
+    if (!wh.addr) {
+      // Convert legacy fields array → structured addr object
+      const addr = {};
+      (wh.fields || []).forEach(f => {
+        if (/получатель|recipient/i.test(f.label)) { addr.firstName = f.value; addr.lastName = ''; }
+        else if (/адрес 1|address 1|^адрес$/i.test(f.label)) addr.address1 = f.value;
+        else if (/адрес 2|address 2/i.test(f.label)) addr.address2 = f.value;
+        else if (/город/i.test(f.label)) addr.city = f.value.split(',')[0].trim();
+        else if (/индекс|zip/i.test(f.label)) addr.zip = f.value.split(',').pop().trim();
+        else if (/штат|провинц|район|state|province/i.test(f.label)) addr.state = f.value;
+        else if (/страна|country/i.test(f.label)) addr.country = f.value;
+        else if (/телефон|phone/i.test(f.label)) addr.phone = f.value;
+      });
+      wh.addr = addr;
+    }
+    return wh;
+  });
+  renderAdminWhList();
+}
+
+function renderAdminWhList() {
+  const container = document.getElementById('adminWhList');
+  if (!container) return;
+
+  const inputCls = `width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+    font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--card-bg);
+    color:var(--text-primary);box-sizing:border-box;transition:border-color 0.15s;`;
+
+  container.innerHTML = adminWhData.map((wh, wi) => {
+    const addr = wh.addr || {};
+    const isOpen = !wh._collapsed;
+
+    const fieldsHtml = ADDR_FIELDS.map(f => `
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px;">${f.label}</label>
+        <input type="text" placeholder="${f.placeholder}"
+          value="${(addr[f.key] || '').replace(/"/g,'&quot;')}"
+          oninput="adminWhSetField(${wi},'${f.key}',this.value)"
+          style="${inputCls}"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+      </div>`).join('');
+
+    return `
+    <div class="acard" style="margin-bottom:16px;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:${isOpen ? '20px' : '0'};">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;" onclick="adminWhToggle(${wi})">
+          <input type="text" value="${wh.flag || ''}"
+            onclick="event.stopPropagation()"
+            oninput="adminWhSetMeta(${wi},'flag',this.value)"
+            style="width:44px;font-size:22px;padding:4px 6px;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text-primary);text-align:center;outline:none;font-family:Manrope,sans-serif;"
+            placeholder="🏳"
+          />
+          <input type="text" value="${wh.country || ''}"
+            onclick="event.stopPropagation()"
+            oninput="adminWhSetMeta(${wi},'country',this.value)"
+            style="flex:1;font-size:15px;font-weight:700;padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text-primary);outline:none;font-family:Manrope,sans-serif;"
+            placeholder="Название склада (напр. США — Delaware)"
+          />
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary);font-weight:600;white-space:nowrap;">
+          <input type="checkbox" ${wh.comingSoon ? 'checked' : ''} onchange="adminWhSetMeta(${wi},'comingSoon',this.checked)"
+            style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);" />
+          Скоро
+        </label>
+        <button onclick="adminWhToggle(${wi})" style="background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:18px;color:var(--text-secondary);">
+          ${isOpen ? '▲' : '▼'}
+        </button>
+        <button onclick="adminWhRemove(${wi})" style="background:#FEE2E2;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;color:#B91C1C;font-weight:700;">
+          ✕ Удалить
+        </button>
+      </div>
+
+      <!-- Fields grid -->
+      ${isOpen ? `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
+        ${fieldsHtml}
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
+        <button onclick="adminWhSaveAll()" class="btn-pink" style="padding:9px 22px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
+          💾 Сохранить все склады
+        </button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function adminWhToggle(wi) {
+  adminWhData[wi]._collapsed = !adminWhData[wi]._collapsed;
+  renderAdminWhList();
+}
+window.adminWhToggle = adminWhToggle;
+
+function adminWhSetField(wi, key, val) {
+  if (!adminWhData[wi].addr) adminWhData[wi].addr = {};
+  adminWhData[wi].addr[key] = val;
+}
+window.adminWhSetField = adminWhSetField;
+
+function adminWhSetMeta(wi, key, val) {
+  adminWhData[wi][key] = val;
+}
+window.adminWhSetMeta = adminWhSetMeta;
+
+function adminWhRemove(wi) {
+  if (!confirm('Удалить склад «' + (adminWhData[wi].country || 'без названия') + '»?')) return;
+  adminWhData.splice(wi, 1);
+  renderAdminWhList();
+}
+window.adminWhRemove = adminWhRemove;
+
+function adminWhAddWarehouse() {
+  adminWhData.push({
+    id: 'wh_' + Date.now(),
+    flag: '🏳',
+    country: '',
+    comingSoon: false,
+    addr: {},
+    fields: [],
+    _collapsed: false
+  });
+  renderAdminWhList();
+  // Scroll to new card
+  const list = document.getElementById('adminWhList');
+  if (list) list.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.adminWhAddWarehouse = adminWhAddWarehouse;
+
+async function adminWhSaveAll() {
+  // Build warehouse list in format compatible with renderWarehouses() client-side
+  const toSave = adminWhData.map(wh => {
+    const addr = wh.addr || {};
+    // Build legacy fields array from structured addr so client renderWarehouses works
+    const fields = [];
+    const recipient = [addr.firstName, addr.lastName].filter(Boolean).join(' ');
+    if (recipient) fields.push({ label: 'Получатель', value: recipient });
+    if (addr.address1) fields.push({ label: 'Адрес 1', value: addr.address1 });
+    if (addr.address2) fields.push({ label: 'Адрес 2', value: addr.address2 });
+    if (addr.city)     fields.push({ label: 'Город', value: addr.city });
+    if (addr.zip)      fields.push({ label: 'Почтовый индекс', value: addr.zip });
+    if (addr.state)    fields.push({ label: 'Штат / Провинция', value: addr.state });
+    if (addr.country)  fields.push({ label: 'Страна', value: addr.country });
+    if (addr.phone)    fields.push({ label: 'Телефон', value: addr.phone });
+    const clean = { ...wh, addr, fields };
+    delete clean._collapsed;
+    return clean;
+  });
+
+  const msg = document.getElementById('adminWhSaveMsg');
+  try {
+    await window.firebaseSetDoc(
+      window.firebaseDoc(window.firebaseDb, 'settings', 'warehouses'),
+      { list: toSave }
+    );
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.background = '#D1FAE5';
+      msg.style.color = '#065F46';
+      msg.textContent = '✅ Все склады сохранены! Клиенты уже видят обновлённые адреса.';
+      setTimeout(() => { msg.style.display = 'none'; }, 4000);
+    }
+  } catch(e) {
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.background = '#FEE2E2';
+      msg.style.color = '#991B1B';
+      msg.textContent = '❌ Ошибка: ' + (e.message || 'попробуйте снова');
+      setTimeout(() => { msg.style.display = 'none'; }, 5000);
+    }
+  }
+}
+window.adminWhSaveAll = adminWhSaveAll;
+
+// Legacy compat — keep old function name working
+async function adminSaveWarehouse(id, fields) {
+  await adminWhSaveAll();
 }
 
 // ===== ПОИСК ТОВАРА В ФОРМЕ ЗАКАЗА =====
