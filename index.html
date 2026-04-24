@@ -438,43 +438,178 @@
   .parcel-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 
   /* RESPONSIVE */
+  /* =============================================
+     МОБИЛЬНАЯ АДАПТАЦИЯ — 768px и ниже
+  ============================================= */
   @media (max-width: 768px) {
+
+    /* — Базовые отступы и шрифты — */
+    html { -webkit-text-size-adjust: 100%; }
+    body { overflow-x: hidden; }
+    .page { padding-top: 56px; }
+
+    /* — Навигация — */
+    nav { padding: 0 16px; height: 56px; }
+    .nav-links { display: none; }
+    .nav-logo { font-size: 15px; }
+
+    /* — Hero — */
+    .hero { padding: 32px 16px 24px; }
+    .hero h1 { font-size: 28px; line-height: 1.2; word-break: break-word; }
+    .hero p { font-size: 14px; }
+    .hero-btns { flex-direction: column; gap: 10px; }
+    .btn-big { width: 100%; text-align: center; padding: 14px 20px; }
+    .hero-badge { font-size: 11px; }
+
+    /* — Секции — */
+    .section { padding: 32px 16px; }
+    .section-title { font-size: 22px; }
+    .section-sub { font-size: 13px; }
+
+    /* — Гриды — */
     .stats { grid-template-columns: repeat(2, 1fr); }
     .services-grid { grid-template-columns: 1fr; }
     .warehouses-grid { grid-template-columns: 1fr; }
     .calc-grid { grid-template-columns: 1fr; }
     .metrics { grid-template-columns: repeat(2, 1fr); }
+    .admin-grid { grid-template-columns: 1fr 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+
+    /* — Дашборд — */
     .dashboard { grid-template-columns: 1fr; }
     .sidebar { display: none; }
-    .footer-grid { grid-template-columns: 1fr 1fr; }
-    .hero h1 { font-size: 28px; }
-    nav { padding: 0 16px; height: 56px; }
-    .nav-links { display: none; }
-    .section { padding: 32px 16px; }
-    .admin-grid { grid-template-columns: 1fr 1fr; }
-    .admin-layout { flex-direction: column; }
-    .admin-sidebar { width: 100%; min-height: auto; }
-    .page { padding-top: 56px; }
-    .auth-card { padding: 24px 20px; }
-    .auth-container { padding: 16px; }
-    .hero { padding: 32px 16px 24px; }
-    .hero-btns { flex-direction: column; gap: 10px; }
-    .btn-big { width: 100%; text-align: center; padding: 14px 20px; }
+
+    /* — Карточки — */
     .shop-card { padding: 16px; }
     .parcel-card { padding: 16px; }
-    /* Виджет курса на главной — мобильная версия */
+    .service-card { padding: 20px; }
+    .warehouse-card { flex-direction: column; gap: 10px; }
+    .auth-card { padding: 24px 20px; }
+    .auth-container { padding: 16px; }
+    .track-box { padding: 20px 16px; }
+    .calc-box { padding: 20px 16px; }
+
+    /* — Таблицы — скроллятся горизонтально — */
+    .table-wrap, table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
+    /* — Флекс-ряды — переносятся — */
+    .track-input-row { flex-direction: column; }
+    .track-input-row .btn-pink { width: 100%; }
+
+    /* — Виджет курса — */
     #homeCurrencyWidget { flex-direction: column; gap: 14px; padding: 18px 16px; }
-    #homeCurrencyWidget > div:nth-child(2) { display: none; } /* скрываем разделитель */
+    #homeCurrencyWidget > div:nth-child(2) { display: none; }
+
+    /* — AI чат — */
+    #aiChatWindow { width: calc(100vw - 24px); right: 12px; bottom: 80px; }
+
+    /* — Модалки — */
+    #tooltipOverlay > div,
+    #recipientModal > div { padding: 20px 16px; margin: 0; border-radius: 16px; }
+
+    /* — Админ-панель — */
+    .admin-layout { flex-direction: column; }
+    .admin-sidebar { width: 100%; min-height: auto; }
+
+    /* — Фильтры магазинов — скролл — */
+    .shop-filters-row { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .shop-filters-row::-webkit-scrollbar { display: none; }
   }
+
+  /* =============================================
+     МАЛЫЕ ЭКРАНЫ — 480px и ниже
+  ============================================= */
   @media (max-width: 480px) {
     .admin-grid { grid-template-columns: 1fr; }
     .metrics { grid-template-columns: 1fr 1fr; }
-    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .hero h1 { font-size: 24px; }
-    .section-title { font-size: 20px; }
-    .auth-card { padding: 20px 16px; }
-    /* Мелкие экраны — убираем текст в таб-баре */
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-item { padding: 18px 10px; }
+    .stat-num { font-size: 22px; }
+    .footer-grid { grid-template-columns: 1fr; }
+
+    .hero h1 { font-size: 22px; }
+    .section-title { font-size: 19px; }
+    .auth-card { padding: 20px 14px; }
+
+    /* Кнопки — полная ширина в формах */
+    .btn-full { font-size: 14px; padding: 13px; }
+
+    /* AI чат — полный экран снизу */
+    #aiChatWindow {
+      width: 100vw;
+      right: 0;
+      bottom: 0;
+      border-radius: 20px 20px 0 0;
+      max-height: 75vh;
+    }
+    #aiChatBtn { bottom: 16px; right: 16px; width: 50px; height: 50px; font-size: 22px; }
+
+    /* Таб-бар — компактнее */
     .tab-item-label { font-size: 9px; }
+    .tab-item { margin: 0 2px; padding: 4px 2px; }
+
+    /* Инпуты — удобный размер для пальцев */
+    input, select, textarea {
+      font-size: 16px !important; /* предотвращает zoom на iOS */
+    }
+
+    /* Карточки посылок */
+    .parcel-card { padding: 14px 12px; }
+    .service-card { padding: 16px; }
+
+    /* Склады — убираем лишнее */
+    .wh-flag { font-size: 28px; }
+  }
+
+  /* =============================================
+     ОЧЕНЬ МАЛЫЕ ЭКРАНЫ — 360px и ниже
+  ============================================= */
+  @media (max-width: 360px) {
+    nav { padding: 0 12px; }
+    .hero h1 { font-size: 20px; }
+    .section { padding: 24px 12px; }
+    .auth-card { padding: 16px 12px; }
+    .hero { padding: 24px 12px 20px; }
+  }
+
+  /* =============================================
+     ГЛОБАЛЬНЫЕ МОБИЛЬНЫЕ ХЕЛПЕРЫ
+  ============================================= */
+
+  /* Все таблицы скроллятся горизонтально */
+  @media (max-width: 768px) {
+    table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    table::-webkit-scrollbar { display: none; }
+
+    /* Инпуты — font-size 16px чтобы iOS не зумил */
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+
+    /* Картинки не вылезают за экран */
+    img { max-width: 100%; height: auto; }
+
+    /* Длинные слова переносятся */
+    p, span, div, td, th, li {
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    /* flex-ряды с min-width переносятся */
+    [style*="min-width: 220px"],
+    [style*="min-width:220px"],
+    [style*="min-width: 200px"],
+    [style*="min-width:200px"] {
+      min-width: 0 !important;
+      width: 100%;
+    }
   }
 
   /* === BOTTOM TAB BAR (ЛК на мобиле) === */
@@ -898,7 +1033,11 @@
       <div style="font-size:14px;color:var(--text-secondary);margin-bottom:24px;">Адреса складов доступны только авторизованным пользователям</div>
       <button class="btn-pink" style="padding:12px 32px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="showPage('login')">Войти или зарегистрироваться</button>
     </div>
-    <div id="whTabsRow" style="display:none;overflow-x:auto;white-space:nowrap;margin-bottom:20px;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+    <div id="whTabsWrapper" style="display:none;position:relative;margin-bottom:20px;">
+      <button id="whScrollLeft" onclick="whScroll(-1)" style="position:absolute;left:-14px;top:50%;transform:translateY(-50%);z-index:2;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--card-bg);color:var(--text-secondary);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.10);transition:all 0.15s;line-height:1;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">‹</button>
+      <div id="whTabsRow" style="overflow-x:auto;white-space:nowrap;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+      <button id="whScrollRight" onclick="whScroll(1)" style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);z-index:2;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--card-bg);color:var(--text-secondary);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.10);transition:all 0.15s;line-height:1;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">›</button>
+    </div>
     <div id="whCardArea" style="display:none;"></div>
   </div>
 </div>
@@ -923,7 +1062,7 @@
       </div>
 
       <!-- Стоимость товара -->
-      <div style="display:grid;grid-template-columns:1fr 120px;gap:12px;margin-bottom:16px;">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
         <div class="calc-field">
           <label>Стоимость товара</label>
           <input type="number" id="calcValue" value="100" min="0" step="1" oninput="calcPrice()" />
@@ -1704,7 +1843,7 @@ const adminViews = {
     <div class="dash-sub">Управление городами и тарифами по Казахстану</div>
     <div class="acard">
       <div class="acard-title">Города <button class="btn-pink" style="padding:6px 16px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="comingSoon(&#39;Добавление города&#39;)">+ Добавить город 🔜</button></div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Город</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Экспресс</th>
@@ -2021,7 +2160,7 @@ const adminViews = {
       </div>
       <!-- Таблица -->
       <div id="adminUsersTable">
-        <table style="width:100%;border-collapse:collapse;">
+        <table style="width:100%;border-collapse:collapse;display:table;">
           <thead>
             <tr style="background:var(--bg);">
               <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">ID</th>
@@ -2051,7 +2190,7 @@ const adminViews = {
         ℹ️ Один пользователь может иметь неограниченное количество получателей. Каждый получатель идентифицируется по номеру удостоверения личности.
       </div>
       <div class="acard-title">Все получатели</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">ФИО</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Уд. личности</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Пользователь</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th></tr></thead>
         <tbody>
           
@@ -2201,7 +2340,7 @@ const adminViews = {
     <div class="dash-sub">Цены на доставку из разных стран</div>
     <div class="acard">
       <div class="acard-title">Тарифы по странам</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Направление</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Цена за кг ($)</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Срок (дней)</th><th style="padding:10px 12px;"></th></tr></thead>
         <tbody>
           <tr style="border-top:1px solid #F0F0F0;"><td style="padding:12px;font-size:13px;">🇨🇳 Китай Экспресс</td><td style="padding:12px;"><input type="number" id="t_cn_express" value="12" style="width:80px;padding:6px 10px;border:1.5px solid #F0F0F0;border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;" /></td><td style="padding:12px;font-size:13px;">1-4</td><td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="adminSaveTariff('cn_express', document.getElementById('t_cn_express').value)">Сохранить</button></td></tr>
@@ -2238,7 +2377,7 @@ const adminViews = {
           <option value="Другое">Другое</option>
         </select>
       </div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Категория</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Название товара</th>
@@ -2412,7 +2551,7 @@ const adminViews = {
     </div>
     <div class="acard">
       <div class="acard-title">Последние принятые посылки</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Трек</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Клиент</th>
@@ -2438,7 +2577,7 @@ const adminViews = {
     </div>
     <div class="acard">
       <div class="acard-title">Все манифесты</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:#fafafa;">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">№ Манифеста</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Дата</th>
@@ -2463,7 +2602,7 @@ const adminViews = {
           </div>
           <button onclick="document.getElementById('manifestViewModal').style.display='none'" style="padding:8px 16px;border:1.5px solid #F0F0F0;border-radius:8px;background:white;cursor:pointer;font-size:13px;font-family:Manrope,sans-serif;">✕ Закрыть</button>
         </div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;display:table;">
           <thead><tr style="background:#1A1A2E;color:white;">
             <th style="padding:10px 12px;text-align:left;">№</th>
             <th style="padding:10px 12px;text-align:left;">Трек</th>
@@ -2587,7 +2726,7 @@ const adminViews = {
     <div class="dash-sub">Управление промокодами и скидками</div>
 
     <!-- Статистика -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
       <div class="acard" style="padding:16px;text-align:center;">
         <div style="font-size:22px;font-weight:800;color:var(--text-primary);" id="promoStatTotal">0</div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:3px;">Всего кодов</div>
@@ -2699,7 +2838,7 @@ const adminViews = {
         </div>
       </div>
       <div id="promoListContainer">
-        <table style="width:100%;border-collapse:collapse;">
+        <table style="width:100%;border-collapse:collapse;display:table;">
           <thead>
             <tr style="background:var(--bg);">
               <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Код</th>
@@ -2722,7 +2861,7 @@ const adminViews = {
     <div class="dash-sub">Статистика уровней клиентов</div>
 
     <!-- Статистика по уровням -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:24px;">
       <div class="acard" style="text-align:center;padding:16px;">
         <div style="font-size:28px;margin-bottom:6px;">⚪</div>
         <div style="font-size:20px;font-weight:800;color:var(--text-primary);" id="loyalStat_standard">—</div>
@@ -2813,7 +2952,7 @@ const adminViews = {
     <!-- Топ клиенты по кг -->
     <div class="acard">
       <div class="acard-title">Топ клиенты этого месяца</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:var(--bg);">
           <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Клиент</th>
           <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">ID</th>
@@ -3292,7 +3431,7 @@ async function loadCurrencyRate() {
         wrap.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text-secondary);"><div style="font-size:36px;margin-bottom:8px;">📜</div><div style="font-size:14px;font-weight:700;">История пуста</div><div style="font-size:12px;margin-top:4px;">Изменения курса будут отображаться здесь</div></div>';
       } else {
         wrap.innerHTML = `
-          <table style="width:100%;border-collapse:collapse;">
+          <table style="width:100%;border-collapse:collapse;display:table;">
             <thead><tr style="background:var(--bg);"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Дата</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Курс</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Изменил</th></tr></thead>
             <tbody>
               ${rows.map(r => `
@@ -3382,7 +3521,7 @@ async function adminLoadParcels() {
         pending: '📋 Добавлена', kazakhstan: '🇰🇿 В стране'
       };
       wrap.innerHTML = `
-        <table style="width:100%;border-collapse:collapse;">
+        <table style="width:100%;border-collapse:collapse;display:table;">
           <thead><tr style="background:#fafafa;">
             <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Трек</th>
             <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Клиент</th>
@@ -3775,7 +3914,7 @@ async function adminLoadPayments() {
       return s;
     };
     list.innerHTML = `
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:var(--bg);">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Дата</th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Клиент</th>
@@ -4006,7 +4145,7 @@ async function adminLoadShopsList() {
     }
 
     list.innerHTML = `
-      <table style="width:100%;border-collapse:collapse;">
+      <table style="width:100%;border-collapse:collapse;display:table;">
         <thead><tr style="background:var(--bg);">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);"></th>
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Название</th>
@@ -4195,7 +4334,7 @@ async function loadAdminDashboardMetrics() {
           delivered: '✅ Доставлено'
         };
         recEl.innerHTML = `
-          <table style="width:100%;border-collapse:collapse;">
+          <table style="width:100%;border-collapse:collapse;display:table;">
             <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Трек</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Клиент</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Товар</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th></tr></thead>
             <tbody>
               ${recent.map(p => `
@@ -5080,7 +5219,7 @@ function renderDash(view) {
             <div style="font-size:13px;margin-top:4px;">Все ваши посылки оплачены</div>
           </div>
         ` : `
-          <table style="width:100%;border-collapse:collapse;">
+          <table style="width:100%;border-collapse:collapse;display:table;">
             <thead><tr style="background:var(--bg);"><th style="padding:10px 16px;text-align:left;font-size:12px;color:var(--text-secondary);">Заказ</th><th style="padding:10px 16px;text-align:left;font-size:12px;color:var(--text-secondary);">Описание</th><th style="padding:10px 16px;text-align:left;font-size:12px;color:var(--text-secondary);">Сумма</th><th style="padding:10px 16px;"></th></tr></thead>
             <tbody>
               ${unpaid.map(p => `
@@ -5574,8 +5713,9 @@ function renderWarehouses(data) {
 
 function _renderWhTabs() {
   const row = document.getElementById('whTabsRow');
+  const wrapper = document.getElementById('whTabsWrapper');
   if (!row) return;
-  row.style.display = 'block';
+  if (wrapper) wrapper.style.display = 'block';
   row.innerHTML = _whData.map(wh => {
     const active = wh.id === _whActiveId;
     const cs = !!wh.comingSoon;
@@ -5597,6 +5737,12 @@ function _selectWhTab(id) {
   _renderWhCard(id);
 }
 window._selectWhTab = _selectWhTab;
+
+function whScroll(dir) {
+  const row = document.getElementById('whTabsRow');
+  if (!row) return;
+  row.scrollBy({ left: dir * 160, behavior: 'smooth' });
+}
 
 function _renderWhCard(id) {
   const area = document.getElementById('whCardArea');
@@ -5676,14 +5822,14 @@ window.whCopyField = whCopyField;
 
 function showWarehousesPage() {
   const guard = document.getElementById('warehousesGuard');
-  const tabs = document.getElementById('whTabsRow');
+  const wrapper = document.getElementById('whTabsWrapper');
   const card = document.getElementById('whCardArea');
   if (window.currentUser || window.isAdmin) {
     guard.style.display = 'none';
     loadWarehouses();
   } else {
     guard.style.display = 'block';
-    if (tabs) tabs.style.display = 'none';
+    if (wrapper) wrapper.style.display = 'none';
     if (card) card.style.display = 'none';
   }
 }
@@ -7524,9 +7670,9 @@ function showParcelSuccessModal(trackId) {
         Ваша посылка успешно добавлена и уже ждёт обработки.
       </div>
       <div style="background:linear-gradient(135deg,#10B981,#059669);border-radius:14px;padding:14px 20px;margin-bottom:20px;color:white;">
-        <div style="font-size:12px;font-weight:700;opacity:0.85;margin-bottom:4px;">ВЫ СЭКОНОМИЛИ</div>
-        <div style="font-size:26px;font-weight:800;">2 €</div>
-        <div style="font-size:12px;opacity:0.8;margin-top:2px;">на комиссии за выкуп</div>
+        <div style="font-size:12px;font-weight:700;opacity:0.85;margin-bottom:4px;">✅ ДЕКЛАРАЦИЯ ОФОРМЛЕНА</div>
+        <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:2px;">Вы добавили посылку самостоятельно</div>
+        <div style="font-size:12px;opacity:0.8;margin-top:4px;">Нам не нужно декларировать её вручную — всё готово к обработке</div>
       </div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:20px;">
         Трек-номер: <b style="color:var(--text-primary);">${trackId}</b>
