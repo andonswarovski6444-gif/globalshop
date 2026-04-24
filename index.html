@@ -1887,19 +1887,82 @@ const adminViews = {
 
   managers: `
     <div class="dash-greeting">👤 Менеджеры</div>
-    <div class="dash-sub">Управление доступом сотрудников</div>
-    <div class="acard">
-      <div class="acard-title">Список менеджеров <button class="btn-pink" style="padding:6px 16px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="comingSoon(&#39;Добавление записи&#39;)">+ Добавить 🔜</button></div>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="background:#fafafa;"><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Имя</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Email</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Роль</th><th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Статус</th><th style="padding:10px 12px;"></th></tr></thead>
-        <tbody id="admManagersTbody"></tbody>
-      </table>
-      <div id="admManagersEmpty" style="padding:32px 20px;text-align:center;color:var(--text-secondary);">
-        <div style="font-size:36px;margin-bottom:8px;">👤</div>
-        <div style="font-size:14px;font-weight:700;">Нет менеджеров</div>
-        <div style="font-size:12px;margin-top:4px;">Сотрудники появятся после добавления</div>
+    <div class="dash-sub">Управление доступом, ролями и правами сотрудников</div>
+
+    <!-- Добавить нового -->
+    <div class="acard" style="margin-bottom:20px;">
+      <div class="acard-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Добавить менеджера</span>
+        <button onclick="admMgrToggleAdd()" id="admMgrAddToggleBtn"
+          class="btn-pink" style="padding:7px 18px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
+          + Добавить
+        </button>
       </div>
-    </div>`,
+      <div id="admMgrAddForm" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;display:block;margin-bottom:5px;">Имя</label>
+            <input id="admMgrNewName" type="text" placeholder="Арман Сейткали"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--card-bg);color:var(--text-primary);box-sizing:border-box;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;display:block;margin-bottom:5px;">Email (логин)</label>
+            <input id="admMgrNewEmail" type="email" placeholder="manager@globalshop.kz"
+              style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--card-bg);color:var(--text-primary);box-sizing:border-box;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;display:block;margin-bottom:5px;">Роль</label>
+          <select id="admMgrNewRole"
+            style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--card-bg);color:var(--text-primary);cursor:pointer;">
+            <option value="manager">👤 Менеджер (кабинет + посылки клиентов)</option>
+            <option value="china_manager">🇨🇳 Менеджер Китая (спец. кабинет)</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button onclick="admMgrCreate()" class="btn-pink"
+            style="padding:9px 24px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
+            ✅ Создать менеджера
+          </button>
+          <button onclick="admMgrToggleAdd()"
+            style="padding:9px 18px;border-radius:10px;font-size:13px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">
+            Отмена
+          </button>
+          <div id="admMgrCreateMsg" style="font-size:12px;font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Список менеджеров -->
+    <div id="admMgrList">
+      <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+        <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+        <div style="font-size:14px;">Загрузка менеджеров...</div>
+      </div>
+    </div>
+
+    <!-- Модалка прав -->
+    <div id="admMgrPermsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center;">
+      <div style="background:var(--card-bg);border-radius:20px;padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="font-size:17px;font-weight:800;margin-bottom:6px;" id="admMgrPermsTitle">Права менеджера</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:20px;" id="admMgrPermsEmail"></div>
+        <div id="admMgrPermsList" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button onclick="admMgrSavePerms()" class="btn-pink"
+            style="flex:1;padding:11px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
+            💾 Сохранить права
+          </button>
+          <button onclick="admMgrClosePerms()"
+            style="padding:11px 20px;border-radius:12px;font-size:14px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">
+            Закрыть
+          </button>
+        </div>
+        <div id="admMgrPermsMsg" style="display:none;margin-top:10px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;"></div>
+      </div>
+    </div>
+  `,
 
   users: `
     <div class="dash-greeting">👥 Пользователи</div>
@@ -2778,6 +2841,9 @@ function showAdmin(view) {
   }
   if (view === 'warehouses') {
     setTimeout(adminLoadWarehousesEditor, 80);
+  }
+  if (view === 'managers') {
+    setTimeout(admMgrLoad, 80);
   }
 }
 
@@ -5630,6 +5696,238 @@ async function adminSaveTariff(key, val) {
     alert('✅ Тариф сохранён! Калькулятор и главная страница обновлены для всех клиентов.');
   } catch(e) { alert('Ошибка сохранения'); }
 }
+
+// ===== МЕНЕДЖЕРЫ =====
+const MGR_PERMS = [
+  { key: 'viewParcels',    label: '📦 Видеть посылки клиентов',         desc: 'Список всех посылок в кабинете' },
+  { key: 'editParcels',    label: '✏️ Редактировать посылки',            desc: 'Менять статус, трек, описание' },
+  { key: 'viewUsers',      label: '👥 Видеть список клиентов',           desc: 'Карточки пользователей' },
+  { key: 'editUsers',      label: '🖊 Редактировать профили клиентов',   desc: 'Имя, телефон, адрес' },
+  { key: 'viewPayments',   label: '💳 Видеть платежи',                   desc: 'История оплат и статусы' },
+  { key: 'confirmPayment', label: '✅ Подтверждать оплату',              desc: 'Менять статус платежа' },
+  { key: 'viewOrders',     label: '🛒 Видеть заказы на выкуп',          desc: 'Заявки на выкуп товаров' },
+  { key: 'manageOrders',   label: '🔧 Обрабатывать заказы',             desc: 'Принять, отклонить, изменить' },
+  { key: 'chat',           label: '💬 Писать клиентам',                  desc: 'Отправлять сообщения и уведомления' },
+  { key: 'viewStats',      label: '📊 Видеть статистику',                desc: 'Метрики и дашборд' },
+];
+
+const MGR_ROLE_LABELS = {
+  china_manager: '🇨🇳 Менеджер Китая',
+  manager:       '👤 Менеджер',
+  admin:         '🔑 Администратор',
+};
+
+let admMgrCurrentUid = null; // uid открытой модалки прав
+
+async function admMgrLoad() {
+  const container = document.getElementById('admMgrList');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);"><div style="font-size:28px;margin-bottom:8px;">⏳</div><div>Загрузка...</div></div>';
+
+  try {
+    const snap = await window.firebaseGetDocs(
+      window.firebaseQuery(
+        window.firebaseCollection(window.firebaseDb, 'users'),
+        window.firebaseWhere('role', 'in', ['manager', 'china_manager', 'admin'])
+      )
+    );
+
+    const mgrs = [];
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.role !== 'admin' || data.email === 'admin@globalshop.kz') {
+        mgrs.push({ uid: d.id, ...data });
+      }
+    });
+
+    if (mgrs.length === 0) {
+      container.innerHTML = `<div class="acard" style="text-align:center;padding:40px;color:var(--text-secondary);">
+        <div style="font-size:36px;margin-bottom:8px;">👤</div>
+        <div style="font-size:15px;font-weight:700;">Нет менеджеров</div>
+        <div style="font-size:12px;margin-top:4px;">Добавьте первого сотрудника выше</div>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = mgrs.map(m => admMgrCard(m)).join('');
+  } catch(e) {
+    container.innerHTML = `<div class="acard" style="text-align:center;padding:32px;color:#B91C1C;">❌ Ошибка загрузки: ${e.message}</div>`;
+  }
+}
+
+function admMgrCard(m) {
+  const isActive = m.active !== false; // default active
+  const isChinaMgr = m.role === 'china_manager';
+  const roleLabel = MGR_ROLE_LABELS[m.role] || m.role;
+  const permsCount = MGR_PERMS.filter(p => (m.permissions || {})[p.key]).length;
+
+  return `<div class="acard" style="margin-bottom:14px;" id="admMgrCard_${m.uid}">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <!-- Avatar -->
+      <div style="width:46px;height:46px;border-radius:50%;background:${isChinaMgr ? 'linear-gradient(135deg,#FF6B35,#F7C59F)' : 'var(--accent-soft)'};
+        display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">
+        ${isChinaMgr ? '🇨🇳' : '👤'}
+      </div>
+      <!-- Info -->
+      <div style="flex:1;min-width:160px;">
+        <div style="font-size:15px;font-weight:800;color:var(--text-primary);">${m.name || m.displayName || '—'}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${m.email || ''}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">
+          <span style="background:var(--accent-soft);color:var(--accent);padding:2px 9px;border-radius:8px;font-size:11px;font-weight:700;">${roleLabel}</span>
+          <span style="background:${isActive ? '#D1FAE5' : '#FEE2E2'};color:${isActive ? '#065F46' : '#B91C1C'};padding:2px 9px;border-radius:8px;font-size:11px;font-weight:700;">
+            ${isActive ? '● Активен' : '○ Деактивирован'}
+          </span>
+          ${!isChinaMgr ? `<span style="background:#F3F4F6;color:#6B7280;padding:2px 9px;border-radius:8px;font-size:11px;">Прав: ${permsCount}/${MGR_PERMS.length}</span>` : ''}
+        </div>
+      </div>
+      <!-- Actions -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        ${!isChinaMgr ? `
+        <button onclick="admMgrOpenPerms('${m.uid}')"
+          style="padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid var(--accent);color:var(--accent);background:var(--accent-soft);cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;">
+          🔐 Права доступа
+        </button>` : `
+        <span style="font-size:12px;color:var(--text-secondary);padding:8px 0;">Права настроены системой</span>`}
+        <button onclick="admMgrToggleActive('${m.uid}', ${isActive})"
+          style="padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;border:1.5px solid ${isActive ? '#FCA5A5' : '#6EE7B7'};
+          color:${isActive ? '#B91C1C' : '#065F46'};background:${isActive ? '#FEF2F2' : '#F0FDF4'};cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;">
+          ${isActive ? '🚫 Деактивировать' : '✅ Активировать'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function admMgrToggleActive(uid, currentlyActive) {
+  const newVal = !currentlyActive;
+  const action = newVal ? 'активировать' : 'деактивировать';
+  if (!confirm(`${newVal ? 'Активировать' : 'Деактивировать'} этого менеджера?`)) return;
+  try {
+    await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, 'users', uid), { active: newVal });
+    admMgrLoad();
+  } catch(e) { alert('Ошибка: ' + e.message); }
+}
+window.admMgrToggleActive = admMgrToggleActive;
+
+async function admMgrOpenPerms(uid) {
+  admMgrCurrentUid = uid;
+  const modal = document.getElementById('admMgrPermsModal');
+  const listEl = document.getElementById('admMgrPermsList');
+  const titleEl = document.getElementById('admMgrPermsTitle');
+  const emailEl = document.getElementById('admMgrPermsEmail');
+  if (!modal) return;
+
+  // Load user data
+  try {
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'users', uid));
+    const m = snap.data() || {};
+    const perms = m.permissions || {};
+    titleEl.textContent = 'Права: ' + (m.name || m.displayName || m.email);
+    emailEl.textContent = m.email || '';
+
+    listEl.innerHTML = MGR_PERMS.map(p => `
+      <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:10px 14px;border:1.5px solid ${perms[p.key] ? 'var(--accent)' : 'var(--border)'};
+        border-radius:10px;background:${perms[p.key] ? 'var(--accent-soft)' : 'var(--card-bg)'};transition:all 0.15s;"
+        id="admMgrPermRow_${p.key}"
+        onclick="admMgrTogglePermRow('${p.key}')">
+        <input type="checkbox" ${perms[p.key] ? 'checked' : ''}
+          id="admMgrPerm_${p.key}"
+          style="width:18px;height:18px;margin-top:2px;cursor:pointer;accent-color:var(--accent);flex-shrink:0;"
+          onclick="event.stopPropagation();admMgrTogglePermRow('${p.key}')" />
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-primary);">${p.label}</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${p.desc}</div>
+        </div>
+      </label>`).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:#B91C1C;">Ошибка загрузки прав</div>';
+  }
+
+  modal.style.display = 'flex';
+}
+window.admMgrOpenPerms = admMgrOpenPerms;
+
+function admMgrTogglePermRow(key) {
+  const cb = document.getElementById('admMgrPerm_' + key);
+  const row = document.getElementById('admMgrPermRow_' + key);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  if (row) {
+    row.style.borderColor = cb.checked ? 'var(--accent)' : 'var(--border)';
+    row.style.background  = cb.checked ? 'var(--accent-soft)' : 'var(--card-bg)';
+  }
+}
+window.admMgrTogglePermRow = admMgrTogglePermRow;
+
+function admMgrClosePerms() {
+  document.getElementById('admMgrPermsModal').style.display = 'none';
+  admMgrCurrentUid = null;
+}
+window.admMgrClosePerms = admMgrClosePerms;
+
+async function admMgrSavePerms() {
+  if (!admMgrCurrentUid) return;
+  const perms = {};
+  MGR_PERMS.forEach(p => {
+    const cb = document.getElementById('admMgrPerm_' + p.key);
+    if (cb) perms[p.key] = cb.checked;
+  });
+  const msg = document.getElementById('admMgrPermsMsg');
+  try {
+    await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, 'users', admMgrCurrentUid), { permissions: perms });
+    if (msg) { msg.style.display='block'; msg.style.background='#D1FAE5'; msg.style.color='#065F46'; msg.textContent='✅ Права сохранены!'; setTimeout(()=>msg.style.display='none',3000); }
+    admMgrLoad(); // refresh cards
+  } catch(e) {
+    if (msg) { msg.style.display='block'; msg.style.background='#FEE2E2'; msg.style.color='#B91C1C'; msg.textContent='❌ Ошибка: '+e.message; setTimeout(()=>msg.style.display='none',4000); }
+  }
+}
+window.admMgrSavePerms = admMgrSavePerms;
+
+function admMgrToggleAdd() {
+  const form = document.getElementById('admMgrAddForm');
+  if (!form) return;
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+window.admMgrToggleAdd = admMgrToggleAdd;
+
+async function admMgrCreate() {
+  const name  = (document.getElementById('admMgrNewName')?.value || '').trim();
+  const email = (document.getElementById('admMgrNewEmail')?.value || '').trim().toLowerCase();
+  const role  = document.getElementById('admMgrNewRole')?.value || 'manager';
+  const msg   = document.getElementById('admMgrCreateMsg');
+
+  if (!name || !email) { if(msg){msg.style.color='#B91C1C';msg.textContent='Заполните имя и email';} return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { if(msg){msg.style.color='#B91C1C';msg.textContent='Некорректный email';} return; }
+
+  // Check duplicates
+  try {
+    const snap = await window.firebaseGetDocs(
+      window.firebaseQuery(window.firebaseCollection(window.firebaseDb, 'users'), window.firebaseWhere('email', '==', email))
+    );
+    if (!snap.empty) {
+      const existing = snap.docs[0].data();
+      if (existing.role && existing.role !== 'client') {
+        if(msg){msg.style.color='#B91C1C';msg.textContent='Этот email уже используется менеджером';} return;
+      }
+      // Update existing user to manager role
+      await window.firebaseUpdateDoc(window.firebaseDoc(window.firebaseDb, 'users', snap.docs[0].id), {
+        role, name, active: true, permissions: {}
+      });
+    } else {
+      // Create new user doc (they'll need to register with this email)
+      const newRef = window.firebaseDoc(window.firebaseCollection(window.firebaseDb, 'users'));
+      await window.firebaseSetDoc(newRef, {
+        name, email, role, active: true, permissions: {},
+        createdAt: new Date().toISOString(), isManager: true
+      });
+    }
+    if(msg){msg.style.color='#065F46';msg.textContent='✅ Менеджер добавлен!';}
+    setTimeout(()=>{ if(msg) msg.textContent=''; admMgrToggleAdd(); admMgrLoad(); }, 1500);
+  } catch(e) {
+    if(msg){msg.style.color='#B91C1C';msg.textContent='Ошибка: '+e.message;}
+  }
+}
+window.admMgrCreate = admMgrCreate;
 
 // ===== ADMIN WAREHOUSE EDITOR =====
 let adminWhData = []; // working copy for editor
