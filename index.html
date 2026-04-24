@@ -731,23 +731,25 @@
       <div id="frameShopIcon" style="font-size:22px;"></div>
       <div style="flex:1;">
         <div style="font-size:14px;font-weight:800;" id="frameShopName"></div>
-        <div style="font-size:11px;color:var(--text-secondary);" id="frameShopUrl"></div>
       </div>
       <div id="frameVpnNote" style="display:none;font-size:12px;color:#F59E0B;font-weight:600;background:#FFFBEB;padding:5px 12px;border-radius:8px;border:1px solid #FED7AA;">🔒 Может потребоваться VPN</div>
       <a id="frameOpenExternal" href="#" target="_blank" rel="noopener" style="padding:7px 14px;border:1.5px solid #F0F0F0;border-radius:9px;background:white;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);text-decoration:none;white-space:nowrap;">🌐 Открыть в браузере</a>
       <button onclick="openBuyoutFromFrame()" style="padding:8px 18px;border:none;border-radius:9px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;">🛒 Нашёл товар!</button>
     </div>
-    <!-- Фрейм / заглушка -->
-    <div style="flex:1;position:relative;">
-      <iframe id="shopIframe" src="" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation"></iframe>
-      <div id="frameBlockedMsg" style="display:none;position:absolute;inset:0;background:#FAFAFA;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:32px;">
-        <div style="font-size:52px;">🚫</div>
-        <div style="font-size:18px;font-weight:800;color:var(--text-primary);">Магазин блокирует встроенный просмотр</div>
-        <div style="font-size:14px;color:var(--text-secondary);max-width:400px;">Это распространено у крупных брендов. Откройте магазин в новой вкладке, найдите товар и вернитесь — нажмите «Нашёл товар!»</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-          <a id="blockedOpenExternal" href="#" target="_blank" rel="noopener" style="padding:12px 28px;border:none;border-radius:12px;background:var(--accent);color:white;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer;">🌐 Открыть в браузере</a>
-          <button onclick="openBuyoutFromFrame()" style="padding:12px 28px;border:1.5px solid var(--border);border-radius:12px;background:white;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">🛒 Нашёл товар — вставить ссылку</button>
-        </div>
+    <!-- Плейсхолдер: магазин открыт в браузере -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px;background:var(--bg);">
+      <div style="font-size:64px;">🌐</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text-primary);">Магазин открыт в браузере</div>
+      <div style="font-size:14px;color:var(--text-secondary);max-width:360px;line-height:1.6;">
+        Найдите нужный товар, скопируйте ссылку на него и вернитесь сюда — нажмите «Нашёл товар!»
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+        <button onclick="openBuyoutFromFrame()" style="padding:14px 32px;border:none;border-radius:14px;background:var(--accent);color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
+          🛒 Нашёл товар!
+        </button>
+        <button id="frameReopenBtn" onclick="" style="padding:14px 24px;border:1.5px solid var(--border);border-radius:14px;background:var(--card-bg);color:var(--text-primary);font-size:14px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">
+          🔁 Открыть снова
+        </button>
       </div>
     </div>
   </div>
@@ -6017,51 +6019,26 @@ function openShopFrame(shopId) {
   if (!s) return;
   currentBuyoutShop = s;
 
-  // UI
+  // Open shop immediately in new browser tab
+  window.open(s.url, '_blank', 'noopener,noreferrer');
+
+  // Show the "found item" placeholder view
   document.getElementById('shopCatalogView').style.display = 'none';
   const fv = document.getElementById('shopFrameView');
   fv.style.display = 'flex';
-  document.getElementById('frameShopIcon').textContent = s.icon;
+  document.getElementById('frameShopIcon').textContent = s.icon && !s.icon.startsWith('http') ? s.icon : '🛍';
   document.getElementById('frameShopName').textContent = s.name;
-  document.getElementById('frameShopUrl').textContent = s.url;
-  document.getElementById('frameOpenExternal').href = s.url;
-  document.getElementById('blockedOpenExternal').href = s.url;
   document.getElementById('frameVpnNote').style.display = s.vpn ? 'block' : 'none';
+  document.getElementById('frameOpenExternal').href = s.url;
 
-  // Try iframe
-  const iframe = document.getElementById('shopIframe');
-  const blockedMsg = document.getElementById('frameBlockedMsg');
-  blockedMsg.style.display = 'none';
-  iframe.style.display = 'block';
-  iframe.src = s.url;
-
-  // Detect block after short delay
-  const timer = setTimeout(() => {
-    try {
-      // If iframe loaded but X-Frame-Options blocked, contentDocument will be inaccessible or empty
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      if (!doc || doc.body === null || doc.body.innerHTML === '') {
-        iframe.style.display = 'none';
-        blockedMsg.style.display = 'flex';
-      }
-    } catch(e) {
-      // Cross-origin block = iframe likely working but we can't read it (that's fine)
-    }
-  }, 3000);
-
-  iframe.onerror = () => {
-    clearTimeout(timer);
-    iframe.style.display = 'none';
-    blockedMsg.style.display = 'flex';
-  };
+  // Wire up "Open again" button
+  const reopenBtn = document.getElementById('frameReopenBtn');
+  if (reopenBtn) reopenBtn.onclick = () => window.open(s.url, '_blank', 'noopener,noreferrer');
 }
 
 function closeShopFrame() {
   document.getElementById('shopFrameView').style.display = 'none';
   document.getElementById('shopCatalogView').style.display = 'block';
-  document.getElementById('shopIframe').src = '';
-  document.getElementById('frameBlockedMsg').style.display = 'none';
-  document.getElementById('shopIframe').style.display = 'block';
 }
 
 function openBuyoutFromFrame() {
