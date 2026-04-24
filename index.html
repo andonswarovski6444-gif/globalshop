@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231A6BFF'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' fill='white'%3EG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -206,7 +206,7 @@
     background: radial-gradient(circle, rgba(26,107,255,0.10), transparent 70%);
   }
   .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-soft); color: var(--accent); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 24px; }
-  .hero h1 { font-family: 'Playfair Display', serif; font-size: 52px; line-height: 1.1; color: var(--text-primary); margin-bottom: 20px; transition: color 0.3s; }
+  .hero h1 { font-family: 'Manrope', sans-serif; font-size: 52px; font-weight: 800; line-height: 1.1; color: var(--text-primary); margin-bottom: 20px; transition: color 0.3s; letter-spacing: -1px; }
   .hero h1 span { color: var(--accent); }
   .hero p { font-size: 16px; color: var(--text-secondary); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; transition: color 0.3s; }
   .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -452,8 +452,16 @@
 
     /* — Навигация — */
     nav { padding: 0 16px; height: 56px; }
-    .nav-links { display: none; }
+    .nav-links { display: none !important; }
     .nav-logo { font-size: 15px; }
+    .nav-actions { flex-shrink: 0; gap: 6px; }
+    /* Скрываем второстепенные кнопки на мобильном */
+    #langSwitcher { display: none !important; }
+    nav > .nav-actions > button[onclick="startOnboarding()"] { display: none !important; }
+    /* Кнопки «Войти» и «Регистрация» — компактнее */
+    #authButtons { gap: 6px; }
+    #authButtons .btn-outline { padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+    #authButtons .btn-pink { padding: 6px 12px; font-size: 12px; white-space: nowrap; }
 
     /* — Hero — */
     .hero { padding: 32px 16px 24px; }
@@ -765,6 +773,56 @@
   </div>
 </nav>
 
+<!-- БЕГУЩАЯ СТРОКА НОВОСТЕЙ -->
+<div id="tickerBar" style="display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:linear-gradient(135deg,#1A6BFF,#7C3AED);overflow:hidden;height:32px;line-height:32px;">
+  <div id="tickerTrack" style="display:inline-flex;white-space:nowrap;animation:tickerScroll 30s linear infinite;">
+    <span id="tickerText1" style="color:white;font-size:12px;font-weight:600;padding:0 40px;"></span>
+    <span id="tickerText2" style="color:white;font-size:12px;font-weight:600;padding:0 40px;"></span>
+    <span id="tickerText3" style="color:white;font-size:12px;font-weight:600;padding:0 40px;"></span>
+  </div>
+</div>
+<style>
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-33.333%); }
+  }
+  /* сдвигаем контент вниз когда строка активна */
+  body.ticker-active .page { padding-top: calc(64px + 32px); }
+  @media (max-width: 768px) {
+    body.ticker-active .page { padding-top: calc(56px + 32px); }
+    #tickerBar { top: 56px; }
+  }
+</style>
+<script>
+(function() {
+  async function loadTicker() {
+    try {
+      var db = window.firebaseDb;
+      if (!db) { setTimeout(loadTicker, 800); return; }
+      var snap = await window.firebaseGetDoc(window.firebaseDoc(db, 'settings', 'ticker'));
+      if (snap.exists()) {
+        var d = snap.data();
+        if (d.enabled && d.text && d.text.trim()) {
+          var bar = document.getElementById('tickerBar');
+          var sep = '  ·  ';
+          var txt = d.text.trim() + sep;
+          ['tickerText1','tickerText2','tickerText3'].forEach(function(id) {
+            document.getElementById(id).textContent = txt;
+          });
+          bar.style.display = 'block';
+          document.body.classList.add('ticker-active');
+        }
+      }
+    } catch(e) {}
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadTicker);
+  } else {
+    loadTicker();
+  }
+})();
+</script>
+
 <!-- HOME PAGE -->
 <div class="page active" id="page-home">
   <div class="hero fade-up">
@@ -875,6 +933,7 @@
           <a href="https://2gis.kz/almaty/geo/70000001113156255" target="_blank" style="cursor:pointer;">Отзывы</a>
           <a onclick="showPage('contacts')" style="cursor:pointer;">Контакты</a>
           <a onclick="showPage('oferta')" style="cursor:pointer;">Публичная оферта</a>
+          <a onclick="showPage('privacy')" style="cursor:pointer;">Политика конфиденциальности</a>
         </div>
       </div>
       <div>
@@ -2268,6 +2327,24 @@ const adminViews = {
         </div>
       </div>
       <button class="btn-pink" onclick="saveExtraServicesPrices()" style="padding:10px 24px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;margin-top:16px;">💾 Сохранить цены</button>
+    </div>
+
+    <div class="acard" style="margin-bottom:16px;">
+      <div class="acard-title">📢 Бегущая строка новостей</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">Текст показывается всем посетителям сайта в цветной полосе под шапкой.</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <span style="font-size:13px;font-weight:600;">Включить строку</span>
+        <div id="tickerToggle" onclick="toggleTickerEnabled()" style="width:44px;height:24px;border-radius:12px;background:#E5E7EB;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+          <div id="tickerToggleDot" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></div>
+        </div>
+        <span id="tickerToggleLabel" style="font-size:12px;color:var(--text-secondary);">Выключено</span>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Текст новости</label>
+        <textarea id="adminTickerText" rows="3" placeholder="🎉 Акция! Бесплатный выкуп при заказе от $50  ·  🚚 Доставка из Китая ускорена — 7-10 дней" style="width:100%;padding:11px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;resize:vertical;background:var(--bg);color:var(--text-primary);" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--input-border)'"></textarea>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Строка будет автоматически прокручиваться. Используйте  ·  для разделения нескольких новостей.</div>
+      </div>
+      <button class="btn-pink" onclick="saveTickerSettings()" style="padding:10px 24px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">💾 Сохранить строку</button>
     </div>
 
     <div class="acard">
@@ -7965,6 +8042,94 @@ window.renderDash = function(view) {
     <div class="section-sub">Свяжитесь с нами любым удобным способом</div>
     <div style="display:grid;gap:16px;">
 
+      <!-- График работы -->
+      <div id="workingHoursCard" style="background:white;border-radius:18px;border:1px solid var(--border);padding:24px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div style="width:52px;height:52px;background:#F0FDF4;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🕐</div>
+          <div style="flex:1;">
+            <div style="font-size:16px;font-weight:800;margin-bottom:4px;">График работы</div>
+            <div id="workStatusBadge" style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;"></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:14px;font-weight:700;color:var(--text-primary);">Пн – Пт</span>
+            <span style="font-size:14px;font-weight:800;color:var(--text-primary);">10:00 – 20:00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:14px;color:var(--text-secondary);">Суббота</span>
+            <span style="font-size:14px;font-weight:600;color:var(--text-primary);">10:00 – 17:00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+            <span style="font-size:14px;color:var(--text-secondary);">Воскресенье</span>
+            <span style="font-size:14px;font-weight:600;color:#EF4444;">Выходной</span>
+          </div>
+        </div>
+        <div id="workNextInfo" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
+      </div>
+      <script>
+      (function() {
+        function getKZStatus() {
+          var now = new Date();
+          // UTC+5 Казахстан
+          var kzOffset = 5 * 60;
+          var utc = now.getTime() + now.getTimezoneOffset() * 60000;
+          var kz = new Date(utc + kzOffset * 60000);
+          var day = kz.getDay(); // 0=вс,1=пн,...,6=сб
+          var h = kz.getHours();
+          var m = kz.getMinutes();
+          var time = h * 60 + m;
+
+          var open = false;
+          var openFrom, openTo, nextOpenDay, nextOpenTime;
+
+          if (day >= 1 && day <= 5) {
+            // Пн-Пт 10:00-20:00
+            openFrom = 10*60; openTo = 20*60;
+            open = time >= openFrom && time < openTo;
+          } else if (day === 6) {
+            // Суббота 10:00-17:00
+            openFrom = 10*60; openTo = 17*60;
+            open = time >= openFrom && time < openTo;
+          }
+
+          var nextText = '';
+          if (!open) {
+            if (day === 0) {
+              nextText = 'Откроется в понедельник в 10:00';
+            } else if (day === 6) {
+              if (time < 10*60) nextText = 'Откроется сегодня в 10:00';
+              else nextText = 'Откроется в понедельник в 10:00';
+            } else {
+              // Пн-Пт
+              if (time < 10*60) nextText = 'Откроется сегодня в 10:00';
+              else {
+                var days = ['воскресенье','понедельник','вторник','среду','четверг','пятницу','субботу'];
+                var nextDay = day + 1;
+                if (nextDay === 7) nextDay = 1;
+                nextText = 'Откроется ' + (nextDay === 6 ? 'в субботу в 10:00' : 'завтра в 10:00');
+              }
+            }
+          }
+
+          var badge = document.getElementById('workStatusBadge');
+          var next = document.getElementById('workNextInfo');
+          if (open) {
+            badge.textContent = '● Сейчас открыто';
+            badge.style.background = '#D1FAE5';
+            badge.style.color = '#065F46';
+          } else {
+            badge.textContent = '● Сейчас закрыто';
+            badge.style.background = '#FEE2E2';
+            badge.style.color = '#991B1B';
+          }
+          if (next && nextText) next.textContent = nextText;
+        }
+        getKZStatus();
+        setInterval(getKZStatus, 60000);
+      })();
+      </script>
+
       <div style="background:white;border-radius:18px;border:1px solid var(--border);padding:24px;display:flex;align-items:center;gap:20px;">
         <div style="width:52px;height:52px;background:#25D366;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">💬</div>
         <div style="flex:1;">
@@ -7998,6 +8163,15 @@ window.renderDash = function(view) {
           <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Телефон</div>
           <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Звонки</div>
           <a href="tel:+77064128196" style="padding:8px 20px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-block;">+7 706 412 8196</a>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:18px;border:1px solid var(--border);padding:24px;display:flex;align-items:center;gap:20px;">
+        <div style="width:52px;height:52px;background:#EEF2FF;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">✉️</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Email</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Для письменных обращений</div>
+          <a href="mailto:managerglobalshop@mail.ru" style="padding:8px 20px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;display:inline-block;">managerglobalshop@mail.ru</a>
         </div>
       </div>
 
@@ -8075,60 +8249,82 @@ window.renderDash = function(view) {
       </div>
 
       <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
-      <p style="margin-bottom:8px;">1.1. Настоящая Политика конфиденциальности (далее — «Политика») определяет порядок обработки и защиты персональных данных пользователей сайта Global Shop KZ.</p>
-      <p style="margin-bottom:8px;">1.2. Оператором персональных данных является <b>ИП Журавлёв</b>, ИИН 030816501796, Республика Казахстан, г. Алматы, ул. Абылай Хана 3, этаж 0, бутик 02.</p>
-      <p style="margin-bottom:8px;">1.3. Политика разработана в соответствии с Законом Республики Казахстан «О персональных данных и их защите» № 94-V от 21 мая 2013 года.</p>
-      <p style="margin-bottom:24px;">1.4. Используя сайт и регистрируясь на нём, вы выражаете согласие с настоящей Политикой.</p>
+      <p style="margin-bottom:8px;">1.1. <b>Оператор персональных данных.</b> Настоящая Политика конфиденциальности (далее — Политика) разработана Индивидуальным предпринимателем <b>«Журавлёв»</b>, ИИН 030816501796 (далее — Оператор), в соответствии с Законом Республики Казахстан от 21 мая 2013 года № 94-V «О персональных данных и их защите», а также иными нормативными правовыми актами Республики Казахстан.</p>
+      <p style="margin-bottom:8px;">1.2. <b>Цели Политики.</b> Целью настоящей Политики является обеспечение защиты прав и свобод человека и гражданина при обработке его персональных данных, включая защиту прав на неприкосновенность частной жизни, личную и семейную тайну.</p>
+      <p style="margin-bottom:8px;">1.3. <b>Сфера действия Политики.</b> Действие настоящей Политики распространяется на всю информацию, которую Оператор может получить о Пользователе в процессе использования сайта <b>Global Shop KZ</b>; регистрации личного кабинета; оформления заказов; оказания транспортно-экспедиторских, агентских и логистических услуг.</p>
+      <p style="margin-bottom:8px;">1.4. <b>Согласие Пользователя.</b> Использование сайта, сервисов Оператора, регистрация личного кабинета, передача персональных данных, а также заключение договоров на оказание услуг означает полное и безоговорочное согласие Пользователя с настоящей Политикой.</p>
+      <p style="margin-bottom:8px;">1.5. <b>Отказ от принятия Политики.</b> В случае несогласия с условиями настоящей Политики Пользователь обязан немедленно прекратить использование сайта, сервисов и услуг Оператора.</p>
+      <p style="margin-bottom:24px;">1.6. <b>Изменение Политики.</b> Оператор вправе вносить изменения и дополнения в настоящую Политику в одностороннем порядке. Новая редакция вступает в силу с момента её размещения на сайте.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">2. КАКИЕ ДАННЫЕ МЫ СОБИРАЕМ</h3>
-      <p style="margin-bottom:8px;">2.1. <b>Регистрационные данные:</b> имя, адрес электронной почты, номер телефона.</p>
-      <p style="margin-bottom:8px;">2.2. <b>Идентификационные данные:</b> ФИО, номер удостоверения личности (ИИН), дата рождения — необходимы для таможенного оформления товаров согласно требованиям законодательства РК.</p>
-      <p style="margin-bottom:8px;">2.3. <b>Платёжные данные:</b> информация о пополнении кошелька и транзакциях. Мы не храним данные банковских карт — платежи обрабатываются через Kaspi Pay.</p>
-      <p style="margin-bottom:8px;">2.4. <b>Данные заказов:</b> адрес доставки, история заказов, ссылки на товары.</p>
-      <p style="margin-bottom:24px;">2.5. <b>Технические данные:</b> IP-адрес, тип браузера, cookies — для улучшения работы сайта.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">2. ПЕРЕЧЕНЬ И СПОСОБЫ СБОРА ПЕРСОНАЛЬНЫХ ДАННЫХ</h3>
+      <p style="margin-bottom:8px;">2.1. <b>Персональные данные, предоставляемые Пользователем:</b> фамилия, имя, отчество; ИИН — для идентификации и таможенного оформления; контактные номера телефонов; адрес электронной почты; адрес проживания и/или доставки груза; сведения о документах, удостоверяющих личность, в случаях, предусмотренных законодательством РК.</p>
+      <p style="margin-bottom:8px;">2.2. <b>Техническая информация (неперсонифицированные данные):</b> IP-адрес; тип устройства, браузера и ОС; файлы cookies — для аналитики и улучшения работы сайта.</p>
+      <p style="margin-bottom:8px;">2.3. <b>Дополнительная информация в процессе оказания услуг:</b> история заказов и отправлений; маршруты доставки и статусы грузов; информация о претензиях и обращениях в службу поддержки.</p>
+      <p style="margin-bottom:24px;">2.4. <b>Правовые основания сбора данных</b> определены статьями 7, 8 и 12 Закона РК «О персональных данных и их защите»: исполнение договоров, оказание логистических и транспортных услуг, соблюдение таможенного и налогового законодательства.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">3. ЦЕЛИ ОБРАБОТКИ ДАННЫХ</h3>
-      <p style="margin-bottom:8px;">3.1. Исполнение договора на оказание услуг по выкупу и доставке товаров.</p>
-      <p style="margin-bottom:8px;">3.2. Таможенное оформление посылок в соответствии с требованиями Комитета государственных доходов РК.</p>
-      <p style="margin-bottom:8px;">3.3. Уведомление о статусе заказов и изменениях в работе сервиса.</p>
-      <p style="margin-bottom:24px;">3.4. Улучшение качества услуг и технической работы сайта.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">3. ОБРАБОТКА ПЕРСОНАЛЬНЫХ ДАННЫХ НЕСОВЕРШЕННОЛЕТНИХ</h3>
+      <p style="margin-bottom:8px;">3.1. Оператор оказывает услуги преимущественно лицам, достигшим 18 лет.</p>
+      <p style="margin-bottom:8px;">3.2. Лица от 14 до 18 лет вправе пользоваться услугами исключительно при наличии письменного согласия законных представителей (родителей, опекунов).</p>
+      <p style="margin-bottom:8px;">3.3. Оператор не осуществляет целенаправленный сбор данных лиц младше 14 лет. При выявлении такого факта данные подлежат незамедлительному удалению.</p>
+      <p style="margin-bottom:24px;">3.4. Оператор не несёт ответственности за последствия использования сайта лицами, предоставившими недостоверные сведения о своём возрасте.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">4. КАК МЫ ЗАЩИЩАЕМ ВАШИ ДАННЫЕ</h3>
-      <p style="margin-bottom:8px;">4.1. Все данные хранятся на защищённых серверах с шифрованием.</p>
-      <p style="margin-bottom:8px;">4.2. Соединение с сайтом защищено протоколом HTTPS (SSL/TLS).</p>
-      <p style="margin-bottom:8px;">4.3. Доступ к персональным данным имеет ограниченный круг сотрудников, связанных с обработкой заказов.</p>
-      <p style="margin-bottom:8px;">4.4. Документы удостоверяющие личность хранятся в зашифрованном виде и используются исключительно для таможенного оформления.</p>
-      <p style="margin-bottom:24px;">4.5. Мы не продаём, не передаём и не раскрываем ваши данные третьим лицам, за исключением случаев, предусмотренных законодательством РК.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">4. ЦЕЛИ ИСПОЛЬЗОВАНИЯ И ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ</h3>
+      <p style="margin-bottom:8px;">4.1. <b>Исполнение договорных обязательств:</b> регистрация на платформе, заключение и исполнение договоров, оказание логистических услуг, организация доставки грузов, управление личным кабинетом.</p>
+      <p style="margin-bottom:8px;">4.2. <b>Улучшение качества сервиса:</b> анализ использования сайта, техническая поддержка, улучшение интерфейса.</p>
+      <p style="margin-bottom:8px;">4.3. <b>Обратная связь и клиентская поддержка:</b> обработка обращений, консультации, урегулирование претензий.</p>
+      <p style="margin-bottom:8px;">4.4. <b>Маркетинг (при наличии согласия):</b> направление информации о услугах и предложениях. Согласие может быть отозвано в любое время.</p>
+      <p style="margin-bottom:24px;">4.5. <b>Безопасность и соблюдение законодательства:</b> защита сайта, предотвращение мошенничества, исполнение требований законодательства РК.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">5. ХРАНЕНИЕ И УДАЛЕНИЕ ДАННЫХ</h3>
-      <p style="margin-bottom:8px;">5.1. Данные хранятся в течение всего срока пользования услугами сервиса.</p>
-      <p style="margin-bottom:8px;">5.2. При удалении аккаунта персональные данные удаляются в течение <b>30 дней</b>, за исключением данных, которые должны храниться в соответствии с законодательством (налоговые документы — 5 лет).</p>
-      <p style="margin-bottom:8px;">5.3. Документы удостоверяющие личность хранятся на период активного пользования адресом склада. При отзыве согласия — удаляются в течение 30 дней.</p>
-      <p style="margin-bottom:24px;">5.4. Вы можете запросить удаление своих данных в любое время через раздел «Настройки» личного кабинета или написав нам в поддержку.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">5. ХРАНЕНИЕ, ЗАЩИТА И БЕЗОПАСНОСТЬ ПЕРСОНАЛЬНЫХ ДАННЫХ</h3>
+      <p style="margin-bottom:8px;">5.1. Базы данных с персональными данными граждан РК размещаются на серверах на территории Республики Казахстан.</p>
+      <p style="margin-bottom:8px;">5.2. Оператор применяет: защищённые протоколы передачи данных (SSL/TLS); серверы с ограниченным доступом; разграничение прав доступа сотрудников; парольную защиту и средства аутентификации.</p>
+      <p style="margin-bottom:8px;">5.3. Пользователь несёт ответственность за сохранность данных доступа к личному кабинету. Оператор никогда не запрашивает пароль по телефону или электронной почте.</p>
+      <p style="margin-bottom:8px;">5.4. Оператор не передаёт персональные данные третьим лицам без согласия Пользователя, за исключением: партнёров для исполнения заказа (в необходимом объёме); уполномоченных государственных органов по законному запросу.</p>
+      <p style="margin-bottom:24px;">5.5. Трансграничная передача данных осуществляется в рамках международных логистических услуг в соответствии со статьёй 16 Закона РК «О персональных данных и их защите».</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">6. ВАШИ ПРАВА</h3>
-      <p style="margin-bottom:8px;">В соответствии с Законом РК № 94-V вы имеете право:</p>
-      <p style="margin-bottom:8px;">6.1. <b>Доступ</b> — получить информацию о том, какие данные мы храним.</p>
-      <p style="margin-bottom:8px;">6.2. <b>Исправление</b> — потребовать исправления неточных данных.</p>
-      <p style="margin-bottom:8px;">6.3. <b>Удаление</b> — потребовать удаления ваших данных.</p>
-      <p style="margin-bottom:8px;">6.4. <b>Отзыв согласия</b> — отозвать согласие на обработку данных в любое время через личный кабинет.</p>
-      <p style="margin-bottom:24px;">6.5. <b>Жалоба</b> — обратиться в уполномоченный орган по защите персональных данных РК.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">6. ИСПОЛЬЗОВАНИЕ ФАЙЛОВ COOKIE</h3>
+      <p style="margin-bottom:8px;">6.1. Сайт использует cookies для персонализации пользовательского опыта и обеспечения корректной работы авторизации и настроек.</p>
+      <p style="margin-bottom:8px;">6.2. Пользователь вправе в любое время изменить настройки браузера: заблокировать, ограничить или удалить cookies. Отключение cookies может повлиять на работу отдельных функций сайта.</p>
+      <p style="margin-bottom:24px;">6.3. Продолжение использования сайта без изменения настроек браузера означает согласие на использование cookies.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">7. COOKIES</h3>
-      <p style="margin-bottom:8px;">7.1. Сайт использует cookies для хранения настроек (тема оформления, язык) и обеспечения корректной работы авторизации.</p>
-      <p style="margin-bottom:24px;">7.2. Вы можете отключить cookies в настройках браузера, однако это может повлиять на работу некоторых функций сайта.</p>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">7. ПОРЯДОК РАЗРЕШЕНИЯ СПОРОВ</h3>
+      <p style="margin-bottom:8px;">7.1. Все отношения регулируются законодательством Республики Казахстан.</p>
+      <p style="margin-bottom:8px;">7.2. Соблюдение досудебного (претензионного) порядка урегулирования споров является обязательным. Претензия направляется по почтовому или электронному адресу Оператора, указанному в разделе 8.</p>
+      <p style="margin-bottom:8px;">7.3. Срок рассмотрения претензии — 30 календарных дней с момента получения.</p>
+      <p style="margin-bottom:24px;">7.4. При недостижении соглашения спор передаётся в суд по месту нахождения Оператора в соответствии с законодательством РК.</p>
 
-      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">8. КОНТАКТЫ</h3>
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">8. ПРАВА ПОЛЬЗОВАТЕЛЕЙ И ОТЗЫВ СОГЛАСИЯ</h3>
+      <p style="margin-bottom:8px;">В соответствии с Законом РК № 94-V каждый Пользователь имеет право:</p>
+      <p style="margin-bottom:8px;">8.1. <b>Доступ</b> — получить информацию о целях и составе обрабатываемых данных.</p>
+      <p style="margin-bottom:8px;">8.2. <b>Исправление</b> — потребовать уточнения или исправления неточных данных.</p>
+      <p style="margin-bottom:8px;">8.3. <b>Удаление</b> — потребовать уничтожения данных, если цель обработки достигнута или данные получены незаконно.</p>
+      <p style="margin-bottom:8px;">8.4. <b>Отзыв согласия</b> — в любое время, за исключением случаев, предусмотренных законодательством РК.</p>
+      <p style="margin-bottom:24px;">Запросы направляются по адресу: <a href="mailto:managerglobalshop@mail.ru" style="color:var(--accent);">managerglobalshop@mail.ru</a> или по адресу: г. Алматы, ул. Абылай Хана 3, бутик 02. Срок рассмотрения — 10 рабочих дней.</p>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">9. СРОКИ ОБРАБОТКИ, ХРАНЕНИЯ И УНИЧТОЖЕНИЯ ДАННЫХ</h3>
+      <p style="margin-bottom:8px;">9.1. Обработка данных осуществляется в течение срока, необходимого для оказания услуг и исполнения договорных обязательств, либо до отзыва согласия Пользователем.</p>
+      <p style="margin-bottom:8px;">9.2. Первичная бухгалтерская документация хранится не менее 5 лет в соответствии с Налоговым кодексом и Законом РК «О бухгалтерском учёте».</p>
+      <p style="margin-bottom:8px;">9.3. При удалении аккаунта данные переводятся в статус «блокированные» на 14 календарных дней, после чего безвозвратно уничтожаются.</p>
+      <p style="margin-bottom:8px;">9.4. По истечении 14 дней или при запросе немедленного удаления данные уничтожаются в срок до 3 рабочих дней (при отсутствии законных оснований для хранения).</p>
+      <p style="margin-bottom:24px;">9.5. Уничтожение осуществляется способом, исключающим восстановление данных: безвозвратное удаление из информационных систем и/или физическое уничтожение бумажных носителей.</p>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">10. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ</h3>
+      <p style="margin-bottom:8px;">10.1. Оператор вправе в одностороннем порядке вносить изменения в настоящую Политику. Новая редакция вступает в силу с момента размещения на сайте.</p>
+      <p style="margin-bottom:8px;">10.2. О существенных изменениях Оператор уведомляет Пользователей по электронной почте или через объявление на сайте.</p>
+      <p style="margin-bottom:8px;">10.3. Настоящая Политика является неотъемлемой частью Публичной оферты и иных документов Оператора. В части обработки персональных данных Политика имеет приоритет над иными документами.</p>
+      <p style="margin-bottom:24px;">10.4. К настоящей Политике применяется право Республики Казахстан.</p>
+
+      <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">11. КОНТАКТЫ ОПЕРАТОРА</h3>
       <p style="margin-bottom:8px;">По вопросам обработки персональных данных обращайтесь:</p>
-      <p style="margin-bottom:4px;">📧 Email: <a href="mailto:globalshopkz@gmail.com" style="color:var(--accent);">globalshopkz@gmail.com</a></p>
+      <p style="margin-bottom:4px;">📧 Email: <a href="mailto:managerglobalshop@mail.ru" style="color:var(--accent);">managerglobalshop@mail.ru</a></p>
       <p style="margin-bottom:4px;">💬 WhatsApp: <a href="https://wa.me/77064128196" style="color:var(--accent);">+7 706 412 8196</a></p>
-      <p style="margin-bottom:0;">📍 Алматы, ул. Абылай Хана 3, этаж 0, бутик 02</p>
+      <p style="margin-bottom:0;">📍 Республика Казахстан, г. Алматы, ул. Абылай Хана 3, бутик 02</p>
     </div>
   </div>
 
     <div style="max-width:900px;margin:40px auto 0;padding:20px 24px;border-top:1.5px solid var(--card-border);font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.6;">
       <div>Документ обновлён: <b id="legalPrivacyUpdated">—</b> <span style="opacity:0.6;">(UTC+0)</span></div>
-      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Политика конфиденциальности · Global Shop KZ</div>
+      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Политика конфиденциальности · Global Shop KZ · ИП Журавлёв · ИИН 030816501796</div>
     </div>
     </div>
 
@@ -9042,4 +9238,130 @@ var _origShowPage = window.showPage || function(){};
   document.addEventListener('DOMContentLoaded', function () {
     _twemojiObserver.observe(document.body, { childList: true, subtree: true });
   });
+</script>
+
+<!-- МОБИЛЬНЫЙ TAB BAR -->
+<div id="mobileTabBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--nav-bg);backdrop-filter:blur(12px);border-top:1px solid var(--nav-border);padding:6px 0 env(safe-area-inset-bottom,6px);">
+  <div style="display:flex;justify-content:space-around;align-items:center;">
+    <div onclick="showPage('home');setActiveTab('home')" id="tab-home" class="mob-tab active-tab">
+      <div style="font-size:20px;">🏠</div><div>Главная</div>
+    </div>
+    <div onclick="showPage('shops');setActiveTab('shops')" id="tab-shops" class="mob-tab">
+      <div style="font-size:20px;">🛍</div><div>Магазины</div>
+    </div>
+    <div onclick="showPage('tracking');setActiveTab('tracking')" id="tab-tracking" class="mob-tab">
+      <div style="font-size:20px;">📦</div><div>Трекинг</div>
+    </div>
+    <div onclick="showPage('calculator');setActiveTab('calculator')" id="tab-calc" class="mob-tab">
+      <div style="font-size:20px;">🧮</div><div>Цена</div>
+    </div>
+    <div onclick="toggleMoreMenu()" id="tab-more" class="mob-tab">
+      <div style="font-size:20px;">☰</div><div>Ещё</div>
+    </div>
+  </div>
+</div>
+
+<!-- Меню "Ещё" -->
+<div id="moreMenu" style="display:none;position:fixed;bottom:65px;left:12px;right:12px;z-index:300;background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);box-shadow:0 -8px 32px rgba(0,0,0,0.12);padding:8px 0;">
+  <div onclick="showPage('warehouses');closeMoreMenu();setActiveTab('warehouses')" style="display:flex;align-items:center;gap:14px;padding:14px 20px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;">
+    <span style="font-size:20px;">🏭</span> Склады
+  </div>
+  <div onclick="showPage('contacts');closeMoreMenu();setActiveTab('contacts')" style="display:flex;align-items:center;gap:14px;padding:14px 20px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;border-top:1px solid var(--border);">
+    <span style="font-size:20px;">📞</span> Контакты
+  </div>
+  <div onclick="showPage('about');closeMoreMenu();setActiveTab('about')" style="display:flex;align-items:center;gap:14px;padding:14px 20px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;border-top:1px solid var(--border);">
+    <span style="font-size:20px;">ℹ️</span> О нас
+  </div>
+  <div onclick="showPage('rassrochka');closeMoreMenu();setActiveTab('rassrochka')" style="display:flex;align-items:center;gap:14px;padding:14px 20px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;border-top:1px solid var(--border);">
+    <span style="font-size:20px;">💳</span> Рассрочка
+  </div>
+  <div onclick="closeMoreMenu()" style="display:flex;align-items:center;justify-content:center;padding:12px 20px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;border-top:1px solid var(--border);">
+    Закрыть ✕
+  </div>
+</div>
+<div id="moreMenuOverlay" onclick="closeMoreMenu()" style="display:none;position:fixed;inset:0;z-index:299;"></div>
+
+<style>
+  .mob-tab {
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:4px 8px;border-radius:12px;cursor:pointer;
+    font-size:10px;font-weight:600;color:var(--text-secondary);
+    transition:color 0.15s;min-width:52px;
+  }
+  .mob-tab.active-tab { color:var(--accent); }
+  @media (max-width: 768px) {
+    #mobileTabBar { display:block !important; }
+    .page { padding-bottom: 72px; }
+  }
+</style>
+
+<script>
+function setActiveTab(page) {
+  var tabMap = { home:'tab-home', shops:'tab-shops', tracking:'tab-tracking', calculator:'tab-calc' };
+  document.querySelectorAll('.mob-tab').forEach(function(t){ t.classList.remove('active-tab'); });
+  if (tabMap[page]) document.getElementById(tabMap[page]).classList.add('active-tab');
+  else document.getElementById('tab-more') && document.getElementById('tab-more').classList.add('active-tab');
+}
+function toggleMoreMenu() {
+  var m = document.getElementById('moreMenu');
+  var o = document.getElementById('moreMenuOverlay');
+  var isOpen = m.style.display !== 'none';
+  m.style.display = isOpen ? 'none' : 'block';
+  o.style.display = isOpen ? 'none' : 'block';
+}
+function closeMoreMenu() {
+  document.getElementById('moreMenu').style.display = 'none';
+  document.getElementById('moreMenuOverlay').style.display = 'none';
+}
+
+// Ticker admin
+window._tickerEnabled = false;
+function toggleTickerEnabled() {
+  window._tickerEnabled = !window._tickerEnabled;
+  var toggle = document.getElementById('tickerToggle');
+  var dot = document.getElementById('tickerToggleDot');
+  var label = document.getElementById('tickerToggleLabel');
+  if (!toggle) return;
+  if (window._tickerEnabled) {
+    toggle.style.background = 'var(--accent)';
+    dot.style.left = '23px';
+    if (label) label.textContent = 'Включено';
+  } else {
+    toggle.style.background = '#E5E7EB';
+    dot.style.left = '3px';
+    if (label) label.textContent = 'Выключено';
+  }
+}
+async function saveTickerSettings() {
+  var textEl = document.getElementById('adminTickerText');
+  var text = textEl ? textEl.value : '';
+  var enabled = window._tickerEnabled;
+  try {
+    var db = window.firebaseDb;
+    await window.firebaseSetDoc(window.firebaseDoc(db, 'settings', 'ticker'), { text: text, enabled: enabled, updatedAt: Date.now() });
+    var bar = document.getElementById('tickerBar');
+    if (enabled && text.trim()) {
+      var txt = text.trim() + '  ·  ';
+      ['tickerText1','tickerText2','tickerText3'].forEach(function(id){ var el = document.getElementById(id); if(el) el.textContent = txt; });
+      if (bar) { bar.style.display = 'block'; document.body.classList.add('ticker-active'); }
+    } else {
+      if (bar) { bar.style.display = 'none'; document.body.classList.remove('ticker-active'); }
+    }
+    alert('✅ Бегущая строка сохранена!');
+  } catch(e) { alert('❌ Ошибка: ' + e.message); }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var db = window.firebaseDb;
+    if (!db) return;
+    window.firebaseGetDoc(window.firebaseDoc(db, 'settings', 'ticker')).then(function(snap) {
+      if (snap.exists()) {
+        var d = snap.data();
+        var ta = document.getElementById('adminTickerText');
+        if (ta) ta.value = d.text || '';
+        if (d.enabled && !window._tickerEnabled) toggleTickerEnabled();
+      }
+    }).catch(function(){});
+  }, 2000);
+});
 </script>
