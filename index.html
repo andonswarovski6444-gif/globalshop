@@ -5497,117 +5497,24 @@ function renderDash(view) {
     `,
 
     settings: `
-      <!-- Шапка профиля -->
-      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:28px 20px 20px;margin-bottom:12px;text-align:center;">
-        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366F1);display:flex;align-items:center;justify-content:center;font-size:32px;color:white;font-weight:800;margin:0 auto 14px;box-shadow:0 8px 24px rgba(99,102,241,0.3);">
-          ${(window.currentUserData?.name || window.currentUser?.email || 'U')[0].toUpperCase()}
-        </div>
-        <div style="font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:4px;">${window.currentUserData?.name || window.currentUser?.email?.split('@')[0] || 'Клиент'}</div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Ваш ID ${(window.currentClientId || window.currentUserData?.clientId || 'GS-????').replace('GS-','')}</div>
-        ${(() => { const li = typeof getLoyaltyInfo === 'function' ? getLoyaltyInfo() : null; if (!li) return ''; const lc = {standard:{bg:'#F3F4F6',color:'#374151'},bronze:{bg:'linear-gradient(135deg,#FEF3C7,#FDE68A)',color:'#92400E'},silver:{bg:'linear-gradient(135deg,#F1F5F9,#E2E8F0)',color:'#334155'},gold:{bg:'linear-gradient(135deg,#FFFBEB,#FDE68A)',color:'#B45309'},platinum:{bg:'linear-gradient(135deg,#EEF2FF,#C7D2FE)',color:'#3730A3'}}[li.level.key]||{bg:'#F3F4F6',color:'#374151'}; return \`<div style="display:inline-flex;align-items:center;gap:8px;background:\${lc.bg};color:\${lc.color};padding:6px 18px;border-radius:20px;font-size:13px;font-weight:700;">\${li.level.icon}&nbsp;\${li.level.name}</div>\`; })()}
-      </div>
+      <div class="dash-greeting">⚙️ Настройки</div>
+      <div class="dash-sub">Управление аккаунтом и внешним видом</div>
 
-      <!-- Язык -->
-      <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);overflow:hidden;margin-bottom:12px;">
-        <div style="display:flex;padding:6px;gap:4px;">
-          <button onclick="setProfileLang('ru')" id="langBtnRu" style="flex:1;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;background:var(--accent);color:white;transition:all 0.2s;">RU</button>
-          <button onclick="setProfileLang('kz')" id="langBtnKz" style="flex:1;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;background:transparent;color:var(--text-secondary);transition:all 0.2s;">KZ</button>
-        </div>
-      </div>
-
-      <!-- Основные пункты меню -->
-      <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);overflow:hidden;margin-bottom:12px;">
-        <div onclick="setDashTab(null,'settings_edit')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Мои данные</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div onclick="setDashTab(null,'recipients')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Получатели</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div onclick="setDashTab(null,'addresses')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Мои адреса доставки</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div onclick="setDashTab(null,'security')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Способы оплаты</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div onclick="setDashTab(null,'notifications')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Уведомления</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
-      <!-- Документы -->
-      <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);overflow:hidden;margin-bottom:12px;">
-        <div onclick="showPage('privacy')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;border-bottom:1px solid var(--card-border);transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F5F5F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Политика конфиденциальности</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div onclick="showPage('terms')" style="display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='transparent'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F5F5F5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Пользовательское соглашение</div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
-
-      <!-- Telegram / WhatsApp -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div onclick="window.open('https://t.me/globalshopkz','_blank')" style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card-bg)'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#E8F4FD;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 13.52l-2.95-.924c-.642-.204-.657-.642.135-.953l11.52-4.44c.537-.194 1.006.131.377.045z"/></svg>
+      <!-- Карточка профиля -->
+      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:28px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:20px;">👤 МОЙ ПРОФИЛЬ</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--card-border);">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;color:white;font-weight:800;flex-shrink:0;">
+            ${(window.currentUserData?.name || window.currentUser?.email || 'U')[0].toUpperCase()}
           </div>
           <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Telegram</div>
-            <div style="font-size:11px;color:var(--text-secondary);">Акции и новости</div>
+            <div style="font-size:17px;font-weight:800;color:var(--text-primary);">${window.currentUserData?.name || window.currentUser?.email?.split('@')[0] || 'Клиент'}</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:2px;">${window.currentUser?.email || ''}</div>
+            <div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent);padding:3px 12px;border-radius:20px;font-size:12px;font-weight:700;">
+              🪪 ${window.currentClientId || window.currentUserData?.clientId || 'GS-????'}
+            </div>
           </div>
         </div>
-        <div onclick="window.open('https://wa.me/77001234567','_blank')" style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--card-bg)'">
-          <div style="width:36px;height:36px;border-radius:10px;background:#E8F8EF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824zm-3.423-14.416c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm.029 18.88c-1.161 0-2.305-.292-3.318-.844l-3.677.964.984-3.595c-.607-1.052-.927-2.246-.926-3.468.001-3.825 3.113-6.937 6.937-6.937 1.856.001 3.598.723 4.907 2.034 1.31 1.311 2.031 3.054 2.03 4.908-.001 3.825-3.113 6.938-6.937 6.938z"/></svg>
-          </div>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">WhatsApp</div>
-            <div style="font-size:11px;color:var(--text-secondary);">Поддержка</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Выйти -->
-      <button onclick="if(confirm('Выйти из аккаунта?')){window.firebaseSignOut(window.firebaseAuth).then(()=>showPage('login'))}" style="width:100%;padding:15px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;font-size:15px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:Manrope,sans-serif;margin-bottom:4px;">
-        Выйти из аккаунта
-      </button>
-    `,
-
-    settings_edit: `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-        <button onclick="setDashTab(null,'settings')" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg);cursor:pointer;display:flex;align-items:center;justify-content:center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div style="font-size:17px;font-weight:800;color:var(--text-primary);">Мои данные</div>
-      </div>
-      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:24px;margin-bottom:14px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
           <div>
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Имя</label>
@@ -5622,13 +5529,33 @@ function renderDash(view) {
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--input-border)'" />
           </div>
         </div>
-        <button onclick="saveProfileSettings()" class="btn-pink" style="margin-top:16px;padding:12px 28px;border-radius:10px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;width:100%;">
+        <button onclick="saveProfileSettings()" class="btn-pink" style="margin-top:16px;padding:11px 28px;border-radius:10px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
           Сохранить
         </button>
-        <span id="settingsSaved" style="display:none;margin-top:10px;display:block;font-size:13px;color:var(--success);font-weight:600;text-align:center;">✅ Сохранено</span>
+        <span id="settingsSaved" style="display:none;margin-left:12px;font-size:13px;color:var(--success);font-weight:600;">✅ Сохранено</span>
       </div>
-      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:24px;margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:16px;">🔒 БЕЗОПАСНОСТЬ</div>
+
+      <!-- Тема -->
+      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:28px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:20px;">🎨 ВНЕШНИЙ ВИД</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:14px;">Тема оформления</div>
+        <div style="display:flex;gap:12px;">
+          <div id="themeCardLight" onclick="saveTheme('light')" style="flex:1;border:2px solid ${(window.currentTheme||'light')==='light'?'var(--accent)':'var(--card-border)'};border-radius:14px;padding:16px;cursor:pointer;background:${(window.currentTheme||'light')==='light'?'var(--accent-soft)':'var(--bg)'};transition:all 0.2s;">
+            <div style="font-size:24px;margin-bottom:8px;">☀️</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Светлая</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">Синяя на белом</div>
+          </div>
+          <div id="themeCardDark" onclick="saveTheme('dark')" style="flex:1;border:2px solid ${(window.currentTheme||'light')==='dark'?'var(--accent)':'var(--card-border)'};border-radius:14px;padding:16px;cursor:pointer;background:${(window.currentTheme||'light')==='dark'?'var(--accent-soft)':'var(--bg)'};transition:all 0.2s;">
+            <div style="font-size:24px;margin-bottom:8px;">🌙</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Тёмная</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">Синяя на тёмном</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Сменить пароль -->
+      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:28px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:20px;">🔒 БЕЗОПАСНОСТЬ</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
           <div>
             <label style="font-size:12px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Новый пароль</label>
@@ -5643,12 +5570,63 @@ function renderDash(view) {
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--input-border)'" />
           </div>
         </div>
-        <button onclick="changePassword()" class="btn-outline" style="margin-top:14px;padding:11px 28px;border-radius:10px;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
+        <button onclick="changePassword()" class="btn-outline" style="margin-top:16px;padding:11px 28px;border-radius:10px;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">
           Сменить пароль
         </button>
         <span id="passMsg" style="display:none;margin-left:12px;font-size:13px;font-weight:600;"></span>
       </div>
-`
+
+      <!-- Мои данные и согласие -->
+      <div style="background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);padding:28px;margin-top:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:20px;">🗂️ МОИ ДАННЫЕ И СОГЛАСИЕ</div>
+
+        <!-- Статус документов -->
+        <div id="consentDocsBlock" style="margin-bottom:20px;">
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:12px;">Документы удостоверяющие личность</div>
+          <div id="consentDocsList" style="display:flex;flex-direction:column;gap:10px;">
+            <!-- Рендерится через JS -->
+          </div>
+          <div id="noDocsMsg" style="display:none;padding:16px;background:var(--bg);border-radius:12px;text-align:center;font-size:13px;color:var(--text-secondary);">
+            📄 Вы ещё не загружали документы
+          </div>
+          <div style="margin-top:14px;">
+            <input type="file" id="docFileInput" accept="image/*,.pdf" style="display:none;" onchange="uploadDocument(this)"/>
+            <button onclick="document.getElementById('docFileInput').click()" style="padding:10px 20px;border:1.5px dashed var(--accent);border-radius:10px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;width:100%;">
+              📎 Загрузить удостоверение личности
+            </button>
+            <div id="docUploadStatus" style="display:none;margin-top:10px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;"></div>
+          </div>
+        </div>
+
+        <!-- Согласие на обработку данных -->
+        <div style="border-top:1px solid var(--card-border);padding-top:20px;margin-bottom:20px;">
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Согласие на обработку персональных данных</div>
+          <div id="consentStatusBlock" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--bg);margin-bottom:12px;">
+            <div id="consentStatusIcon" style="font-size:22px;flex-shrink:0;">✅</div>
+            <div style="flex:1;">
+              <div id="consentStatusText" style="font-size:13px;font-weight:700;color:var(--text-primary);">Согласие дано</div>
+              <div id="consentStatusDate" style="font-size:11px;color:var(--text-secondary);margin-top:2px;">Загружается...</div>
+            </div>
+            <button id="revokeConsentBtn" onclick="revokeConsent()" style="padding:8px 16px;border:1.5px solid #EF4444;border-radius:9px;background:white;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;flex-shrink:0;">
+              Отозвать
+            </button>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+            При отзыве согласия ваши документы будут удалены в течение 30 дней. 
+            Активные заказы могут быть приостановлены. 
+            <a onclick="showPage('privacy')" style="color:var(--accent);cursor:pointer;font-weight:600;">Политика конфиденциальности →</a>
+          </div>
+        </div>
+
+        <!-- Запрос на удаление аккаунта -->
+        <div style="border-top:1px solid var(--card-border);padding-top:20px;">
+          <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">Удаление аккаунта</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Все ваши данные будут удалены в течение 30 дней. Это действие необратимо.</div>
+          <button onclick="requestAccountDeletion()" style="padding:10px 20px;border:1.5px solid #EF4444;border-radius:10px;background:white;color:#EF4444;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
+            🗑️ Запросить удаление аккаунта
+          </button>
+        </div>
+      </div>`
   };
 
   el.innerHTML = views[view] || views.main;
@@ -5656,15 +5634,6 @@ function renderDash(view) {
   if (view === 'loyalty' && typeof renderLoyaltyView === 'function') {
     el.innerHTML = renderLoyaltyView();
   }
-}
-
-
-function setProfileLang(lang) {
-  document.getElementById('langBtnRu').style.background = lang === 'ru' ? 'var(--accent)' : 'transparent';
-  document.getElementById('langBtnRu').style.color = lang === 'ru' ? 'white' : 'var(--text-secondary)';
-  document.getElementById('langBtnKz').style.background = lang === 'kz' ? 'var(--accent)' : 'transparent';
-  document.getElementById('langBtnKz').style.color = lang === 'kz' ? 'white' : 'var(--text-secondary)';
-  localStorage.setItem('gs_lang', lang);
 }
 
 function selectDelivery(type) {
@@ -7666,11 +7635,11 @@ async function saveTheme(theme) {
 <script>
 // ===== СИСТЕМА ЛОЯЛЬНОСТИ =====
 const loyaltyLevels = [
-  { key:'platinum', icon:'<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#plat_bg)"/><path d="M14 6l2.5 5 5.5.8-4 3.9.95 5.5L14 18.5l-4.95 2.7.95-5.5-4-3.9 5.5-.8z" fill="white" opacity="0.9"/><defs><linearGradient id="plat_bg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#A8B8D8"/><stop offset="1" stop-color="#6B7FA3"/></linearGradient></defs></svg>', name:'Платина',  min:100 },
-  { key:'gold',     icon:'<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#gold_bg)"/><path d="M14 6l2.5 5 5.5.8-4 3.9.95 5.5L14 18.5l-4.95 2.7.95-5.5-4-3.9 5.5-.8z" fill="white" opacity="0.9"/><defs><linearGradient id="gold_bg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#FFD700"/><stop offset="1" stop-color="#C8960C"/></linearGradient></defs></svg>', name:'Золото',   min:30  },
-  { key:'silver',   icon:'<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#silv_bg)"/><path d="M14 6l2.5 5 5.5.8-4 3.9.95 5.5L14 18.5l-4.95 2.7.95-5.5-4-3.9 5.5-.8z" fill="white" opacity="0.9"/><defs><linearGradient id="silv_bg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E8E8E8"/><stop offset="1" stop-color="#A0A0A0"/></linearGradient></defs></svg>', name:'Серебро',  min:10  },
-  { key:'bronze',   icon:'<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#brnz_bg)"/><path d="M14 6l2.5 5 5.5.8-4 3.9.95 5.5L14 18.5l-4.95 2.7.95-5.5-4-3.9 5.5-.8z" fill="white" opacity="0.9"/><defs><linearGradient id="brnz_bg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E8A96A"/><stop offset="1" stop-color="#B5651D"/></linearGradient></defs></svg>', name:'Бронза',   min:3   },
-  { key:'standard', icon:'<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#E5E7EB"/><circle cx="14" cy="14" r="6" fill="#9CA3AF"/></svg>', name:'Стандарт', min:0   },
+  { key:'platinum', icon:'💎', name:'Платина',  min:100 },
+  { key:'gold',     icon:'🥇', name:'Золото',   min:30  },
+  { key:'silver',   icon:'🥈', name:'Сильвер',  min:10  },
+  { key:'bronze',   icon:'🥉', name:'Бронза',   min:3   },
+  { key:'standard', icon:'⚪', name:'Стандарт', min:0   },
 ];
 
 function getLoyaltyLevel(kg) {
