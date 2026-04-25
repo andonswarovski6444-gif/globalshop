@@ -1996,57 +1996,84 @@ const adminViews = {
   cities: `
     <div class="dash-greeting">🏙️ Города доставки</div>
     <div class="dash-sub">Управление городами и тарифами по Казахстану</div>
+
+    <!-- Модальное окно редактирования -->
+    <div id="cityEditModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+      <div style="background:var(--card-bg);border-radius:20px;padding:28px;width:100%;max-width:480px;margin:20px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="font-size:17px;font-weight:800;margin-bottom:20px;color:var(--text-primary);">✏️ Редактировать город</div>
+        <input type="hidden" id="cityEditId" />
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">ГОРОД</label>
+          <input id="cityEditName" type="text" style="width:100%;padding:10px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">ИНДЕКС</label>
+          <input id="cityEditIndex" type="text" style="width:100%;padding:10px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">ЦЕНА ЭКСПРЕСС (₸)</label>
+            <input id="cityEditExpress" type="number" placeholder="0 = нет" style="width:100%;padding:10px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">ЦЕНА СТАНДАРТ (₸)</label>
+            <input id="cityEditStandard" type="number" placeholder="0 = нет" style="width:100%;padding:10px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">ЭКСПРЕСС</label>
+            <select id="cityEditExpressStatus" style="width:100%;padding:9px 10px;border:1.5px solid var(--input-border);border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);">
+              <option value="yes">✓ Есть</option>
+              <option value="partial">~ Частично</option>
+              <option value="no">✗ Нет</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">СТАНДАРТ</label>
+            <select id="cityEditStandardStatus" style="width:100%;padding:9px 10px;border:1.5px solid var(--input-border);border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);">
+              <option value="yes">✓ Есть</option>
+              <option value="partial">~ Частично</option>
+              <option value="no">✗ Нет</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:6px;">КАЗПОЧТА</label>
+            <select id="cityEditKazpost" style="width:100%;padding:9px 10px;border:1.5px solid var(--input-border);border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);">
+              <option value="yes">✓ Есть</option>
+              <option value="partial">~ Частично</option>
+              <option value="no">✗ Нет</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="saveCityEdit()" class="btn-pink" style="flex:1;padding:12px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">💾 Сохранить</button>
+          <button onclick="closeCityModal()" class="btn-outline" style="padding:12px 20px;border-radius:12px;font-size:14px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">Отмена</button>
+        </div>
+      </div>
+    </div>
+
     <div class="acard">
-      <div class="acard-title">Города <button class="btn-pink" style="padding:6px 16px;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="comingSoon(&#39;Добавление города&#39;)">+ Добавить город 🔜</button></div>
-      <table style="width:100%;border-collapse:collapse;display:table;">
-        <thead><tr style="background:#fafafa;">
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Город</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Экспресс</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Стандарт</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">КазПочта</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Цена экспресс</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Цена стандарт</th>
-          <th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);"></th>
-        </tr></thead>
-        <tbody id="citiesTable">
-          <tr style="border-top:1px solid #F0F0F0;">
-            <td style="padding:12px;font-size:13px;font-weight:700;">Алматы</td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;font-size:13px;">1 200 ₸</td>
-            <td style="padding:12px;font-size:13px;">800 ₸</td>
-            <td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td>
-          </tr>
-          <tr style="border-top:1px solid #F0F0F0;">
-            <td style="padding:12px;font-size:13px;font-weight:700;">Астана</td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;font-size:13px;">1 500 ₸</td>
-            <td style="padding:12px;font-size:13px;">1 000 ₸</td>
-            <td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td>
-          </tr>
-          <tr style="border-top:1px solid #F0F0F0;">
-            <td style="padding:12px;font-size:13px;font-weight:700;">Шымкент</td>
-            <td style="padding:12px;"><span class="tag-partial">~ Частично</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;font-size:13px;">1 800 ₸</td>
-            <td style="padding:12px;font-size:13px;">1 200 ₸</td>
-            <td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td>
-          </tr>
-          <tr style="border-top:1px solid #F0F0F0;">
-            <td style="padding:12px;font-size:13px;font-weight:700;">Актобе</td>
-            <td style="padding:12px;"><span class="tag-no">✗ Нет</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;"><span class="tag-yes">✓ Есть</span></td>
-            <td style="padding:12px;font-size:13px;">—</td>
-            <td style="padding:12px;font-size:13px;">1 400 ₸</td>
-            <td style="padding:12px;"><button class="btn-outline" style="padding:4px 12px;font-size:11px;" onclick="comingSoon(&#39;Редактирование&#39;)">Изменить 🔜</button></td>
-          </tr>
-        </tbody>
-      </table>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="acard-title" style="margin:0;">Все города Казахстана</div>
+        <input type="text" id="citySearch" placeholder="🔍 Поиск города..." oninput="filterCities(this.value)"
+          style="padding:9px 14px;border:1.5px solid var(--input-border);border-radius:10px;font-size:13px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);min-width:200px;" />
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;min-width:700px;">
+          <thead><tr style="background:var(--bg);">
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Город</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Индекс</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Экспресс</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Стандарт</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">КазПочта</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Цена экспресс</th>
+            <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">Цена стандарт</th>
+            <th style="padding:10px 12px;"></th>
+          </tr></thead>
+          <tbody id="citiesTable"></tbody>
+        </table>
+      </div>
     </div>`,
 
   currency: `
@@ -7244,6 +7271,187 @@ let appProducts = [
   { id:26, category:'Игрушки',             name:'Конструктор пластмассовый',       tnved:'9503 00 990 0', unit:'шт' },
 ];
 
+
+// ===== ГОРОДА КАЗАХСТАНА =====
+const _defaultCities = [
+  {id:'almaty',      name:'Алматы',              index:'050000', express:'yes',     standard:'yes', kazpost:'yes',     expressPrice:1200, standardPrice:800  },
+  {id:'astana',      name:'Астана',              index:'010000', express:'yes',     standard:'yes', kazpost:'yes',     expressPrice:1500, standardPrice:1000 },
+  {id:'shymkent',   name:'Шымкент',             index:'160000', express:'partial', standard:'yes', kazpost:'yes',     expressPrice:1800, standardPrice:1200 },
+  {id:'aktobe',      name:'Актобе',              index:'030000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'atyrau',      name:'Атырау',              index:'060000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'karaganda',   name:'Караганда',           index:'100000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1300 },
+  {id:'taraz',       name:'Тараз',               index:'080000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'pavlodar',    name:'Павлодар',            index:'140000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'oskemen',     name:'Усть-Каменогорск',   index:'070000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'semey',       name:'Семей',               index:'071400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'uralsk',      name:'Уральск',             index:'090000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'kostanay',    name:'Костанай',            index:'110000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'kyzylorda',   name:'Кызылорда',           index:'120000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'petropavl',   name:'Петропавловск',       index:'150000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'temirtau',    name:'Темиртау',            index:'101400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'turkestan',   name:'Туркестан',           index:'161200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'ekibastuz',   name:'Экибастуз',           index:'141200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'rudny',       name:'Рудный',              index:'111500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'zhezkazgan',  name:'Жезказган',           index:'100600', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'balkhash',    name:'Балхаш',              index:'100900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'satpaev',     name:'Сатпаев',             index:'100900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'taldikorgan', name:'Талдыкорган',         index:'040000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'kapshagay',   name:'Капшагай (Конаев)',   index:'040900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1200 },
+  {id:'kaskeleng',   name:'Каскелен',            index:'040700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1100 },
+  {id:'talgar',      name:'Талгар',              index:'040500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1100 },
+  {id:'esik',        name:'Есик',                index:'040600', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1200 },
+  {id:'stepnogorsk', name:'Степногорск',         index:'021700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'kokshtau',    name:'Кокшетау',            index:'020000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'zhanaozhen',  name:'Жанаозен',            index:'130500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'zhanatas',    name:'Жанатас',             index:'080800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'kentau',      name:'Кентау',              index:'161000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'saryagash',   name:'Сарыагаш',            index:'160800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'arys',        name:'Арыс',                index:'160500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'lenger',      name:'Ленгер',              index:'160900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'ridder',      name:'Риддер',              index:'071600', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'lisakovsk',   name:'Лисаковск',           index:'111700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'aral',        name:'Арал',                index:'120200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'baikonyr',    name:'Байконыр',            index:'120800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'stepnyak',    name:'Степняк',             index:'021200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'makinsk',     name:'Макинск',             index:'021400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'ereimentau',  name:'Ерейментау',          index:'021600', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'atbasar',     name:'Атбасар',             index:'021100', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'derzhavinsky',name:'Державинск',          index:'021500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'mamlyutka',   name:'Мамлютка',            index:'151000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'sergeevka',   name:'Сергеевка',           index:'151200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'bulayevo',    name:'Булаево',             index:'150800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'tayynsha',    name:'Тайынша',             index:'150500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'saran',       name:'Сарань',              index:'100200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'abay',        name:'Абай',                index:'100800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'shakhtinsk',  name:'Шахтинск',            index:'101200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'karazhal',    name:'Каражал',             index:'100700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'priozersk',   name:'Приозерск',           index:'100500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'zhitikara',   name:'Житикара',            index:'111800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'ayagoz',      name:'Аягоз',               index:'071200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'zyryanovsky', name:'Зыряновск (Алтай)',   index:'071800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'serebryansk', name:'Серебрянск',          index:'071700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'shemonaikh',  name:'Шемонаиха',           index:'071500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'zaysan',      name:'Зайсан',              index:'072100', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'aksu',        name:'Аксу',                index:'140500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'akkol',       name:'Акколь',              index:'021300', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'esil',        name:'Есиль',               index:'021800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'arkhalyq',    name:'Аркалык',             index:'110500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'karkaraly',   name:'Каркаралинск',        index:'100400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'shchuchinsk', name:'Щучинск',             index:'021900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1400 },
+  {id:'kosshi',      name:'Косшы',               index:'010800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1200 },
+  {id:'zharkent',    name:'Жаркент',             index:'040200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'usharal',     name:'Ушарал',              index:'040300', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'ushtobe',     name:'Уштобе',              index:'040800', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'tekeli',      name:'Текели',              index:'040400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'sarqand',     name:'Сарканд',             index:'040100', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'kandyagash',  name:'Кандыагаш',           index:'030500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'alga',        name:'Алга',                index:'030200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'khromtau',    name:'Хромтау',             index:'030300', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'emba',        name:'Эмба',                index:'030600', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'shalkar',     name:'Шалкар',              index:'030400', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'kulzary',     name:'Кульсары',            index:'060200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'fortshev',    name:'Форт-Шевченко',       index:'130200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1800 },
+  {id:'aktau',       name:'Актау',               index:'130000', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'kurczhatov',  name:'Курчатов',            index:'071300', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'karatau',     name:'Каратау',             index:'080700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1600 },
+  {id:'kazalinsk',   name:'Казалинск',           index:'120300', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'zhem',        name:'Жем',                 index:'030700', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1800 },
+  {id:'shar',        name:'Шар',                 index:'071900', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'shu',         name:'Шу',                  index:'080200', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+  {id:'zhalagash',   name:'Жалагаш',             index:'120500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1700 },
+  {id:'taynsha',     name:'Тайнша',              index:'150500', express:'no',      standard:'yes', kazpost:'yes',     expressPrice:0,    standardPrice:1500 },
+];
+
+let _citiesData = [];
+
+async function loadCitiesAdmin() {
+  // Загружаем из Firestore, иначе используем дефолтные
+  try {
+    const snap = await window.firebaseGetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'cities'));
+    if (snap.exists() && snap.data().list) {
+      _citiesData = snap.data().list;
+    } else {
+      _citiesData = JSON.parse(JSON.stringify(_defaultCities));
+    }
+  } catch(e) {
+    _citiesData = JSON.parse(JSON.stringify(_defaultCities));
+  }
+  renderCitiesTable(_citiesData);
+}
+
+function renderCitiesTable(list) {
+  const tbody = document.getElementById('citiesTable');
+  if (!tbody) return;
+  const statusBadge = (v) => {
+    if (v === 'yes')     return '<span class="tag-yes">✓ Есть</span>';
+    if (v === 'partial') return '<span class="tag-partial">~ Частично</span>';
+    return '<span class="tag-no">✗ Нет</span>';
+  };
+  tbody.innerHTML = list.map(c => `
+    <tr style="border-top:1px solid var(--card-border);">
+      <td style="padding:11px 12px;font-size:13px;font-weight:700;color:var(--text-primary);">${c.name}</td>
+      <td style="padding:11px 12px;font-size:12px;color:var(--text-secondary);font-family:monospace;">${c.index || '—'}</td>
+      <td style="padding:11px 12px;">${statusBadge(c.express)}</td>
+      <td style="padding:11px 12px;">${statusBadge(c.standard)}</td>
+      <td style="padding:11px 12px;">${statusBadge(c.kazpost)}</td>
+      <td style="padding:11px 12px;font-size:13px;color:var(--text-primary);">${c.expressPrice > 0 ? c.expressPrice.toLocaleString('ru-RU') + ' ₸' : '—'}</td>
+      <td style="padding:11px 12px;font-size:13px;color:var(--text-primary);">${c.standardPrice > 0 ? c.standardPrice.toLocaleString('ru-RU') + ' ₸' : '—'}</td>
+      <td style="padding:11px 12px;">
+        <button onclick="openCityEdit('${c.id}')" style="padding:5px 14px;border:1.5px solid var(--card-border);border-radius:8px;background:transparent;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">✏️ Изменить</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterCities(q) {
+  const filtered = _citiesData.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || (c.index||'').includes(q));
+  renderCitiesTable(filtered);
+}
+
+function openCityEdit(id) {
+  const c = _citiesData.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cityEditId').value = id;
+  document.getElementById('cityEditName').value = c.name;
+  document.getElementById('cityEditIndex').value = c.index || '';
+  document.getElementById('cityEditExpress').value = c.expressPrice || 0;
+  document.getElementById('cityEditStandard').value = c.standardPrice || 0;
+  document.getElementById('cityEditExpressStatus').value = c.express || 'yes';
+  document.getElementById('cityEditStandardStatus').value = c.standard || 'yes';
+  document.getElementById('cityEditKazpost').value = c.kazpost || 'yes';
+  document.getElementById('cityEditModal').style.display = 'flex';
+}
+
+function closeCityModal() {
+  document.getElementById('cityEditModal').style.display = 'none';
+}
+
+async function saveCityEdit() {
+  const id = document.getElementById('cityEditId').value;
+  const idx = _citiesData.findIndex(x => x.id === id);
+  if (idx === -1) return;
+  _citiesData[idx] = {
+    ..._citiesData[idx],
+    name: document.getElementById('cityEditName').value.trim(),
+    index: document.getElementById('cityEditIndex').value.trim(),
+    expressPrice: parseInt(document.getElementById('cityEditExpress').value) || 0,
+    standardPrice: parseInt(document.getElementById('cityEditStandard').value) || 0,
+    express: document.getElementById('cityEditExpressStatus').value,
+    standard: document.getElementById('cityEditStandardStatus').value,
+    kazpost: document.getElementById('cityEditKazpost').value,
+  };
+  try {
+    await window.firebaseSetDoc(window.firebaseDoc(window.firebaseDb, 'settings', 'cities'), { list: _citiesData, updatedAt: Date.now() });
+    closeCityModal();
+    renderCitiesTable(_citiesData);
+    const toast = document.createElement('div');
+    toast.textContent = '✅ Город сохранён';
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;font-family:Manrope,sans-serif;z-index:9999;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  } catch(e) { alert('Ошибка сохранения: ' + e.message); }
+}
+
 // ===== ПОИСК ПОЛЬЗОВАТЕЛЕЙ В АДМИНКЕ =====
 let _adminUsersData = [];
 
@@ -9116,6 +9324,7 @@ window.showAdmin = function(view) {
   if (typeof _origShowAdmin3 === 'function') _origShowAdmin3(view);
   if (view === 'dashboard') setTimeout(loadAdminMetrics, 400);
   if (view === 'users')     setTimeout(renderAdminUsersTable, 300);
+  if (view === 'cities')    setTimeout(loadCitiesAdmin, 300);
 };
 // ===== CHINA MANAGER =====
 
