@@ -343,9 +343,12 @@
   .admin-sidebar-logo { padding: 0 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 12px; }
   .admin-sidebar-logo-title { font-size: 15px; font-weight: 800; color: white; }
   .admin-sidebar-logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
-  .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 24px; cursor: pointer; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); transition: all 0.15s; }
+  .admin-nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 24px; cursor: pointer; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); transition: all 0.15s; }
+  .admin-nav-item svg { flex-shrink: 0; opacity: 0.7; }
   .admin-nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
-  .admin-nav-item.active { background: rgba(255,105,180,0.15); color: var(--accent); border-right: 3px solid var(--accent); }
+  .admin-nav-item:hover svg { opacity: 1; }
+  .admin-nav-item.active { background: rgba(99,102,241,0.15); color: var(--accent); border-right: 3px solid var(--accent); font-weight: 700; }
+  .admin-nav-item.active svg { opacity: 1; }
   .admin-nav-section { padding: 16px 24px 6px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.25); letter-spacing: 1px; text-transform: uppercase; }
   .admin-content { flex: 1; padding: 32px; background: var(--bg); overflow-y: auto; }
   .acard { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 24px; margin-bottom: 20px; }
@@ -1708,38 +1711,98 @@ window.showPageDirect = function(page) {
   <div class="admin-layout">
     <div class="admin-sidebar">
       <div class="admin-sidebar-logo">
-        <div class="admin-sidebar-logo-title">⚙️ Global Shop</div>
+        <div class="admin-sidebar-logo-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Global Shop
+        </div>
         <div class="admin-sidebar-logo-sub">Панель администратора</div>
       </div>
 
-      <div class="admin-nav-section">Главное</div>
-      <div class="admin-nav-item active" onclick="showAdmin('dashboard')"><span>📊</span> Дашборд</div>
-      <div class="admin-nav-item" onclick="showAdmin('parcels')"><span>📦</span> Посылки</div>
-      <div class="admin-nav-item" onclick="showAdmin('users')"><span>👥</span> Пользователи</div>
-      <div class="admin-nav-item" onclick="showAdmin('loyalty_admin')"><span>🏆</span> Лояльность</div>
-      <div class="admin-nav-item" onclick="showAdmin('promo_admin')"><span>🎟</span> Промокоды</div>
-      <div class="admin-nav-item" onclick="showAdmin('recipients')"><span>🪪</span> Получатели</div>
-      <div class="admin-nav-item" onclick="showAdmin('managers')"><span>👤</span> Менеджеры</div>
-      <div class="admin-nav-item" onclick="showAdmin('broadcast')"><span>📢</span> Рассылка</div>
+      <!-- КЛИЕНТЫ -->
+      <div class="admin-nav-section">Клиенты</div>
+      <div class="admin-nav-item active" onclick="showAdmin('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Дашборд
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('users')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Пользователи
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('recipients')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Получатели
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('loyalty_admin')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Лояльность
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('promo_admin')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        Промокоды
+      </div>
 
+      <!-- ЗАКАЗЫ -->
+      <div class="admin-nav-section">Заказы</div>
+      <div class="admin-nav-item" onclick="showAdmin('parcels')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Посылки
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('intake')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        Приём посылок
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('manifests')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Манифесты
+      </div>
+
+      <!-- ФИНАНСЫ -->
       <div class="admin-nav-section">Финансы</div>
-      <div class="admin-nav-item" onclick="showAdmin('currency')"><span>💱</span> Курс валют</div>
-      <div class="admin-nav-item" onclick="showAdmin('payments')"><span>💳</span> Платежи</div>
+      <div class="admin-nav-item" onclick="showAdmin('payments')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Платежи
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('currency')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Курс валют
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('broadcast')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.41 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81A16 16 0 0 0 16 16.91l.95-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Рассылка
+      </div>
 
-      <div class="admin-nav-section">Логистика</div>
-      <div class="admin-nav-item" onclick="showAdmin('intake')"><span>📥</span> Приём посылок</div>
-      <div class="admin-nav-item" onclick="showAdmin('manifests')"><span>📋</span> Манифесты</div>
+      <!-- СИСТЕМА -->
+      <div class="admin-nav-section">Система</div>
+      <div class="admin-nav-item" onclick="showAdmin('shops_admin')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Магазины
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('products')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Товары / ТНВЭД
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('warehouses')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Склады
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('cities')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 0 0-8-8z"/></svg>
+        Города доставки
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('managers')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Менеджеры
+      </div>
+      <div class="admin-nav-item" onclick="showAdmin('settings')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Настройки
+      </div>
 
-      <div class="admin-nav-section">Настройки</div>
-      <div class="admin-nav-item" onclick="showAdmin('shops_admin')"><span>🛍</span> Магазины</div>
-      <div class="admin-nav-item" onclick="showAdmin('products')"><span>🏷️</span> Товары / ТНВЭД</div>
-      <div class="admin-nav-item" onclick="showAdmin('cities')"><span>🏙️</span> Города доставки</div>
-
-      <div class="admin-nav-item" onclick="showAdmin('warehouses')"><span>🏪</span> Склады</div>
-      <div class="admin-nav-item" onclick="showAdmin('settings')"><span>⚙️</span> Настройки</div>
-
-      <div style="padding: 24px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.08);">
-        <div class="admin-nav-item" style="padding:0;color:rgba(255,255,255,0.4);" onclick="showPage('home')"><span>🚪</span> Выйти</div>
+      <div style="padding:16px 24px;margin-top:auto;border-top:1px solid rgba(255,255,255,0.08);">
+        <div class="admin-nav-item" style="padding:8px 0;color:rgba(255,255,255,0.4);" onclick="showPage('home')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Выйти
+        </div>
       </div>
     </div>
 
@@ -9090,7 +9153,7 @@ function cnShowResult(type, icon, title, sub) {
 async function cnLoadWarehouse() {
   var container = document.getElementById('cnWarehouseList');
   if (!container) return;
-  container.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">加载中... / Загрузка...</div>';
+  container.innerHTML = '<div class="cn-empty-text" style="text-align:center;padding:20px;font-size:13px;">加载中... / Загрузка...</div>';
 
   try {
     var db = window.firebaseDb;
@@ -9108,7 +9171,7 @@ async function cnLoadWarehouse() {
     parcels.sort(function(a, b) { return (b.warehouseAt || b.createdAt || 0) - (a.warehouseAt || a.createdAt || 0); });
 
     if (!parcels.length) {
-      container.innerHTML = '<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.25);font-size:14px;">📭 仓库暂无包裹 · На складе нет посылок</div>';
+      container.innerHTML = '<div class="cn-empty-text" style="text-align:center;padding:32px;font-size:14px;">📭 仓库暂无包裹 · На складе нет посылок</div>';
       return;
     }
 
@@ -9124,11 +9187,11 @@ async function cnLoadWarehouse() {
     container.innerHTML = headerHtml + parcels.map(function(p) {
       var date = p.warehouseAt ? new Date(p.warehouseAt).toLocaleDateString('ru-RU') : '—';
       var name = p.itemName || p.name || p.trackId;
-      return '<div class="cn-parcel-item" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.07);margin-bottom:6px;">'
+      return '<div class="cn-parcel-item" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;margin-bottom:6px;">'
         + '<div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📦</div>'
         + '<div style="flex:1;min-width:0;">'
-        +   '<div class="cn-parcel-title" style="font-size:14px;font-weight:800;color:white;font-family:monospace;letter-spacing:1px;">' + (p.trackId || p.id) + '</div>'
-        +   '<div class="cn-parcel-sub" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;">' + name + ' · ' + date + '</div>'
+        +   '<div class="cn-parcel-title" style="font-size:14px;font-weight:800;font-family:monospace;letter-spacing:1px;">' + (p.trackId || p.id) + '</div>'
+        +   '<div class="cn-parcel-sub" style="font-size:12px;margin-top:2px;">' + name + ' · ' + date + '</div>'
         + '</div>'
         + '</div>';
     }).join('');
