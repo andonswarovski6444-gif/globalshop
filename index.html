@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Shop KZ — Доставка из-за рубежа</title>
+<title>Global Shop — Доставка из-за рубежа</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231A6BFF'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' fill='white'%3EG%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231A6BFF'/%3E%3Cstop offset='100%25' stop-color='%237C3AED'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' fill='white'%3EG%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -307,7 +307,7 @@
   .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; }
   .sidebar-item:hover { background: var(--sidebar-active-bg); color: var(--sidebar-active-color); }
   .sidebar-item.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-color); font-weight: 700; border-right: 3px solid var(--accent); }
-  .sidebar-icon { font-size: 18px; width: 24px; text-align: center; }
+  .sidebar-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .dash-content { padding: 32px; background: var(--dash-bg); transition: background 0.3s; }
   .dash-greeting { font-size: 22px; font-weight: 800; margin-bottom: 4px; color: var(--text-primary); }
   .dash-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
@@ -371,6 +371,7 @@
 
   /* AI CHAT */
   #aiChatBtn { position:fixed;bottom:28px;right:28px;z-index:900;width:56px;height:56px;border-radius:50%;background:var(--accent-gradient);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,0.40);display:flex;align-items:center;justify-content:center;font-size:24px;transition:opacity 0.4s ease, transform 0.2s, box-shadow 0.2s; }
+  @media (max-width:768px) { #aiChatBtn { bottom: 82px; right: 16px; width:48px; height:48px; font-size:20px; } }
   #aiChatBtn:hover { transform:scale(1.1); box-shadow:0 6px 28px rgba(99,102,241,0.55); opacity:1 !important; }
   #aiChatBtn.idle { opacity:0.25; }
   #aiChatWindow { position:fixed;bottom:96px;right:28px;z-index:900;width:360px;max-height:520px;background:white;border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,0.18);border:1px solid var(--border);display:none;flex-direction:column;overflow:hidden; }
@@ -411,7 +412,7 @@
     display: flex; flex-direction: column; gap: 12px;
   }
   .shop-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 10px 28px rgba(26,107,255,0.13); }
-  .shop-card-logo { font-size: 36px; width: 60px; height: 60px; background: var(--bg); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+  .shop-card-logo { font-size: 36px; width: 60px; height: 60px; background: white; border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 6px rgba(0,0,0,0.10); flex-shrink:0; overflow:hidden; }
   .shop-card-name { font-size: 16px; font-weight: 800; }
   .shop-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; flex: 1; }
   .shop-card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -450,8 +451,9 @@
     body { overflow-x: hidden; }
     .page { padding-top: 56px; }
 
-    /* — Навигация — */
-    nav { padding: 0 16px; height: 56px; }
+    /* Скрываем текст «Назад» на мобильном — только стрелка */
+    .back-label { display: inline; }
+    @media (max-width: 768px) { .back-label { display: none; } }
     .nav-links { display: none !important; }
     .nav-logo { font-size: 15px; }
     .nav-actions { flex-shrink: 0; gap: 6px; }
@@ -737,11 +739,14 @@
 <nav>
   <div style="display:flex;align-items:center;gap:12px;">
     <div id="backBtn" style="display:none;">
-      <button onclick="goBack()" style="padding:6px 12px;border:1.5px solid #F0F0F0;border-radius:8px;background:white;cursor:pointer;font-size:13px;font-family:Manrope,sans-serif;color:var(--text-secondary);display:flex;align-items:center;gap:4px;">← Назад</button>
+      <button onclick="goBack()" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--btn-out-bg);cursor:pointer;font-size:18px;font-family:Manrope,sans-serif;color:var(--text-secondary);display:flex;align-items:center;line-height:1;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span class="back-label" style="font-size:13px;font-weight:600;margin-left:2px;">Назад</span>
+      </button>
     </div>
     <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer;white-space:nowrap;">
       <div class="nav-logo-dot">G</div>
-      <span id="navTitle">Global Shop KZ</span>
+      <span id="navTitle">Global Shop</span>
     </div>
   </div>
   <div class="nav-links" id="navLinks">
@@ -948,7 +953,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <div class="footer-copy">© 2025 Global Shop KZ. Все права защищены. · <a onclick="showPage('oferta')" style="color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;">Публичная оферта</a> · <a onclick="showPage('privacy')" style="color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;">Политика конфиденциальности</a></div>
+      <div class="footer-copy">© 2025 Global Shop. Все права защищены. · <a onclick="showPage('oferta')" style="color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;">Публичная оферта</a> · <a onclick="showPage('privacy')" style="color:rgba(255,255,255,0.4);text-decoration:none;cursor:pointer;">Политика конфиденциальности</a></div>
       <div class="footer-copy">🇰🇿 Казахстан, Алматы</div>
     </div>
   </footer>
@@ -959,15 +964,15 @@
   <!-- Режим просмотра магазина во фрейме -->
   <div id="shopFrameView" style="display:none;flex-direction:column;height:calc(100vh - 64px);">
     <!-- Топбар над фреймом -->
-    <div style="background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:10;">
-      <button onclick="closeShopFrame()" style="padding:7px 14px;border:1.5px solid #F0F0F0;border-radius:9px;background:white;font-size:13px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);display:flex;align-items:center;gap:5px;">← Назад</button>
-      <div id="frameShopIcon" style="font-size:22px;"></div>
-      <div style="flex:1;">
-        <div style="font-size:14px;font-weight:800;" id="frameShopName"></div>
+    <div style="background:var(--card-bg);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:10;overflow:hidden;">
+      <button onclick="closeShopFrame()" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:9px;background:var(--btn-out-bg);font-size:13px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);display:flex;align-items:center;gap:4px;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg><span class="back-label">Назад</span></button>
+      <div id="frameShopIcon" style="font-size:22px;flex-shrink:0;width:32px;height:32px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.10);overflow:hidden;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:800;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="frameShopName"></div>
       </div>
-      <div id="frameVpnNote" style="display:none;font-size:12px;color:#F59E0B;font-weight:600;background:#FFFBEB;padding:5px 12px;border-radius:8px;border:1px solid #FED7AA;">🔒 Может потребоваться VPN</div>
-      <a id="frameOpenExternal" href="#" target="_blank" rel="noopener" style="padding:7px 14px;border:1.5px solid #F0F0F0;border-radius:9px;background:white;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);text-decoration:none;white-space:nowrap;">🌐 Открыть в браузере</a>
-      <button onclick="openBuyoutFromFrame()" style="padding:8px 18px;border:none;border-radius:9px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;">🛒 Нашёл товар!</button>
+      <div id="frameVpnNote" style="display:none;font-size:12px;color:#F59E0B;font-weight:600;background:#FFFBEB;padding:5px 10px;border-radius:8px;border:1px solid #FED7AA;flex-shrink:0;white-space:nowrap;">🔒 VPN</div>
+      <a id="frameOpenExternal" href="#" target="_blank" rel="noopener" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:9px;background:var(--btn-out-bg);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);text-decoration:none;white-space:nowrap;flex-shrink:0;">🌐 Браузер</a>
+      <button onclick="openBuyoutFromFrame()" style="padding:8px 14px;border:none;border-radius:9px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;white-space:nowrap;flex-shrink:0;">🛒 Нашёл!</button>
     </div>
     <!-- Плейсхолдер: магазин открыт в браузере -->
     <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center;padding:32px;background:var(--bg);">
@@ -1212,7 +1217,7 @@
         <div style="width:52px;height:52px;background:var(--accent-soft);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;">G</div>
       </div>
       <div class="auth-title">Добро пожаловать</div>
-      <div class="auth-sub">Войдите в свой аккаунт Global Shop KZ</div>
+      <div class="auth-sub">Войдите в свой аккаунт Global Shop</div>
       <div id="loginError" style="display:none;background:#FEE2E2;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;"></div>
       <div class="form-field">
         <label>Email</label>
@@ -1242,7 +1247,7 @@
   <div class="auth-container">
     <div class="auth-card">
       <div class="auth-title">Создать аккаунт</div>
-      <div class="auth-sub">Присоединитесь к Global Shop KZ</div>
+      <div class="auth-sub">Присоединитесь к Global Shop</div>
       <div id="regError" style="display:none;background:#FEE2E2;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;"></div>
       <div class="form-field">
         <label>Имя <span style="color:var(--accent);">*</span></label>
@@ -1284,16 +1289,16 @@
 <div class="page" id="page-dashboard">
   <div class="dashboard">
     <div class="sidebar">
-      <div class="sidebar-item active" onclick="setDashTab(this,'main')"><span class="sidebar-icon">📊</span> Обзор</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'parcels')"><span class="sidebar-icon">📦</span> Мои посылки</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'new')"><span class="sidebar-icon">➕</span> Новый заказ</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'loyalty')"><span class="sidebar-icon">🏆</span> Мой уровень</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'wallet')"><span class="sidebar-icon">👛</span> Кошелёк</div>
-      <div class="sidebar-item" onclick="showPage('warehouses')"><span class="sidebar-icon">🏪</span> Склады</div>
-      <div class="sidebar-item" onclick="showPage('calculator')"><span class="sidebar-icon">🧮</span> Калькулятор</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'payment')"><span class="sidebar-icon">💳</span> Оплата</div>
-      <div class="sidebar-item" onclick="setDashTab(this,'settings')"><span class="sidebar-icon">⚙️</span> Настройки</div>
-      <div class="sidebar-item" style="margin-top:auto;" onclick="doLogout()"><span class="sidebar-icon">🚪</span> Выйти</div>
+      <div class="sidebar-item active" onclick="setDashTab(this,'main')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span> Обзор</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'parcels')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span> Мои посылки</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'new')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span> Новый заказ</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'loyalty')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Мой уровень</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'wallet')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></span> Кошелёк</div>
+      <div class="sidebar-item" onclick="showPage('warehouses')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span> Склады</div>
+      <div class="sidebar-item" onclick="showPage('calculator')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg></span> Калькулятор</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'payment')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span> Оплата</div>
+      <div class="sidebar-item" onclick="setDashTab(this,'settings')"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Настройки</div>
+      <div class="sidebar-item" style="margin-top:auto;" onclick="doLogout()"><span class="sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Выйти</div>
     </div>
     <div class="dash-content" id="dashContent"></div>
   </div>
@@ -1478,7 +1483,7 @@
         <div style="width:52px;height:52px;background:#1A1A2E;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;">⚙️</div>
       </div>
       <div class="auth-title">Панель администратора</div>
-      <div class="auth-sub">Доступ только для сотрудников Global Shop KZ</div>
+      <div class="auth-sub">Доступ только для сотрудников Global Shop</div>
       <div id="adminLoginError" style="display:none;background:#FEE2E2;color:#991B1B;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;"></div>
       <div class="form-field">
         <label>Логин</label>
@@ -1498,118 +1503,133 @@
 <style>
   /* China Manager Theme */
   #page-china_manager { transition: background 0.3s; }
-  #page-china_manager.cn-light {
-    background: #f0f4f8 !important;
+
+  /* === ТЁМНАЯ ТЕМА (по умолчанию) === */
+  #page-china_manager {
+    background: #0F0F1A;
   }
+  #page-china_manager .cn-card {
+    background: #1A1A2E;
+    border-color: rgba(99,102,241,0.15);
+    color: #fff;
+  }
+  #page-china_manager .cn-input {
+    background: #0F0F1A;
+    border-color: rgba(99,102,241,0.25);
+    color: #fff;
+  }
+  #page-china_manager .cn-input::placeholder { color: rgba(255,255,255,0.2); }
+  #page-china_manager .cn-input:focus { border-color: #6366F1 !important; }
+  #page-china_manager .cn-scan-title { color: rgba(255,255,255,0.5); }
+  #page-china_manager .cn-subtitle { color: rgba(255,255,255,0.3); }
+  #page-china_manager .cn-list-title { color: rgba(255,255,255,0.4); }
+  #page-china_manager .cn-empty-text { color: rgba(255,255,255,0.3); }
+  #page-china_manager .cn-logo-sub { color: rgba(255,255,255,0.4); }
+  #page-china_manager .cn-title-text { color: #fff; }
+  #page-china_manager .cn-parcel-title { color: #fff; }
+  #page-china_manager .cn-parcel-sub { color: rgba(255,255,255,0.45); }
+  #page-china_manager .cn-refresh-btn {
+    background: rgba(99,102,241,0.12);
+    border-color: rgba(99,102,241,0.25);
+    color: rgba(255,255,255,0.6);
+  }
+  #page-china_manager .cn-theme-btn, #page-china_manager .cn-logout-btn {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.65);
+  }
+  #page-china_manager .cn-parcel-item {
+    background: rgba(99,102,241,0.07);
+    border-color: rgba(99,102,241,0.15);
+  }
+
+  /* === СВЕТЛАЯ ТЕМА === */
+  #page-china_manager.cn-light { background: var(--bg) !important; }
   #page-china_manager.cn-light .cn-card {
-    background: #ffffff !important;
-    border-color: #e2e8f0 !important;
-    color: #1a202c !important;
-  }
-  #page-china_manager.cn-light .cn-card-header {
-    color: #4a5568 !important;
+    background: #fff !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
   }
   #page-china_manager.cn-light .cn-input {
-    background: #f7fafc !important;
-    border-color: #cbd5e0 !important;
-    color: #1a202c !important;
+    background: var(--bg) !important;
+    border-color: var(--input-border) !important;
+    color: var(--text-primary) !important;
   }
-  #page-china_manager.cn-light .cn-input:focus {
-    border-color: rgba(230,57,70,0.6) !important;
+  #page-china_manager.cn-light .cn-input::placeholder { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-input:focus { border-color: var(--accent) !important; }
+  #page-china_manager.cn-light .cn-scan-title { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-subtitle { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-list-title { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-empty-text { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-logo-sub { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-title-text { color: var(--text-primary) !important; }
+  #page-china_manager.cn-light .cn-parcel-title { color: var(--text-primary) !important; }
+  #page-china_manager.cn-light .cn-parcel-sub { color: var(--text-secondary) !important; }
+  #page-china_manager.cn-light .cn-refresh-btn {
+    background: var(--btn-out-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text-secondary) !important;
+  }
+  #page-china_manager.cn-light .cn-theme-btn,
+  #page-china_manager.cn-light .cn-logout-btn {
+    background: var(--btn-out-bg) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
   }
   #page-china_manager.cn-light .cn-parcel-item {
-    background: rgba(0,0,0,0.03) !important;
-    border-color: rgba(0,0,0,0.07) !important;
+    background: var(--bg) !important;
+    border-color: var(--border) !important;
   }
-  #page-china_manager.cn-light .cn-parcel-title {
-    color: #1a202c !important;
-  }
-  #page-china_manager.cn-light .cn-parcel-sub {
-    color: rgba(0,0,0,0.4) !important;
-  }
-  #page-china_manager.cn-light .cn-refresh-btn {
-    background: rgba(0,0,0,0.04) !important;
-    border-color: rgba(0,0,0,0.1) !important;
-    color: #4a5568 !important;
-  }
-  #page-china_manager.cn-light .cn-logout-btn {
-    background: rgba(0,0,0,0.06) !important;
-    border-color: rgba(0,0,0,0.1) !important;
-    color: #4a5568 !important;
-  }
-  #page-china_manager.cn-light .cn-theme-btn {
-    background: rgba(0,0,0,0.06) !important;
-    border-color: rgba(0,0,0,0.1) !important;
-    color: #4a5568 !important;
-  }
-  #page-china_manager.cn-light .cn-subtitle {
-    color: rgba(0,0,0,0.35) !important;
-  }
-  #page-china_manager.cn-light .cn-logo-sub {
-    color: rgba(0,0,0,0.4) !important;
-  }
-  #page-china_manager.cn-light .cn-empty-text {
-    color: rgba(0,0,0,0.25) !important;
-  }
-  #page-china_manager.cn-light .cn-list-title {
-    color: rgba(0,0,0,0.4) !important;
-  }
-  #page-china_manager.cn-light .cn-scan-title {
-    color: rgba(0,0,0,0.5) !important;
+  #page-china_manager.cn-light .cn-header-logo {
+    background: var(--accent-soft) !important;
   }
 </style>
 
-<div class="page" id="page-china_manager" style="min-height:100vh;background:#0f1923;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;">
+<div class="page" id="page-china_manager" style="min-height:100vh;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;">
 
   <!-- Header -->
   <div style="width:100%;max-width:760px;display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:40px;height:40px;background:#e63946;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🇨🇳</div>
+      <div class="cn-header-logo" style="width:42px;height:42px;background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">🇨🇳</div>
       <div>
-        <div style="color:white;font-weight:800;font-size:16px;">中国仓库管理员 · Менеджер склада</div>
-        <div class="cn-logo-sub" style="color:rgba(255,255,255,0.45);font-size:12px;">Global Shop KZ · 中国仓库 · Китайский склад</div>
+        <div class="cn-title-text" style="font-weight:800;font-size:16px;">中国仓库管理员 · Менеджер склада</div>
+        <div class="cn-logo-sub" style="font-size:12px;">Global Shop · 中国仓库 · Китайский склад</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <!-- Theme toggle -->
       <button id="cnThemeBtn" class="cn-theme-btn" onclick="toggleCnTheme()"
-        style="padding:7px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;gap:5px;"
-        title="Тема / 主题">
+        style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;gap:5px;border:1px solid;">
         <span id="cnThemeIcon">☀️</span> <span id="cnThemeLabel">明亮 / Светлая</span>
       </button>
-      <!-- Logout -->
       <button class="cn-logout-btn" onclick="window.isChinaManager=false;showPage('login')"
-        style="padding:7px 16px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:9px;color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">
+        style="padding:7px 16px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;border:1px solid;">
         退出登录 · Выйти
       </button>
     </div>
   </div>
 
   <!-- Scanner card -->
-  <div class="cn-card" style="width:100%;max-width:760px;background:#1a2433;border-radius:24px;padding:36px 32px;border:1px solid rgba(255,255,255,0.07);margin-bottom:20px;">
+  <div class="cn-card" style="width:100%;max-width:760px;border-radius:24px;padding:36px 32px;border:1px solid;margin-bottom:20px;">
     <div style="text-align:center;margin-bottom:28px;">
-      <div class="cn-scan-title" style="font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
+      <div class="cn-scan-title" style="font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">
         扫描包裹 / Сканировать посылку
       </div>
-      <div class="cn-subtitle" style="font-size:13px;color:rgba(255,255,255,0.35);">
+      <div class="cn-subtitle" style="font-size:13px;">
         输入或扫描条形码 · Введите или отсканируйте штрих-код
       </div>
     </div>
 
-    <!-- Scan input -->
     <div style="position:relative;margin-bottom:20px;">
       <input id="cnScanInput" class="cn-input" type="text" placeholder="GS-XXXXXXXX"
-        style="width:100%;padding:20px 56px 20px 20px;background:#0f1923;border:2px solid rgba(255,255,255,0.12);border-radius:14px;font-size:22px;font-weight:800;color:white;font-family:Manrope,sans-serif;outline:none;text-align:center;letter-spacing:2px;transition:border-color 0.2s;"
+        style="width:100%;padding:20px 56px 20px 20px;border:2px solid;border-radius:14px;font-size:22px;font-weight:800;font-family:Manrope,sans-serif;outline:none;text-align:center;letter-spacing:2px;transition:border-color 0.2s;"
         oninput="cnScanInputChange(this)"
         onkeydown="if(event.key==='Enter')cnProcessScan()"
-        onfocus="this.style.borderColor='rgba(230,57,70,0.6)'"
-        onblur="this.style.borderColor='rgba(255,255,255,0.12)'"
       />
       <span style="position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:22px;opacity:0.4;">📦</span>
     </div>
 
     <button onclick="cnProcessScan()" id="cnScanBtn"
-      style="width:100%;padding:16px;background:linear-gradient(135deg,#e63946,#c1121f);border:none;border-radius:14px;font-size:16px;font-weight:800;color:white;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.5px;transition:all 0.2s;">
+      style="width:100%;padding:16px;background:var(--accent-gradient);border:none;border-radius:14px;font-size:16px;font-weight:800;color:white;cursor:pointer;font-family:Manrope,sans-serif;letter-spacing:0.5px;transition:all 0.2s;box-shadow:0 4px 16px rgba(99,102,241,0.35);">
       ✅ 确认入库 · Принять на склад
     </button>
   </div>
@@ -1618,17 +1638,17 @@
   <div id="cnResult" style="width:100%;max-width:760px;display:none;border-radius:18px;padding:20px 28px;text-align:center;margin-bottom:16px;transition:all 0.3s;"></div>
 
   <!-- Warehouse parcels list -->
-  <div class="cn-card" style="width:100%;max-width:760px;background:#1a2433;border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.07);">
+  <div class="cn-card" style="width:100%;max-width:760px;border-radius:20px;padding:24px;border:1px solid;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div class="cn-list-title" style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;">
+      <div class="cn-list-title" style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">
         📦 仓库包裹 · Посылки на складе в Китае
       </div>
-      <button class="cn-refresh-btn" onclick="cnLoadWarehouse()" style="padding:6px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.5);font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;">
+      <button class="cn-refresh-btn" onclick="cnLoadWarehouse()" style="padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;border:1px solid;">
         🔄 刷新 / Обновить
       </button>
     </div>
     <div id="cnWarehouseList" style="display:flex;flex-direction:column;gap:10px;">
-      <div class="cn-empty-text" style="text-align:center;padding:20px;color:rgba(255,255,255,0.25);font-size:13px;">加载中... / Загрузка...</div>
+      <div class="cn-empty-text" style="text-align:center;padding:20px;font-size:13px;">加载中... / Загрузка...</div>
     </div>
   </div>
 
@@ -1669,7 +1689,6 @@ function updateCnThemeBtn(isLight) {
   if (label) label.textContent = isLight ? '暗色 / Тёмная' : '明亮 / Светлая';
 }
 
-// Apply saved theme when china_manager page is shown
 var _origShowPageDirectCnTheme = window.showPageDirect;
 window.showPageDirect = function(page) {
   if (typeof _origShowPageDirectCnTheme === 'function') _origShowPageDirectCnTheme(page);
@@ -1689,7 +1708,7 @@ window.showPageDirect = function(page) {
   <div class="admin-layout">
     <div class="admin-sidebar">
       <div class="admin-sidebar-logo">
-        <div class="admin-sidebar-logo-title">⚙️ Global Shop KZ</div>
+        <div class="admin-sidebar-logo-title">⚙️ Global Shop</div>
         <div class="admin-sidebar-logo-sub">Панель администратора</div>
       </div>
 
@@ -1752,7 +1771,7 @@ function updateNav(loggedIn, isAdminUser) {
 
 const pageHistory = [];
 const pageTitles = {
-  home: 'Global Shop KZ', login: 'Вход', register: 'Регистрация',
+  home: 'Global Shop', login: 'Вход', register: 'Регистрация',
   dashboard: 'Личный кабинет', tracking: 'Отслеживание',
   warehouses: 'Склады', calculator: 'Калькулятор', shops: 'Магазины',
   admin: 'Админ панель', adminlogin: 'Вход для администратора',
@@ -1801,7 +1820,7 @@ function showPageDirect(page) {
 
   // Nav title
   const title = document.getElementById('navTitle');
-  if (title) title.textContent = pageTitles[page] || 'Global Shop KZ';
+  if (title) title.textContent = pageTitles[page] || 'Global Shop';
 
   // Back button — show on non-home pages
   const backBtn = document.getElementById('backBtn');
@@ -1892,7 +1911,7 @@ async function doAdminLogin() {
 const adminViews = {
   dashboard: `
     <div class="dash-greeting">📊 Дашборд</div>
-    <div class="dash-sub">Общая статистика Global Shop KZ</div>
+    <div class="dash-sub">Общая статистика Global Shop</div>
     <div class="metrics" id="adminMetrics">
       <div class="metric-card"><div class="metric-label">ПОЛЬЗОВАТЕЛИ</div><div class="metric-value" id="admMUsers">0</div><div class="metric-change" style="color:var(--text-secondary);">всего в системе</div></div>
       <div class="metric-card"><div class="metric-label">АКТИВНЫХ ПОСЫЛОК</div><div class="metric-value" id="admMActive">0</div><div class="metric-change" style="color:var(--text-secondary);">в обработке</div></div>
@@ -2297,7 +2316,7 @@ const adminViews = {
     <div class="acard" style="margin-bottom:16px;">
       <div class="acard-title">Общие настройки</div>
       <div style="display:grid;gap:16px;">
-        <div><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Название компании</label><input type="text" value="Global Shop KZ" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" /></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Название компании</label><input type="text" value="Global Shop" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" /></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">WhatsApp для заказов</label><input type="text" value="+7 777 000 00 00" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" /></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Таможенный порог (€)</label><input type="number" value="200" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" /></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Таможенная ставка (%)</label><input type="number" value="15" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" /></div>
@@ -6886,7 +6905,7 @@ const langStrings = {
 
 // ===== ОНБОРДИНГ =====
 const onboardSteps = [
-  { icon:'👋', title:'Добро пожаловать в Global Shop KZ!', desc:'Мы доставляем товары из США, Европы, Китая и Кореи прямо к вашей двери. За 1 минуту покажем как это работает.' },
+  { icon:'👋', title:'Добро пожаловать в Global Shop!', desc:'Мы доставляем товары из США, Европы, Китая и Кореи прямо к вашей двери. За 1 минуту покажем как это работает.' },
   { icon:'📝', title:'Шаг 1 — Регистрация', desc:'Нажмите «Регистрация» в правом верхнем углу. Введите имя, телефон и email. Это займёт 30 секунд — и вы получите личный кабинет.' },
   { icon:'🛍', title:'Шаг 2 — Найдите товар', desc:'Откройте раздел «Магазины», выберите магазин из любой страны, найдите нужный товар и нажмите «Нашёл товар!».' },
   { icon:'📦', title:'Шаг 3 — Оформите заказ', desc:'Вставьте ссылку на товар, укажите размер и количество. Менеджер свяжется с вами в течение 30 минут и подтвердит заказ.' },
@@ -6936,7 +6955,7 @@ if (!localStorage.getItem('gs_onboard_done')) {
 
 const aiQuickReplies = ['📦 Как оформить заказ?', '🏪 Адрес склада', '✈️ Сроки доставки', '💰 Стоимость доставки', '📍 Отследить посылку'];
 
-const AI_SYSTEM_PROMPT = `Ты — вежливый и дружелюбный AI-помощник сайта Global Shop KZ (globalshop.kz).
+const AI_SYSTEM_PROMPT = `Ты — вежливый и дружелюбный AI-помощник сайта Global Shop (globalshop.kz).
 Сайт помогает жителям Казахстана заказывать товары из США, Германии, Кореи и Китая с доставкой.
 
 ИНФОРМАЦИЯ О КОМПАНИИ:
@@ -6995,7 +7014,7 @@ function toggleAiChat() {
     if (!aiInited) {
       aiInited = true;
       aiHistory = [];
-      aiAddMsg('bot', 'Привет! 👋 Я AI-помощник Global Shop KZ.\nСпрашивайте о доставке, заказах, складах — отвечу на любой вопрос!');
+      aiAddMsg('bot', 'Привет! 👋 Я AI-помощник Global Shop.\nСпрашивайте о доставке, заказах, складах — отвечу на любой вопрос!');
       renderAiQuickBtns(aiQuickReplies);
       setTimeout(() => document.getElementById('aiInput')?.focus(), 100);
     }
@@ -7483,7 +7502,7 @@ function renderLoyaltyView() {
     : '<div style="font-size:14px;font-weight:700;color:'+lc.color+';text-align:center;padding:8px 0;">🎉 Вы на максимальном уровне!</div>';
 
   return '<div class="dash-greeting">🏆 Мой уровень</div>'
-    + '<div class="dash-sub">Программа лояльности Global Shop KZ</div>'
+    + '<div class="dash-sub">Программа лояльности Global Shop</div>'
     + '<div style="background:'+lc.bg+';border:2px solid '+lc.border+';border-radius:20px;padding:28px;margin-bottom:16px;position:relative;overflow:hidden;">'
       + '<div style="position:absolute;top:-20px;right:-20px;font-size:100px;opacity:0.08;">'+level.icon+'</div>'
       + '<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">'
@@ -7999,13 +8018,13 @@ window.renderDash = function(view) {
 <div class="page" id="page-about">
   <div class="section" style="max-width:800px;margin:0 auto;">
     <div class="section-title">О нас</div>
-    <div class="section-sub">Global Shop KZ — ваш надёжный посредник при покупках за рубежом</div>
+    <div class="section-sub">Global Shop — ваш надёжный посредник при покупках за рубежом</div>
     <div style="background:white;border-radius:20px;border:1px solid var(--border);padding:36px;box-shadow:0 4px 24px rgba(0,0,0,0.04);">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:32px;">
         <div>
           <div style="font-size:40px;margin-bottom:12px;">🛍️</div>
           <div style="font-size:17px;font-weight:800;margin-bottom:8px;">Кто мы</div>
-          <div style="font-size:14px;color:var(--text-secondary);line-height:1.7;">Global Shop KZ — казахстанский сервис выкупа товаров из США, Европы, Китая и Кореи. Мы работаем как агент: покупаем нужный вам товар от вашего имени и доставляем прямо в Алматы.</div>
+          <div style="font-size:14px;color:var(--text-secondary);line-height:1.7;">Global Shop — казахстанский сервис выкупа товаров из США, Европы, Китая и Кореи. Мы работаем как агент: покупаем нужный вам товар от вашего имени и доставляем прямо в Алматы.</div>
         </div>
         <div>
           <div style="font-size:40px;margin-bottom:12px;">📦</div>
@@ -8251,7 +8270,7 @@ window.renderDash = function(view) {
       <h3 style="font-size:16px;font-weight:800;color:var(--text-primary);margin:0 0 12px;">1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
       <p style="margin-bottom:8px;">1.1. <b>Оператор персональных данных.</b> Настоящая Политика конфиденциальности (далее — Политика) разработана Индивидуальным предпринимателем <b>«Журавлёв»</b>, ИИН 030816501796 (далее — Оператор), в соответствии с Законом Республики Казахстан от 21 мая 2013 года № 94-V «О персональных данных и их защите», а также иными нормативными правовыми актами Республики Казахстан.</p>
       <p style="margin-bottom:8px;">1.2. <b>Цели Политики.</b> Целью настоящей Политики является обеспечение защиты прав и свобод человека и гражданина при обработке его персональных данных, включая защиту прав на неприкосновенность частной жизни, личную и семейную тайну.</p>
-      <p style="margin-bottom:8px;">1.3. <b>Сфера действия Политики.</b> Действие настоящей Политики распространяется на всю информацию, которую Оператор может получить о Пользователе в процессе использования сайта <b>Global Shop KZ</b>; регистрации личного кабинета; оформления заказов; оказания транспортно-экспедиторских, агентских и логистических услуг.</p>
+      <p style="margin-bottom:8px;">1.3. <b>Сфера действия Политики.</b> Действие настоящей Политики распространяется на всю информацию, которую Оператор может получить о Пользователе в процессе использования сайта <b>Global Shop</b>; регистрации личного кабинета; оформления заказов; оказания транспортно-экспедиторских, агентских и логистических услуг.</p>
       <p style="margin-bottom:8px;">1.4. <b>Согласие Пользователя.</b> Использование сайта, сервисов Оператора, регистрация личного кабинета, передача персональных данных, а также заключение договоров на оказание услуг означает полное и безоговорочное согласие Пользователя с настоящей Политикой.</p>
       <p style="margin-bottom:8px;">1.5. <b>Отказ от принятия Политики.</b> В случае несогласия с условиями настоящей Политики Пользователь обязан немедленно прекратить использование сайта, сервисов и услуг Оператора.</p>
       <p style="margin-bottom:24px;">1.6. <b>Изменение Политики.</b> Оператор вправе вносить изменения и дополнения в настоящую Политику в одностороннем порядке. Новая редакция вступает в силу с момента её размещения на сайте.</p>
@@ -8324,7 +8343,7 @@ window.renderDash = function(view) {
 
     <div style="max-width:900px;margin:40px auto 0;padding:20px 24px;border-top:1.5px solid var(--card-border);font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.6;">
       <div>Документ обновлён: <b id="legalPrivacyUpdated">—</b> <span style="opacity:0.6;">(UTC+0)</span></div>
-      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Политика конфиденциальности · Global Shop KZ · ИП Журавлёв · ИИН 030816501796</div>
+      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Политика конфиденциальности · Global Shop · ИП Журавлёв · ИИН 030816501796</div>
     </div>
     </div>
 
@@ -8398,7 +8417,7 @@ window.renderDash = function(view) {
     </div>
     <div style="max-width:900px;margin:40px auto 0;padding:20px 24px;border-top:1.5px solid var(--card-border);font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.6;">
       <div>Документ обновлён: <b id="legalOfertaUpdated">—</b> <span style="opacity:0.6;">(UTC+0)</span></div>
-      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Публичная оферта · Global Shop KZ</div>
+      <div style="margin-top:4px;font-size:11px;opacity:0.75;">Публичная оферта · Global Shop</div>
     </div>
   </div>
 </div>
@@ -9244,19 +9263,24 @@ var _origShowPage = window.showPage || function(){};
 <div id="mobileTabBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--nav-bg);backdrop-filter:blur(12px);border-top:1px solid var(--nav-border);padding:6px 0 env(safe-area-inset-bottom,6px);">
   <div style="display:flex;justify-content:space-around;align-items:center;">
     <div onclick="showPage('home');setActiveTab('home')" id="tab-home" class="mob-tab active-tab">
-      <div style="font-size:20px;">🏠</div><div>Главная</div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <div>Главная</div>
     </div>
     <div onclick="showPage('shops');setActiveTab('shops')" id="tab-shops" class="mob-tab">
-      <div style="font-size:20px;">🛍</div><div>Магазины</div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <div>Магазины</div>
     </div>
     <div onclick="showPage('tracking');setActiveTab('tracking')" id="tab-tracking" class="mob-tab">
-      <div style="font-size:20px;">📦</div><div>Трекинг</div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <div>Трекинг</div>
     </div>
     <div onclick="showPage('calculator');setActiveTab('calculator')" id="tab-calc" class="mob-tab">
-      <div style="font-size:20px;">🧮</div><div>Цена</div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+      <div>Цена</div>
     </div>
     <div onclick="toggleMoreMenu()" id="tab-more" class="mob-tab">
-      <div style="font-size:20px;">☰</div><div>Ещё</div>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <div>Ещё</div>
     </div>
   </div>
 </div>
