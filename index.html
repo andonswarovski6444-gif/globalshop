@@ -26,6 +26,7 @@
   };
 
   const app = initializeApp(firebaseConfig);
+  window.firebaseApp = app;
 
   // === Firebase App Check (reCAPTCHA v3) ===
   // Для локальной разработки (localhost) включи debug-токен:
@@ -7242,6 +7243,7 @@ async function adminLoadUsersFromFirestore() {
     snap.forEach(d => {
       const u = d.data();
       _adminUsersData.push({
+        uid: d.id,
         id: u.clientId || d.id.substring(0, 8),
         name: u.name || '—',
         email: u.email || '—',
@@ -7297,15 +7299,50 @@ function adminSearchUsers(query) {
       <td style="padding:12px;font-size:13px;color:var(--text-secondary);">${u.phone}</td>
       <td style="padding:12px;font-size:13px;color:var(--text-primary);">${u.parcels}</td>
       <td style="padding:12px;font-size:13px;color:var(--text-secondary);">${u.date}</td>
-      <td style="padding:12px;"><button onclick="adminViewUser('${u.id}')" style="padding:5px 14px;border:1.5px solid var(--card-border);border-radius:8px;background:transparent;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Открыть</button></td>
+      <td style="padding:12px;display:flex;gap:6px;">
+        <button onclick="adminViewUser('${u.uid}')" style="padding:5px 14px;border:1.5px solid var(--card-border);border-radius:8px;background:transparent;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:var(--text-secondary);">Открыть</button>
+        <button onclick="adminDeleteUser('${u.uid}')" style="padding:5px 12px;border:1.5px solid #FEE2E2;border-radius:8px;background:#FFF5F5;font-size:12px;font-weight:600;cursor:pointer;font-family:Manrope,sans-serif;color:#DC2626;" title="Удалить пользователя">🗑</button>
+      </td>
     </tr>
   `).join('');
 }
 
-function adminViewUser(id) {
-  const u = _adminUsersData.find(x => x.id === id);
+function adminViewUser(uid) {
+  const u = _adminUsersData.find(x => x.uid === uid);
   if (!u) return;
   alert(`👤 Клиент ${u.id}\n\nИмя: ${u.name}\nEmail: ${u.email}\nТелефон: ${u.phone}\nПосылок: ${u.parcels}\nРегистрация: ${u.date}`);
+}
+
+async function adminDeleteUser(uid) {
+  const u = _adminUsersData.find(x => x.uid === uid);
+  if (!u) return;
+  const confirmed = confirm(`⚠️ Удалить пользователя?\n\nИмя: ${u.name}\nEmail: ${u.email}\nID: ${u.id}\n\nАккаунт будет удалён полностью — пользователь не сможет войти снова.`);
+  if (!confirmed) return;
+
+  const toast = document.createElement('div');
+  toast.textContent = '⏳ Удаляем пользователя...';
+  toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A1A2E;color:white;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;font-family:Manrope,sans-serif;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.25);';
+  document.body.appendChild(toast);
+
+  try {
+    const { getFunctions, httpsCallable } = await import('https://www.gstatic.com/firebasejs/10.11.0/firebase-functions.js');
+    const fns = getFunctions(window.firebaseApp, 'us-central1');
+    const deleteUserFn = httpsCallable(fns, 'deleteUser');
+    await deleteUserFn({ uid });
+
+    _adminUsersData = _adminUsersData.filter(x => x.uid !== uid);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('admUsersTotal', _adminUsersData.length);
+    set('admUsersActive', _adminUsersData.length);
+    set('admUsersWithParcels', _adminUsersData.filter(x => x.parcels > 0).length);
+    adminSearchUsers(document.getElementById('adminUserSearch')?.value || '');
+
+    toast.textContent = `✅ Пользователь ${u.name} удалён полностью`;
+    setTimeout(() => toast.remove(), 3000);
+  } catch(e) {
+    toast.remove();
+    alert('❌ Ошибка при удалении: ' + (e.message || e));
+  }
 }
 
 // ===== НАСТРОЙКИ ПРОФИЛЯ =====
