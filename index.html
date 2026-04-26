@@ -18,7 +18,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
   import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app-check.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, updateDoc, runTransaction, collection, query, orderBy, limit, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, runTransaction, collection, query, orderBy, limit, getDocs, where, addDoc, deleteDoc, arrayUnion, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDdKh80aMIaxu0dJ3vhTdDQmh815qA8Hpc",
@@ -70,6 +70,11 @@
   window.firebaseWhere = where;
   window.firebaseUpdateDoc = updateDoc;
   window.firebaseSendEmailVerification = sendEmailVerification;
+  window.firebaseAddDoc = addDoc;
+  window.firebaseDeleteDoc = deleteDoc;
+  window.firebaseArrayUnion = arrayUnion;
+  window.firebaseServerTimestamp = serverTimestamp;
+  window.firebaseOnSnapshot = onSnapshot;
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -2648,24 +2653,67 @@ const adminViews = {
     </div>`,
 
   broadcast: `
-    <div class="dash-greeting">📢 Рассылка</div>
-    <div class="dash-sub">Отправка уведомлений клиентам</div>
+    <div class="dash-greeting">📢 Уведомления</div>
+    <div class="dash-sub">Отправка уведомлений клиентам в личный кабинет</div>
+
+    <div class="acard" style="margin-bottom:16px;">
+      <div class="acard-title">Новое уведомление</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Кому</label>
+          <select id="bcTarget" onchange="bcTargetChanged()" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:white;">
+            <option value="all">Все пользователи</option>
+            <option value="user">Конкретному пользователю</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Тип</label>
+          <select id="bcType" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:white;">
+            <option value="info">📘 Инфо</option>
+            <option value="success">✅ Успех</option>
+            <option value="warning">⚠️ Внимание</option>
+            <option value="promo">🎁 Акция / Промо</option>
+            <option value="parcel">📦 О посылке</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="bcUserRow" style="margin-bottom:14px;display:none;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Email или GS-ID получателя</label>
+        <input type="text" id="bcUserInput" placeholder="ivan@example.com или GS-1042" oninput="bcUserSearch()" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" />
+        <div id="bcUserHint" style="font-size:12px;color:var(--text-secondary);margin-top:6px;min-height:16px;"></div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Заголовок</label>
+        <input type="text" id="bcTitle" placeholder="Например: Бесплатный выкуп до конца мая" maxlength="100" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" />
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Текст сообщения</label>
+        <textarea id="bcText" rows="4" placeholder="Текст уведомления, который увидит клиент..." maxlength="600" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Ссылка (необязательно)</label>
+        <input type="text" id="bcLink" placeholder="https://… или внутренняя ссылка типа #parcels" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" />
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button onclick="sendBroadcastNotification()" class="btn-pink" style="padding:12px 28px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">📤 Отправить</button>
+        <span id="bcStatus" style="font-size:13px;font-weight:600;"></span>
+      </div>
+    </div>
+
     <div class="acard">
-      <div class="acard-title">Новая рассылка</div>
-      <div style="margin-bottom:16px;"><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Получатели</label>
-        <select style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;">
-          <option>Все пользователи (127)</option>
-          <option>Только активные (84)</option>
-          <option>С активными посылками (43)</option>
-        </select>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="acard-title" style="margin-bottom:0;">История отправок</div>
+        <button onclick="loadBroadcastHistory()" style="padding:7px 14px;border-radius:9px;font-size:12px;border:1.5px solid #F0F0F0;background:white;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">↻ Обновить</button>
       </div>
-      <div style="margin-bottom:16px;"><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Тема</label>
-        <input type="text" placeholder="Акция! Бесплатный выкуп до конца мая" style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" />
+      <div id="bcHistory">
+        <div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:13px;">Загрузка...</div>
       </div>
-      <div style="margin-bottom:20px;"><label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Сообщение</label>
-        <textarea rows="5" placeholder="Текст сообщения..." style="width:100%;padding:12px 16px;border:1.5px solid #F0F0F0;border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;resize:vertical;"></textarea>
-      </div>
-      <button class="btn-pink" style="padding:12px 32px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">📤 Отправить рассылку</button>
     </div>`,
 
   settings: `
@@ -3474,6 +3522,9 @@ function showAdmin(view) {
   }
   if (view === 'managers') {
     setTimeout(admMgrLoad, 80);
+  }
+  if (view === 'broadcast') {
+    setTimeout(loadBroadcastHistory, 80);
   }
 }
 
@@ -6071,6 +6122,29 @@ function renderDash(view) {
         </button>
         <span id="passMsg" style="display:none;margin-left:12px;font-size:13px;font-weight:600;"></span>
       </div>
+`,
+
+    notifications: `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <button onclick="setDashTab(null,'settings')" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--card-border);background:var(--card-bg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="dash-greeting" style="margin:0;">🔔 Уведомления</div>
+      </div>
+      <div class="dash-sub">Сообщения от Global Shop и автоматические уведомления о ваших посылках</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button id="notifFilterAll" onclick="setNotifFilter('all')" class="btn-pink" style="padding:8px 18px;border-radius:9px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">Все</button>
+        <button id="notifFilterUnread" onclick="setNotifFilter('unread')" style="padding:8px 18px;border-radius:9px;font-size:13px;border:1.5px solid var(--card-border);background:var(--card-bg);color:var(--text-primary);cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">Непрочитанные <span id="notifUnreadBadge" style="display:none;background:var(--accent);color:white;border-radius:8px;padding:1px 7px;font-size:11px;margin-left:4px;">0</span></button>
+        <div style="flex:1;"></div>
+        <button onclick="markAllNotificationsRead()" style="padding:8px 14px;border-radius:9px;font-size:13px;border:1.5px solid var(--card-border);background:var(--card-bg);color:var(--text-secondary);cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">✓ Отметить всё прочитанным</button>
+      </div>
+
+      <div id="notifList">
+        <div style="padding:48px 20px;text-align:center;color:var(--text-secondary);">
+          <div style="font-size:14px;">Загрузка...</div>
+        </div>
+      </div>
 `
   };
 
@@ -6082,6 +6156,10 @@ function renderDash(view) {
   // Render new parcels UI
   if (view === 'parcels' && typeof renderPv2Parcels === 'function') {
     renderPv2Parcels();
+  }
+  // Render notifications
+  if (view === 'notifications' && typeof loadAndRenderNotifications === 'function') {
+    loadAndRenderNotifications();
   }
 }
 
@@ -12637,5 +12715,556 @@ function initAccessibilityControls() {
     document.documentElement.style.fontSize = savedSize + '%';
     _fontSizeStep = savedSize;
   }
+})();
+</script>
+
+<!-- ============================================================== -->
+<!-- ===== NOTIFICATIONS MODULE (клиент + админка + автохуки) ===== -->
+<!-- ============================================================== -->
+<script>
+(function() {
+  // ----- Состояние -----
+  var _notifCache = [];        // последние загруженные уведомления текущего юзера
+  var _notifFilter = 'all';    // 'all' | 'unread'
+  var _notifUnsub = null;      // отписка от onSnapshot
+  var _notifAdminCache = [];   // история отправок (админка)
+
+  // ----- Утилиты -----
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _ts(n) {
+    if (!n) return '';
+    var d = (n && typeof n.toDate === 'function') ? n.toDate() : new Date(n);
+    if (isNaN(d.getTime())) return '';
+    var now = new Date();
+    var diff = (now - d) / 1000;
+    if (diff < 60) return 'только что';
+    if (diff < 3600) return Math.floor(diff/60) + ' мин назад';
+    if (diff < 86400) return Math.floor(diff/3600) + ' ч назад';
+    if (diff < 86400*7) return Math.floor(diff/86400) + ' дн назад';
+    return d.toLocaleDateString('ru-RU', {day:'numeric', month:'short', year:'numeric'});
+  }
+  function _typeStyle(t) {
+    var map = {
+      info:    { icon:'📘', bg:'#EFF6FF', border:'#BFDBFE', accent:'#1E40AF' },
+      success: { icon:'✅', bg:'#ECFDF5', border:'#A7F3D0', accent:'#065F46' },
+      warning: { icon:'⚠️', bg:'#FFFBEB', border:'#FDE68A', accent:'#92400E' },
+      promo:   { icon:'🎁', bg:'#FDF2F8', border:'#FBCFE8', accent:'#9D174D' },
+      parcel:  { icon:'📦', bg:'#F0F9FF', border:'#BAE6FD', accent:'#075985' }
+    };
+    return map[t] || map.info;
+  }
+  function _isReadByMe(n, uid) {
+    if (n.userId === uid) return !!n.read;             // личные: булевый флаг
+    return Array.isArray(n.readBy) && n.readBy.indexOf(uid) >= 0;  // общие: массив
+  }
+
+  // =============== КЛИЕНТСКАЯ ЧАСТЬ ===============
+
+  // Подписка на уведомления текущего юзера в реальном времени.
+  // Вызывается один раз при логине — поддерживает бейдж непрочитанных.
+  window.startNotificationsListener = function() {
+    if (_notifUnsub) { try { _notifUnsub(); } catch(_) {} _notifUnsub = null; }
+    var u = window.currentUser;
+    if (!u || !u.uid) return;
+    if (typeof window.firebaseOnSnapshot !== 'function') return;
+    if (String(u.uid).startsWith('dev-')) return;
+
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'notifications');
+      // Один запрос: userId IN [uid, '__all__']  (избегаем составных индексов)
+      var q = window.firebaseQuery(
+        col,
+        window.firebaseWhere('userId', 'in', [u.uid, '__all__'])
+      );
+      _notifUnsub = window.firebaseOnSnapshot(q, function(snap) {
+        var arr = [];
+        snap.forEach(function(d) {
+          var data = d.data();
+          if (data && data.deleted !== true) {
+            arr.push(Object.assign({ __id: d.id }, data));
+          }
+        });
+        // Сортируем клиентом, чтобы не требовать индексов
+        arr.sort(function(a,b) {
+          var ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+          var tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+          return tb - ta;
+        });
+        _notifCache = arr;
+        _updateUnreadBadge();
+        // Если пользователь сейчас на странице — перерисуем
+        var listEl = document.getElementById('notifList');
+        if (listEl) _renderNotifList();
+      }, function(err) {
+        console.warn('notifications listener error', err);
+      });
+    } catch(e) {
+      console.warn('startNotificationsListener', e);
+    }
+  };
+
+  window.stopNotificationsListener = function() {
+    if (_notifUnsub) { try { _notifUnsub(); } catch(_) {} _notifUnsub = null; }
+    _notifCache = [];
+    _updateUnreadBadge();
+  };
+
+  function _unreadCount() {
+    var u = window.currentUser; if (!u) return 0;
+    var n = 0;
+    for (var i = 0; i < _notifCache.length; i++) {
+      if (!_isReadByMe(_notifCache[i], u.uid)) n++;
+    }
+    return n;
+  }
+
+  function _updateUnreadBadge() {
+    var n = _unreadCount();
+    // Бейдж в сайдбаре около пункта «Настройки» (содержит уведомления)
+    var sidebarBadge = document.getElementById('sidebarNotifBadge');
+    if (!sidebarBadge) {
+      // Поставим бейдж рядом с пунктом «Настройки» в сайдбаре
+      var settingsItem = document.querySelector('.sidebar-item[onclick*="\'settings\'"]');
+      if (settingsItem) {
+        var b = document.createElement('span');
+        b.id = 'sidebarNotifBadge';
+        b.style.cssText = 'display:none;background:var(--accent);color:white;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:800;margin-left:auto;';
+        settingsItem.appendChild(b);
+        sidebarBadge = b;
+      }
+    }
+    if (sidebarBadge) {
+      if (n > 0) {
+        sidebarBadge.textContent = n > 99 ? '99+' : String(n);
+        sidebarBadge.style.display = 'inline-block';
+      } else {
+        sidebarBadge.style.display = 'none';
+      }
+    }
+    // Бейдж на табе фильтра «Непрочитанные»
+    var filterBadge = document.getElementById('notifUnreadBadge');
+    if (filterBadge) {
+      if (n > 0) { filterBadge.textContent = String(n); filterBadge.style.display = 'inline-block'; }
+      else { filterBadge.style.display = 'none'; }
+    }
+  }
+
+  // Рендер списка уведомлений на странице 'notifications'
+  function _renderNotifList() {
+    var listEl = document.getElementById('notifList');
+    if (!listEl) return;
+    var u = window.currentUser; if (!u) return;
+
+    var items = _notifCache.slice();
+    if (_notifFilter === 'unread') {
+      items = items.filter(function(n) { return !_isReadByMe(n, u.uid); });
+    }
+
+    if (items.length === 0) {
+      listEl.innerHTML = '<div style="background:var(--card-bg);border:1.5px dashed var(--card-border);border-radius:16px;padding:48px 20px;text-align:center;">' +
+        '<div style="font-size:48px;margin-bottom:10px;">🔔</div>' +
+        '<div style="font-size:15px;font-weight:700;margin-bottom:4px;">' + (_notifFilter === 'unread' ? 'Нет непрочитанных' : 'Пока нет уведомлений') + '</div>' +
+        '<div style="font-size:13px;color:var(--text-secondary);">Здесь будут сообщения о ваших посылках и новости от Global Shop</div>' +
+        '</div>';
+      return;
+    }
+
+    var html = items.map(function(n) {
+      var st = _typeStyle(n.type);
+      var read = _isReadByMe(n, u.uid);
+      var hasLink = n.link && String(n.link).trim();
+      return '<div onclick="openNotification(\'' + _esc(n.__id) + '\')" ' +
+        'style="background:' + (read ? 'var(--card-bg)' : st.bg) + ';' +
+        'border:1.5px solid ' + (read ? 'var(--card-border)' : st.border) + ';' +
+        'border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;' +
+        'display:flex;gap:12px;align-items:flex-start;transition:transform 0.15s;" ' +
+        'onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'\'">' +
+          '<div style="width:36px;height:36px;border-radius:10px;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">' + st.icon + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+              '<div style="font-size:14px;font-weight:' + (read ? '600' : '800') + ';color:var(--text-primary);flex:1;">' + _esc(n.title || 'Уведомление') + '</div>' +
+              (read ? '' : '<span style="width:8px;height:8px;border-radius:50%;background:' + st.accent + ';flex-shrink:0;"></span>') +
+            '</div>' +
+            '<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;white-space:pre-wrap;">' + _esc(n.text || '') + '</div>' +
+            '<div style="display:flex;align-items:center;gap:10px;margin-top:8px;">' +
+              '<div style="font-size:11px;color:var(--text-secondary);">' + _esc(_ts(n.createdAt)) + '</div>' +
+              (hasLink ? '<div style="font-size:11px;color:' + st.accent + ';font-weight:700;">Открыть →</div>' : '') +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    listEl.innerHTML = html;
+  }
+
+  // Загрузка вкладки 'notifications' — фактически использует уже подписанный кэш
+  window.loadAndRenderNotifications = function() {
+    // Если подписки нет (например, она не успела стартовать) — поднимем
+    if (!_notifUnsub && window.currentUser) {
+      window.startNotificationsListener();
+    }
+    // Сразу рисуем тем, что уже есть в кэше
+    _renderNotifList();
+    _updateUnreadBadge();
+  };
+
+  // Переключение фильтра «Все / Непрочитанные»
+  window.setNotifFilter = function(f) {
+    _notifFilter = f;
+    var allBtn = document.getElementById('notifFilterAll');
+    var unreadBtn = document.getElementById('notifFilterUnread');
+    if (allBtn && unreadBtn) {
+      var active = 'padding:8px 18px;border-radius:9px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;background:var(--accent);color:white;';
+      var inactive = 'padding:8px 18px;border-radius:9px;font-size:13px;border:1.5px solid var(--card-border);background:var(--card-bg);color:var(--text-primary);cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;';
+      allBtn.setAttribute('style', f === 'all' ? active : inactive);
+      unreadBtn.setAttribute('style', f === 'unread' ? active : inactive);
+    }
+    _renderNotifList();
+  };
+
+  // Клик по карточке: пометить прочитанной + (если есть link) — открыть
+  window.openNotification = async function(id) {
+    var u = window.currentUser; if (!u) return;
+    var n = _notifCache.find(function(x){ return x.__id === id; });
+    if (!n) return;
+    try {
+      var ref = window.firebaseDoc(window.firebaseDb, 'notifications', id);
+      if (n.userId === u.uid && !n.read) {
+        await window.firebaseUpdateDoc(ref, { read: true, readAt: window.firebaseServerTimestamp() });
+      } else if (n.userId === '__all__' && (!Array.isArray(n.readBy) || n.readBy.indexOf(u.uid) < 0)) {
+        await window.firebaseUpdateDoc(ref, { readBy: window.firebaseArrayUnion(u.uid) });
+      }
+    } catch(e) { console.warn('mark read', e); }
+
+    // Открыть ссылку
+    if (n.link) {
+      var link = String(n.link).trim();
+      if (link.startsWith('#')) {
+        // Внутренняя — пробуем как dashTab или как страницу
+        var tab = link.slice(1);
+        var dashTabs = ['main','parcels','new','loyalty','wallet','payment','settings','settings_edit','recipients','addresses','security','notifications'];
+        if (dashTabs.indexOf(tab) >= 0 && typeof setDashTab === 'function') {
+          setDashTab(null, tab);
+        } else if (typeof showPage === 'function') {
+          showPage(tab);
+        }
+      } else if (/^https?:\/\//i.test(link)) {
+        window.open(link, '_blank', 'noopener');
+      }
+    }
+  };
+
+  // Отметить всё прочитанным
+  window.markAllNotificationsRead = async function() {
+    var u = window.currentUser; if (!u) return;
+    var unread = _notifCache.filter(function(n) { return !_isReadByMe(n, u.uid); });
+    if (unread.length === 0) return;
+    try {
+      for (var i = 0; i < unread.length; i++) {
+        var n = unread[i];
+        var ref = window.firebaseDoc(window.firebaseDb, 'notifications', n.__id);
+        if (n.userId === u.uid) {
+          await window.firebaseUpdateDoc(ref, { read: true, readAt: window.firebaseServerTimestamp() });
+        } else {
+          await window.firebaseUpdateDoc(ref, { readBy: window.firebaseArrayUnion(u.uid) });
+        }
+      }
+    } catch(e) { console.warn('markAll', e); }
+  };
+
+  // =============== ХУК НА АВТОРИЗАЦИЮ ===============
+  // Стартуем подписку, как только Firebase auth подтвердит юзера
+  var _authPollAttempts = 0;
+  function _tryStartListener() {
+    if (window.currentUser && window.currentUser.uid && typeof window.firebaseOnSnapshot === 'function') {
+      window.startNotificationsListener();
+      return true;
+    }
+    return false;
+  }
+  var _authPoll = setInterval(function() {
+    if (_tryStartListener() || ++_authPollAttempts > 60) clearInterval(_authPoll);
+  }, 500);
+
+  // =============== АДМИНКА: ОТПРАВКА УВЕДОМЛЕНИЙ ===============
+
+  window.bcTargetChanged = function() {
+    var sel = document.getElementById('bcTarget');
+    var row = document.getElementById('bcUserRow');
+    if (!sel || !row) return;
+    row.style.display = (sel.value === 'user') ? 'block' : 'none';
+  };
+
+  // Текущий выбранный получатель (uid + label)
+  var _bcResolvedUser = null;
+  var _bcSearchTimer = null;
+
+  window.bcUserSearch = function() {
+    if (_bcSearchTimer) clearTimeout(_bcSearchTimer);
+    _bcSearchTimer = setTimeout(_doBcUserSearch, 350);
+  };
+
+  async function _doBcUserSearch() {
+    var input = document.getElementById('bcUserInput');
+    var hint = document.getElementById('bcUserHint');
+    if (!input || !hint) return;
+    var v = (input.value || '').trim();
+    _bcResolvedUser = null;
+    if (!v) { hint.textContent = ''; hint.style.color = ''; return; }
+    hint.style.color = 'var(--text-secondary)';
+    hint.textContent = 'Поиск...';
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'users');
+      var q;
+      if (/^GS-\d+$/i.test(v)) {
+        q = window.firebaseQuery(col, window.firebaseWhere('clientId', '==', v.toUpperCase()), window.firebaseLimit(1));
+      } else if (v.indexOf('@') >= 0) {
+        q = window.firebaseQuery(col, window.firebaseWhere('email', '==', v.toLowerCase()), window.firebaseLimit(1));
+      } else {
+        hint.textContent = 'Введите email (имя@домен) или GS-XXXX';
+        hint.style.color = '#B45309';
+        return;
+      }
+      var snap = await window.firebaseGetDocs(q);
+      if (snap.empty) {
+        hint.textContent = '✖ Пользователь не найден';
+        hint.style.color = '#B91C1C';
+        return;
+      }
+      var doc = snap.docs[0];
+      var data = doc.data() || {};
+      _bcResolvedUser = {
+        uid: doc.id,
+        email: data.email || '',
+        clientId: data.clientId || '',
+        name: data.name || data.fullName || ''
+      };
+      hint.textContent = '✓ ' + (data.clientId ? data.clientId + ' · ' : '') + (data.email || doc.id) + (data.name ? ' (' + data.name + ')' : '');
+      hint.style.color = '#065F46';
+    } catch(e) {
+      hint.textContent = 'Ошибка поиска: ' + (e.message || e);
+      hint.style.color = '#B91C1C';
+    }
+  }
+
+  window.sendBroadcastNotification = async function() {
+    var statusEl = document.getElementById('bcStatus');
+    function setStatus(msg, color) {
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = color || ''; }
+    }
+
+    var target = (document.getElementById('bcTarget') || {}).value || 'all';
+    var type   = (document.getElementById('bcType')   || {}).value || 'info';
+    var title  = ((document.getElementById('bcTitle') || {}).value || '').trim();
+    var text   = ((document.getElementById('bcText')  || {}).value || '').trim();
+    var link   = ((document.getElementById('bcLink')  || {}).value || '').trim();
+
+    if (!title) { setStatus('Заполните заголовок', '#B91C1C'); return; }
+    if (!text)  { setStatus('Заполните текст сообщения', '#B91C1C'); return; }
+
+    var userId;
+    if (target === 'user') {
+      if (!_bcResolvedUser || !_bcResolvedUser.uid) {
+        setStatus('Сначала найдите получателя', '#B91C1C'); return;
+      }
+      userId = _bcResolvedUser.uid;
+    } else {
+      userId = '__all__';
+    }
+
+    if (!confirm(target === 'all'
+        ? 'Отправить уведомление ВСЕМ пользователям?'
+        : 'Отправить уведомление пользователю ' + (_bcResolvedUser.clientId || _bcResolvedUser.email) + '?')) return;
+
+    setStatus('Отправка...', 'var(--text-secondary)');
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'notifications');
+      var payload = {
+        userId: userId,
+        type: type,
+        title: title,
+        text: text,
+        link: link || null,
+        createdAt: window.firebaseServerTimestamp(),
+        createdBy: (window.currentUser && window.currentUser.email) || 'admin',
+        deleted: false
+      };
+      if (userId === '__all__') {
+        payload.readBy = [];
+      } else {
+        payload.read = false;
+      }
+      await window.firebaseAddDoc(col, payload);
+      setStatus('✓ Отправлено', '#065F46');
+      // Очищаем поля
+      ['bcTitle','bcText','bcLink','bcUserInput'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      _bcResolvedUser = null;
+      var hint = document.getElementById('bcUserHint'); if (hint) hint.textContent = '';
+      // Перезагрузим историю
+      setTimeout(loadBroadcastHistory, 400);
+      setTimeout(function(){ setStatus('', ''); }, 3000);
+    } catch(e) {
+      setStatus('Ошибка: ' + (e.message || e), '#B91C1C');
+    }
+  };
+
+  // =============== АДМИНКА: ИСТОРИЯ + УДАЛЕНИЕ ===============
+
+  window.loadBroadcastHistory = async function() {
+    var box = document.getElementById('bcHistory');
+    if (!box) return;
+    box.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:13px;">Загрузка...</div>';
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'notifications');
+      var q = window.firebaseQuery(col, window.firebaseOrderBy('createdAt', 'desc'), window.firebaseLimit(100));
+      var snap = await window.firebaseGetDocs(q);
+      var rows = [];
+      snap.forEach(function(d) { rows.push(Object.assign({ __id: d.id }, d.data())); });
+      _notifAdminCache = rows;
+      _renderBroadcastHistory();
+    } catch(e) {
+      box.innerHTML = '<div style="padding:24px;text-align:center;color:#B91C1C;font-size:13px;">Ошибка загрузки: ' + _esc(e.message || e) + '</div>';
+    }
+  };
+
+  function _renderBroadcastHistory() {
+    var box = document.getElementById('bcHistory');
+    if (!box) return;
+    var rows = _notifAdminCache;
+    if (!rows.length) {
+      box.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);font-size:13px;">Пока ничего не отправляли</div>';
+      return;
+    }
+    var html = '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#fafafa;">' +
+      '<th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Дата</th>' +
+      '<th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Тип</th>' +
+      '<th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Кому</th>' +
+      '<th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Заголовок / Текст</th>' +
+      '<th style="padding:10px 12px;text-align:left;font-size:12px;color:var(--text-secondary);">Прочитано</th>' +
+      '<th style="padding:10px 12px;text-align:right;font-size:12px;color:var(--text-secondary);">Действие</th>' +
+    '</tr></thead><tbody>';
+    rows.forEach(function(n) {
+      var st = _typeStyle(n.type);
+      var who = (n.userId === '__all__') ? '👥 Все' : ('👤 ' + _esc(n.userId.slice(0,8)) + '…');
+      var readInfo;
+      if (n.userId === '__all__') {
+        var rb = Array.isArray(n.readBy) ? n.readBy.length : 0;
+        readInfo = rb + ' чел.';
+      } else {
+        readInfo = n.read ? '✓' : '—';
+      }
+      var deletedStyle = n.deleted ? 'opacity:0.5;text-decoration:line-through;' : '';
+      html += '<tr style="border-top:1px solid #F0F0F0;' + deletedStyle + '">' +
+        '<td style="padding:10px 12px;font-size:12px;color:var(--text-secondary);white-space:nowrap;">' + _esc(_ts(n.createdAt)) + '</td>' +
+        '<td style="padding:10px 12px;font-size:12px;"><span style="background:' + st.bg + ';color:' + st.accent + ';padding:3px 8px;border-radius:6px;font-weight:700;">' + st.icon + ' ' + _esc(n.type || 'info') + '</span></td>' +
+        '<td style="padding:10px 12px;font-size:12px;">' + who + '</td>' +
+        '<td style="padding:10px 12px;font-size:12px;max-width:380px;"><div style="font-weight:700;color:var(--text-primary);">' + _esc(n.title || '') + '</div><div style="color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _esc(n.text || '') + '</div></td>' +
+        '<td style="padding:10px 12px;font-size:12px;color:var(--text-secondary);">' + readInfo + '</td>' +
+        '<td style="padding:10px 12px;text-align:right;">' +
+          (n.deleted
+            ? '<span style="font-size:11px;color:#B91C1C;font-weight:700;">удалено</span>'
+            : '<button onclick="deleteBroadcast(\'' + _esc(n.__id) + '\')" style="padding:5px 10px;border-radius:7px;font-size:11px;border:1.5px solid #FCA5A5;background:white;color:#B91C1C;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">🗑 Удалить у всех</button>') +
+        '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    box.innerHTML = html;
+  }
+
+  // Soft-delete: ставим deleted: true. Клиентский слушатель отфильтрует автоматически.
+  window.deleteBroadcast = async function(id) {
+    if (!confirm('Удалить это уведомление у всех получателей? Действие нельзя отменить.')) return;
+    try {
+      var ref = window.firebaseDoc(window.firebaseDb, 'notifications', id);
+      await window.firebaseUpdateDoc(ref, {
+        deleted: true,
+        deletedAt: window.firebaseServerTimestamp(),
+        deletedBy: (window.currentUser && window.currentUser.email) || 'admin'
+      });
+      // Обновляем локальный кэш и перерисовываем
+      var idx = _notifAdminCache.findIndex(function(x){ return x.__id === id; });
+      if (idx >= 0) _notifAdminCache[idx].deleted = true;
+      _renderBroadcastHistory();
+    } catch(e) {
+      alert('Ошибка удаления: ' + (e.message || e));
+    }
+  };
+
+  // =============== АВТО-УВЕДОМЛЕНИЯ ПРИ СМЕНЕ СТАТУСА ===============
+  // Низкоуровневая функция, которой пользуются хуки ниже.
+  window.createParcelNotification = async function(userId, opts) {
+    if (!userId || String(userId).startsWith('dev-')) return;
+    if (typeof window.firebaseAddDoc !== 'function') return;
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'notifications');
+      await window.firebaseAddDoc(col, {
+        userId: userId,
+        type: opts.type || 'parcel',
+        title: opts.title || 'Обновление по посылке',
+        text: opts.text || '',
+        link: opts.link || '#parcels',
+        createdAt: window.firebaseServerTimestamp(),
+        createdBy: (window.currentUser && window.currentUser.email) || 'system',
+        read: false,
+        deleted: false,
+        meta: opts.meta || {}
+      });
+    } catch(e) { console.warn('createParcelNotification', e); }
+  };
+
+  // Карта статус → человеческий текст
+  var STATUS_TEXT = {
+    warehouse:  { title: 'Посылка принята на склад', text: 'Ваша посылка #{trk} принята на склад в Китае. Ожидаем отправку.' },
+    flying:     { title: 'Посылка в пути ✈️',        text: 'Ваша посылка #{trk} вылетела со склада. Скоро будет в Казахстане.' },
+    customs:    { title: 'Посылка на таможне 🛃',    text: 'Посылка #{trk} проходит таможенное оформление.' },
+    kazakhstan: { title: 'Посылка в Казахстане 🇰🇿', text: 'Посылка #{trk} прибыла в Казахстан и готовится к выдаче.' },
+    pickup:     { title: 'Посылка ожидает получения 📬', text: 'Посылка #{trk} ждёт вас в пункте выдачи. Не забудьте удостоверение личности.' },
+    delivered:  { title: 'Посылка доставлена ✅',     text: 'Посылка #{trk} доставлена. Спасибо за заказ!' }
+  };
+
+  // Хук вокруг updateParcelStatus (если функция есть в файле). Сохраняем оригинал и зовём после успешного обновления.
+  function _wrapUpdateParcelStatus() {
+    if (typeof window.updateParcelStatus !== 'function' || window.updateParcelStatus.__notifWrapped) return;
+    var orig = window.updateParcelStatus;
+    var wrapped = async function(parcelId, newStatus) {
+      var result = await orig.apply(this, arguments);
+      try {
+        // Получаем посылку чтобы узнать userId и trackId
+        var ref = window.firebaseDoc(window.firebaseDb, 'parcels', parcelId);
+        var snap = await window.firebaseGetDoc(ref);
+        if (snap.exists()) {
+          var p = snap.data();
+          var st = STATUS_TEXT[newStatus];
+          if (p.userId && st) {
+            var trk = p.trackId || p.id || parcelId.slice(0,6);
+            window.createParcelNotification(p.userId, {
+              type: 'parcel',
+              title: st.title,
+              text: st.text.replace('{trk}', trk),
+              link: '#parcels',
+              meta: { parcelId: parcelId, status: newStatus, trackId: trk }
+            });
+          }
+        }
+      } catch(e) { console.warn('notif hook updateParcelStatus', e); }
+      return result;
+    };
+    wrapped.__notifWrapped = true;
+    window.updateParcelStatus = wrapped;
+  }
+
+  // Пытаемся обернуть несколько раз — функция может быть определена позже
+  var _wrapAttempts = 0;
+  var _wrapPoll = setInterval(function() {
+    _wrapUpdateParcelStatus();
+    if (++_wrapAttempts > 30) clearInterval(_wrapPoll);
+  }, 300);
+
 })();
 </script>
