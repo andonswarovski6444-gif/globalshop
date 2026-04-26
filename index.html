@@ -202,6 +202,87 @@
     --card-bg: #17172A;
     --card-border: rgba(139,92,246,0.18);
   }
+  /* ===== Упрощённый интерфейс ===== */
+  [data-simple-ui] * {
+    animation: none !important;
+    transition: none !important;
+  }
+  [data-simple-ui] .hero,
+  [data-simple-ui] [style*="radial-gradient"],
+  [data-simple-ui] [style*="linear-gradient(135deg"] {
+    background-image: none !important;
+  }
+  [data-simple-ui] [style*="box-shadow"] {
+    box-shadow: none !important;
+  }
+  [data-simple-ui] nav,
+  [data-simple-ui] .sidebar,
+  [data-simple-ui] .dash-card,
+  [data-simple-ui] .acard {
+    backdrop-filter: none !important;
+    background-image: none !important;
+  }
+
+  /* ===== Крупные кнопки ===== */
+  [data-big-buttons] button,
+  [data-big-buttons] .sidebar-item,
+  [data-big-buttons] .tab-item {
+    min-height: 52px !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    font-size: 16px !important;
+  }
+  [data-big-buttons] input,
+  [data-big-buttons] select {
+    min-height: 52px !important;
+    font-size: 16px !important;
+    padding: 14px 16px !important;
+  }
+  [data-big-buttons] .sidebar-item {
+    padding: 16px 20px !important;
+    gap: 16px !important;
+  }
+  [data-big-buttons] .tab-item {
+    padding: 14px 10px !important;
+  }
+  [data-big-buttons] [onclick] {
+    min-height: 52px;
+  }
+
+  /* ===== Режим слабовидящих ===== */
+  [data-low-vision] {
+    --text-primary: #000000;
+    --text-secondary: #1A1A2E;
+    --border: #0A0A0A;
+    --card-border: #0A0A0A;
+    --bg: #FFFDE7;
+    --bg-card: #FFFFFF;
+    --card-bg: #FFFFFF;
+    --accent: #0D47A1;
+    --accent-hover: #01237B;
+    --sidebar-active-color: #0D47A1;
+    --input-border: #0A0A0A;
+    --nav-border: #0A0A0A;
+    filter: contrast(1.15);
+  }
+  [data-low-vision] body {
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+  }
+  [data-low-vision] * {
+    border-width: max(1px, 0.08em) !important;
+  }
+  [data-low-vision] button,
+  [data-low-vision] input,
+  [data-low-vision] select {
+    outline: 2px solid transparent;
+  }
+  [data-low-vision] button:focus,
+  [data-low-vision] input:focus,
+  [data-low-vision] a:focus {
+    outline: 3px solid #0D47A1 !important;
+    outline-offset: 2px;
+  }
   body { transition: background 0.3s, color 0.3s; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Manrope', sans-serif; background: var(--bg); color: var(--text-primary); transition: background 0.3s, color 0.3s; }
@@ -427,11 +508,47 @@
   .onboard-btns { display:flex;gap:10px; }
 
   /* AI CHAT */
-  #aiChatBtn { position:fixed;bottom:28px;right:28px;z-index:900;width:56px;height:56px;border-radius:50%;background:var(--accent-gradient);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,0.40);display:flex;align-items:center;justify-content:center;font-size:24px;transition:opacity 0.4s ease, transform 0.2s, box-shadow 0.2s; }
-  @media (max-width:768px) { #aiChatBtn { bottom: 82px; right: 16px; width:48px; height:48px; font-size:20px; } }
-  #aiChatBtn:hover { transform:scale(1.1); box-shadow:0 6px 28px rgba(99,102,241,0.55); opacity:1 !important; }
-  #aiChatBtn.idle { opacity:0.25; }
-  #aiChatWindow { position:fixed;bottom:96px;right:28px;z-index:900;width:360px;max-height:520px;background:white;border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,0.18);border:1px solid var(--border);display:none;flex-direction:column;overflow:hidden; }
+  #aiChatBtn {
+    position:fixed;
+    bottom:calc(80px + env(safe-area-inset-bottom, 20px));
+    right:20px;
+    z-index:900;
+    width:60px;height:60px;
+    border-radius:50%;
+    background:var(--accent-gradient);
+    border:none;cursor:grab;
+    box-shadow:0 4px 24px rgba(99,102,241,0.45);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0;
+    transition:box-shadow 0.2s, opacity 0.4s;
+    animation:robotFloat 3s ease-in-out infinite;
+    user-select:none;
+  }
+  #aiChatBtn:active { cursor:grabbing; }
+  #aiChatBtn.chat-open { animation:none !important; }
+  #aiChatBtn.idle { opacity:0.3; }
+  @keyframes robotFloat {
+    0%,100% { transform:translateY(0) rotate(-3deg); }
+    25%      { transform:translateY(-6px) rotate(3deg); }
+    50%      { transform:translateY(-10px) rotate(-2deg); }
+    75%      { transform:translateY(-4px) rotate(2deg); }
+  }
+  #aiChatBtn .robot-pulse {
+    position:absolute;top:-3px;right:-3px;
+    width:14px;height:14px;
+    background:#10B981;border-radius:50%;
+    border:2px solid white;
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { transform:scale(1); opacity:1; }
+    50%      { transform:scale(1.4); opacity:0.6; }
+  }
+  #aiChatBtn:hover { box-shadow:0 8px 32px rgba(99,102,241,0.6); opacity:1 !important; }
+  @media (max-width:768px) {
+    #aiChatBtn { bottom:calc(75px + env(safe-area-inset-bottom, 16px)); right:16px; width:54px; height:54px; font-size:24px; }
+  }
+  #aiChatWindow { position:fixed;bottom:calc(140px + env(safe-area-inset-bottom, 20px));right:20px;z-index:900;width:360px;max-height:520px;background:white;border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,0.18);border:1px solid var(--border);display:none;flex-direction:column;overflow:hidden; }
   .ai-chat-header { background:var(--accent-gradient);padding:16px 20px;display:flex;align-items:center;gap:10px; }
   .ai-chat-avatar { width:36px;height:36px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
   .ai-chat-messages { flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;max-height:340px; }
@@ -798,10 +915,29 @@
 </div>
 
 <!-- ===== AI CHAT WIDGET ===== -->
-<button id="aiChatBtn" onclick="toggleAiChat()" title="Помощник">🤖</button>
+<button id="aiChatBtn" title="Помощник">
+  <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Rounded square -->
+    <rect x="3" y="5" width="22" height="22" rx="5" stroke="white" stroke-width="2.2" fill="none"/>
+    <!-- AI text -->
+    <text x="14" y="20" font-size="11" font-weight="900" fill="white" text-anchor="middle" font-family="Arial,sans-serif">AI</text>
+    <!-- Big star top-right -->
+    <path d="M29 4 L30.2 7.8 L34 9 L30.2 10.2 L29 14 L27.8 10.2 L24 9 L27.8 7.8 Z" fill="white"/>
+    <!-- Small star bottom-right -->
+    <path d="M33 18 L33.8 20.2 L36 21 L33.8 21.8 L33 24 L32.2 21.8 L30 21 L32.2 20.2 Z" fill="white" opacity="0.8"/>
+  </svg>
+  <span class="robot-pulse"></span>
+</button>
 <div id="aiChatWindow">
   <div class="ai-chat-header">
-    <div class="ai-chat-avatar">🤖</div>
+    <div class="ai-chat-avatar">
+  <svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="5" width="22" height="22" rx="5" stroke="white" stroke-width="2.2" fill="none"/>
+    <text x="14" y="20" font-size="11" font-weight="900" fill="white" text-anchor="middle" font-family="Arial,sans-serif">AI</text>
+    <path d="M29 4 L30.2 7.8 L34 9 L30.2 10.2 L29 14 L27.8 10.2 L24 9 L27.8 7.8 Z" fill="white"/>
+    <path d="M33 18 L33.8 20.2 L36 21 L33.8 21.8 L33 24 L32.2 21.8 L30 21 L32.2 20.2 Z" fill="white" opacity="0.8"/>
+  </svg>
+</div>
     <div style="flex:1;">
       <div style="font-size:14px;font-weight:800;color:white;">Помощник Global Shop</div>
       <div style="font-size:11px;color:rgba(255,255,255,0.75);">Отвечу на любой вопрос о сайте</div>
@@ -2031,6 +2167,8 @@ function showPageDirect(page) {
     } else {
       renderDash('main');
     }
+    // Показываем PWA-баннер только авторизованным пользователям в ЛК
+    setTimeout(function() { if (typeof showPwaBanner === 'function') showPwaBanner(); }, 2000);
   }
   if (page === 'admin') { window.isAdmin = true; showAdmin('dashboard'); }
   if (page === 'warehouses') showWarehousesPage();
@@ -5742,6 +5880,26 @@ function renderDash(view) {
           <div style="flex:1;font-size:15px;font-weight:600;color:var(--text-primary);">Уведомления</div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+        <!-- AI помощник toggle -->
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-top:1px solid var(--card-border);">
+          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="5" width="22" height="22" rx="5" stroke="#4F6AF0" stroke-width="2.2" fill="none"/>
+              <text x="14" y="20" font-size="11" font-weight="900" fill="#4F6AF0" text-anchor="middle" font-family="Arial,sans-serif">AI</text>
+              <path d="M29 4 L30.2 7.8 L34 9 L30.2 10.2 L29 14 L27.8 10.2 L24 9 L27.8 7.8 Z" fill="#4F6AF0"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);">AI-помощник</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Кнопка чата на экране</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="aiChatToggle" onchange="toggleAiChatVisibility(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="aiChatToggleSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;border-radius:26px;background:#D1D5DB;transition:0.3s;">
+              <span style="position:absolute;content:'';height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;display:block;" id="aiChatToggleThumb"></span>
+            </span>
+          </label>
+        </div>
       </div>
 
       <!-- Документы -->
@@ -5780,6 +5938,81 @@ function renderDash(view) {
           <div>
             <div style="font-size:13px;font-weight:700;color:var(--text-primary);">WhatsApp</div>
             <div style="font-size:11px;color:var(--text-secondary);">Поддержка</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Доступность -->
+      <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);overflow:hidden;margin-bottom:12px;">
+        <div style="padding:14px 18px 10px;border-bottom:1px solid var(--card-border);">
+          <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">Доступность</div>
+        </div>
+        <!-- Режим слабовидящих -->
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--card-border);">
+          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="8" x2="12" y2="8.01" stroke-width="3"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);">Режим слабовидящих</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Высокий контраст и крупный шрифт</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="lowVisionToggle" onchange="toggleLowVision(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="lowVisionSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;border-radius:26px;background:#D1D5DB;transition:0.3s;">
+              <span style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;display:block;" id="lowVisionThumb"></span>
+            </span>
+          </label>
+        </div>
+        <!-- Упрощённый интерфейс -->
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--card-border);">
+          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);">Упрощённый интерфейс</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Скрывает анимации и декоративные элементы</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="simpleUiToggle" onchange="toggleSimpleUi(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="simpleUiSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;border-radius:26px;background:#D1D5DB;transition:0.3s;">
+              <span style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;display:block;" id="simpleUiThumb"></span>
+            </span>
+          </label>
+        </div>
+        <!-- Крупные кнопки -->
+        <div style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--card-border);">
+          <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M6 12h12"/><path d="M15 9l3 3-3 3"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);">Крупные кнопки</div>
+            <div style="font-size:12px;color:var(--text-secondary);">Увеличенные зоны нажатия и отступы</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;">
+            <input type="checkbox" id="bigBtnsToggle" onchange="toggleBigButtons(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+            <span id="bigBtnsSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;border-radius:26px;background:#D1D5DB;transition:0.3s;">
+              <span style="position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;display:block;" id="bigBtnsThumb"></span>
+            </span>
+          </label>
+        </div>
+        <!-- Размер текста -->
+        <div style="padding:16px 18px;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#F0F4FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F6AF0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:15px;font-weight:600;color:var(--text-primary);">Размер текста</div>
+              <div style="font-size:12px;color:var(--text-secondary);" id="fontSizeLabel">Обычный (100%)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button onclick="changeFontSize(-10)" style="width:40px;height:40px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text-primary);font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;">−</button>
+            <div style="flex:1;height:6px;background:var(--bg);border-radius:99px;overflow:hidden;position:relative;">
+              <div id="fontSizeBar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#1A6BFF,#7C3AED);transition:width 0.2s;width:50%;"></div>
+            </div>
+            <button onclick="changeFontSize(10)" style="width:40px;height:40px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text-primary);font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;">+</button>
+            <button onclick="resetFontSize()" style="padding:0 12px;height:40px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;font-family:Manrope,sans-serif;">Сброс</button>
           </div>
         </div>
       </div>
@@ -7340,10 +7573,18 @@ function toggleAiChat() {
   aiOpen = !aiOpen;
   const win = document.getElementById('aiChatWindow');
   const btn = document.getElementById('aiChatBtn');
-  win.style.display = aiOpen ? 'flex' : 'none';
   if (aiOpen) {
+    btn.classList.add('chat-open');
     btn.classList.remove('idle');
     clearTimeout(aiIdleTimer);
+    win.style.display = 'flex';
+    win.style.opacity = '0';
+    win.style.transform = 'translateY(20px) scale(0.95)';
+    win.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    requestAnimationFrame(() => {
+      win.style.opacity = '1';
+      win.style.transform = 'translateY(0) scale(1)';
+    });
     if (!aiInited) {
       aiInited = true;
       aiHistory = [];
@@ -7352,6 +7593,10 @@ function toggleAiChat() {
       setTimeout(() => document.getElementById('aiInput')?.focus(), 100);
     }
   } else {
+    btn.classList.remove('chat-open');
+    win.style.opacity = '0';
+    win.style.transform = 'translateY(20px) scale(0.95)';
+    setTimeout(() => { win.style.display = 'none'; }, 280);
     aiResetIdle();
   }
 }
@@ -10994,10 +11239,18 @@ window.toggleAiChat = function() {
   aiOpen = !aiOpen;
   const win = document.getElementById('aiChatWindow');
   const btn = document.getElementById('aiChatBtn');
-  win.style.display = aiOpen ? 'flex' : 'none';
   if (aiOpen) {
+    btn.classList.add('chat-open');
     btn.classList.remove('idle');
     clearTimeout(aiIdleTimer);
+    win.style.display = 'flex';
+    win.style.opacity = '0';
+    win.style.transform = 'translateY(20px) scale(0.95)';
+    win.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    requestAnimationFrame(() => {
+      win.style.opacity = '1';
+      win.style.transform = 'translateY(0) scale(1)';
+    });
     if (!aiInited) {
       aiInited = true;
       aiHistory = [];
@@ -11022,6 +11275,10 @@ window.toggleAiChat = function() {
       setTimeout(() => document.getElementById('aiInput')?.focus(), 100);
     }
   } else {
+    btn.classList.remove('chat-open');
+    win.style.opacity = '0';
+    win.style.transform = 'translateY(20px) scale(0.95)';
+    setTimeout(() => { win.style.display = 'none'; }, 280);
     aiResetIdle();
   }
 };
@@ -11989,4 +12246,396 @@ window.renderDash = function(view) {
 console.log('✅ Recipients System loaded');
 </script>
 
+<!-- ===== PWA Install Banner ===== -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:480px;background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(26,107,255,0.18),0 2px 8px rgba(0,0,0,0.08);z-index:99999;padding:16px 18px;font-family:Manrope,sans-serif;border:1px solid #D8E8FF;animation:pwaSlideUp 0.4s ease;">
+  <style>
+    @keyframes pwaSlideUp {
+      from { opacity:0; transform:translateX(-50%) translateY(30px); }
+      to   { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+  </style>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div style="width:50px;height:50px;border-radius:13px;background:linear-gradient(135deg,#1A6BFF,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;flex-shrink:0;font-family:Arial,sans-serif;">G</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:15px;font-weight:800;color:#0D1B3E;margin-bottom:2px;">Добавьте приложение!</div>
+      <div style="font-size:12px;color:#5B7199;line-height:1.4;">Работает без интернета и скачивания 🚀</div>
+    </div>
+    <button id="pwaInstallClose" style="background:none;border:none;cursor:pointer;padding:6px;color:#5B7199;font-size:22px;line-height:1;flex-shrink:0;">×</button>
+  </div>
 
+  <!-- Chrome/Android: кнопка -->
+  <button id="pwaInstallBtn" style="display:none;margin-top:12px;width:100%;padding:13px;background:linear-gradient(135deg,#1A6BFF,#7C3AED);color:#fff;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
+    📲 Добавить на главный экран
+  </button>
+
+  <!-- iOS Safari: инструкция -->
+  <div id="pwaIosHint" style="display:none;margin-top:12px;background:#F0F6FF;border-radius:12px;padding:12px 14px;">
+    <div style="font-size:13px;font-weight:700;color:#0D1B3E;margin-bottom:8px;">Как добавить на iPhone / iPad:</div>
+    <div style="font-size:13px;color:#5B7199;line-height:2;">
+      1️⃣ Нажмите <strong style="color:#1A6BFF;">«Поделиться»</strong> внизу Safari<br>
+      2️⃣ Выберите <strong style="color:#1A6BFF;">«На экран «Домой»»</strong><br>
+      3️⃣ Нажмите <strong style="color:#1A6BFF;">«Добавить»</strong> ✓
+    </div>
+  </div>
+</div>
+
+<script>
+var _pwaDeferred = null;
+var _pwaBannerShown = false;
+
+// Ловим событие Chrome/Android заранее (до открытия ЛК)
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaDeferred = e;
+});
+
+window.showPwaBanner = function() {
+  // Не показываем если уже установлено
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) return;
+  // Не показываем если уже закрывал (хранится 7 дней)
+  var closed = localStorage.getItem('pwa_banner_closed');
+  if (closed && Date.now() - parseInt(closed) < 7 * 24 * 60 * 60 * 1000) return;
+  // Не показываем повторно в одной сессии
+  if (_pwaBannerShown) return;
+
+  var banner = document.getElementById('pwaInstallBanner');
+  var installBtn = document.getElementById('pwaInstallBtn');
+  var iosHint = document.getElementById('pwaIosHint');
+  if (!banner) return;
+
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  if (_pwaDeferred) {
+    // Android/Chrome — показываем кнопку
+    installBtn.style.display = 'block';
+  } else if (isIos) {
+    // iOS Safari — показываем инструкцию
+    iosHint.style.display = 'block';
+  } else {
+    // Другой браузер без поддержки — не показываем
+    return;
+  }
+
+  banner.style.display = 'block';
+  _pwaBannerShown = true;
+
+  // Кнопка установки (Chrome/Android)
+  installBtn.onclick = function() {
+    if (!_pwaDeferred) return;
+    _pwaDeferred.prompt();
+    _pwaDeferred.userChoice.then(function() {
+      _pwaDeferred = null;
+      banner.style.display = 'none';
+      localStorage.setItem('pwa_banner_closed', Date.now().toString());
+    });
+  };
+
+  // Закрыть
+  document.getElementById('pwaInstallClose').onclick = function() {
+    banner.style.display = 'none';
+    localStorage.setItem('pwa_banner_closed', Date.now().toString());
+  };
+};
+</script>
+<!-- ===== / PWA Install Banner ===== -->
+
+<script>
+// ===== Перетаскивание кнопки AI =====
+(function() {
+  var btn = null;
+  var pointerDown = false;
+  var moved = false;
+  var startX, startY, btnStartLeft, btnStartTop;
+  var THRESHOLD = 6;
+
+  function init() {
+    btn = document.getElementById('aiChatBtn');
+    if (!btn) return setTimeout(init, 600);
+
+    // Убираем onclick — управляем кликом сами
+    btn.removeAttribute('onclick');
+
+    function toAbsolute() {
+      var r = btn.getBoundingClientRect();
+      btn.style.position = 'fixed';
+      btn.style.right  = 'auto';
+      btn.style.bottom = 'auto';
+      btn.style.left   = r.left + 'px';
+      btn.style.top    = r.top  + 'px';
+    }
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function onDown(cx, cy) {
+      pointerDown = true;
+      moved = false;
+      toAbsolute();
+      btnStartLeft = parseFloat(btn.style.left);
+      btnStartTop  = parseFloat(btn.style.top);
+      startX = cx; startY = cy;
+      btn.style.transition = 'none';
+      btn.style.animation  = 'none';
+    }
+
+    function onMove(cx, cy) {
+      if (!pointerDown) return;
+      var dx = cx - startX, dy = cy - startY;
+      if (!moved && Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
+      moved = true;
+      var S = btn.offsetWidth;
+      btn.style.left = clamp(btnStartLeft + dx, 8, window.innerWidth  - S - 8) + 'px';
+      btn.style.top  = clamp(btnStartTop  + dy, 8, window.innerHeight - S - 8) + 'px';
+    }
+
+    function onUp() {
+      if (!pointerDown) return;
+      pointerDown = false;
+      if (moved) {
+        // Перетаскивание — примагничиваем к краю
+        moved = false;
+        var r = btn.getBoundingClientRect();
+        var snapLeft = (r.left + r.width / 2) > window.innerWidth / 2
+          ? window.innerWidth - btn.offsetWidth - 12
+          : 12;
+        btn.style.transition = 'left 0.3s ease, top 0.3s ease';
+        btn.style.left = snapLeft + 'px';
+        if (!btn.classList.contains('chat-open')) {
+          setTimeout(function() { btn.style.animation = 'robotFloat 3s ease-in-out infinite'; }, 320);
+        }
+      } else {
+        // Чистый клик — открываем/закрываем чат
+        btn.style.transition = '';
+        if (!btn.classList.contains('chat-open')) {
+          btn.style.animation = 'robotFloat 3s ease-in-out infinite';
+        }
+        toggleAiChat();
+      }
+    }
+
+    // --- Touch ---
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault(); // блокируем генерацию click браузером
+      onDown(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+      if (!pointerDown) return;
+      e.preventDefault();
+      onMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    document.addEventListener('touchend', function(e) {
+      onUp();
+    });
+
+    // --- Mouse ---
+    btn.addEventListener('mousedown', function(e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      onDown(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      onMove(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mouseup', function() {
+      onUp();
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+  setTimeout(init, 800);
+})();
+</script>
+
+<script>
+// ===== AI Chat visibility toggle =====
+function toggleAiChatVisibility(enabled) {
+  var btn = document.getElementById('aiChatBtn');
+  var slider = document.getElementById('aiChatToggleSlider');
+  var thumb = document.getElementById('aiChatToggleThumb');
+  if (!btn) return;
+
+  if (enabled) {
+    btn.style.display = 'flex';
+    localStorage.setItem('ai_chat_hidden', '0');
+    if (slider) slider.style.background = '#4F46E5';
+    if (thumb) thumb.style.transform = 'translateX(18px)';
+  } else {
+    btn.style.display = 'none';
+    // Закрываем чат если открыт
+    var win = document.getElementById('aiChatWindow');
+    if (win) win.style.display = 'none';
+    window.aiOpen = false;
+    localStorage.setItem('ai_chat_hidden', '1');
+    if (slider) slider.style.background = '#D1D5DB';
+    if (thumb) thumb.style.transform = 'translateX(0)';
+  }
+}
+
+// Восстанавливаем состояние при загрузке настроек
+function initAiChatToggle() {
+  var hidden = localStorage.getItem('ai_chat_hidden') === '1';
+  var checkbox = document.getElementById('aiChatToggle');
+  var slider = document.getElementById('aiChatToggleSlider');
+  var thumb = document.getElementById('aiChatToggleThumb');
+  var btn = document.getElementById('aiChatBtn');
+
+  if (checkbox) checkbox.checked = !hidden;
+  if (slider) slider.style.background = hidden ? '#D1D5DB' : '#4F46E5';
+  if (thumb) thumb.style.transform = hidden ? 'translateX(0)' : 'translateX(18px)';
+  if (btn) btn.style.display = hidden ? 'none' : 'flex';
+}
+
+// Применяем скрытие сразу при загрузке страницы
+(function() {
+  if (localStorage.getItem('ai_chat_hidden') === '1') {
+    var btn = document.getElementById('aiChatBtn');
+    if (btn) btn.style.display = 'none';
+    else {
+      // Кнопка ещё не в DOM — ждём
+      var obs = new MutationObserver(function() {
+        var b = document.getElementById('aiChatBtn');
+        if (b) { b.style.display = 'none'; obs.disconnect(); }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+})();
+
+// Инициализируем тоггл когда открываются настройки
+var _origRenderDashForAI = window.renderDash;
+window.renderDash = function(view) {
+  _origRenderDashForAI(view);
+  if (view === 'settings') {
+    setTimeout(initAiChatToggle, 200);
+    setTimeout(initAccessibilityControls, 200);
+  }
+};
+
+// ===== Упрощённый интерфейс =====
+function toggleSimpleUi(enabled) {
+  var slider = document.getElementById('simpleUiSlider');
+  var thumb = document.getElementById('simpleUiThumb');
+  if (enabled) {
+    document.documentElement.setAttribute('data-simple-ui', '1');
+    localStorage.setItem('gs_simple_ui', '1');
+    if (slider) slider.style.background = '#4F46E5';
+    if (thumb) thumb.style.transform = 'translateX(18px)';
+  } else {
+    document.documentElement.removeAttribute('data-simple-ui');
+    localStorage.setItem('gs_simple_ui', '0');
+    if (slider) slider.style.background = '#D1D5DB';
+    if (thumb) thumb.style.transform = 'translateX(0)';
+  }
+}
+
+// ===== Крупные кнопки =====
+function toggleBigButtons(enabled) {
+  var slider = document.getElementById('bigBtnsSlider');
+  var thumb = document.getElementById('bigBtnsThumb');
+  if (enabled) {
+    document.documentElement.setAttribute('data-big-buttons', '1');
+    localStorage.setItem('gs_big_buttons', '1');
+    if (slider) slider.style.background = '#4F46E5';
+    if (thumb) thumb.style.transform = 'translateX(18px)';
+  } else {
+    document.documentElement.removeAttribute('data-big-buttons');
+    localStorage.setItem('gs_big_buttons', '0');
+    if (slider) slider.style.background = '#D1D5DB';
+    if (thumb) thumb.style.transform = 'translateX(0)';
+  }
+}
+
+// ===== Режим слабовидящих =====
+function toggleLowVision(enabled) {
+  var slider = document.getElementById('lowVisionSlider');
+  var thumb = document.getElementById('lowVisionThumb');
+  if (enabled) {
+    document.documentElement.setAttribute('data-low-vision', '1');
+    localStorage.setItem('gs_low_vision', '1');
+    if (slider) slider.style.background = '#4F46E5';
+    if (thumb) thumb.style.transform = 'translateX(18px)';
+  } else {
+    document.documentElement.removeAttribute('data-low-vision');
+    localStorage.setItem('gs_low_vision', '0');
+    if (slider) slider.style.background = '#D1D5DB';
+    if (thumb) thumb.style.transform = 'translateX(0)';
+  }
+}
+
+// ===== Размер текста =====
+var _fontSizeStep = 100;
+var _fontSizeMin = 70;
+var _fontSizeMax = 150;
+
+function applyFontSize(pct) {
+  _fontSizeStep = pct;
+  document.documentElement.style.fontSize = pct + '%';
+  localStorage.setItem('gs_font_size', pct);
+  var labels = { 70:'Маленький (70%)', 80:'Маленький (80%)', 90:'Немного меньше (90%)', 100:'Обычный (100%)', 110:'Крупный (110%)', 120:'Крупный (120%)', 130:'Очень крупный (130%)', 140:'Очень крупный (140%)', 150:'Максимальный (150%)' };
+  var label = document.getElementById('fontSizeLabel');
+  if (label) label.textContent = labels[pct] || ('Размер ' + pct + '%');
+  var bar = document.getElementById('fontSizeBar');
+  if (bar) bar.style.width = ((pct - _fontSizeMin) / (_fontSizeMax - _fontSizeMin) * 100) + '%';
+}
+
+function changeFontSize(delta) {
+  var newVal = Math.min(_fontSizeMax, Math.max(_fontSizeMin, _fontSizeStep + delta));
+  applyFontSize(newVal);
+}
+
+function resetFontSize() { applyFontSize(100); }
+
+function initAccessibilityControls() {
+  // Low vision
+  var lv = localStorage.getItem('gs_low_vision') === '1';
+  var cb = document.getElementById('lowVisionToggle');
+  var slider = document.getElementById('lowVisionSlider');
+  var thumb = document.getElementById('lowVisionThumb');
+  if (cb) cb.checked = lv;
+  if (slider) slider.style.background = lv ? '#4F46E5' : '#D1D5DB';
+  if (thumb) thumb.style.transform = lv ? 'translateX(18px)' : 'translateX(0)';
+
+  // Simple UI
+  var su = localStorage.getItem('gs_simple_ui') === '1';
+  var suCb = document.getElementById('simpleUiToggle');
+  var suSlider = document.getElementById('simpleUiSlider');
+  var suThumb = document.getElementById('simpleUiThumb');
+  if (suCb) suCb.checked = su;
+  if (suSlider) suSlider.style.background = su ? '#4F46E5' : '#D1D5DB';
+  if (suThumb) suThumb.style.transform = su ? 'translateX(18px)' : 'translateX(0)';
+
+  // Big buttons
+  var bb = localStorage.getItem('gs_big_buttons') === '1';
+  var bbCb = document.getElementById('bigBtnsToggle');
+  var bbSlider = document.getElementById('bigBtnsSlider');
+  var bbThumb = document.getElementById('bigBtnsThumb');
+  if (bbCb) bbCb.checked = bb;
+  if (bbSlider) bbSlider.style.background = bb ? '#4F46E5' : '#D1D5DB';
+  if (bbThumb) bbThumb.style.transform = bb ? 'translateX(18px)' : 'translateX(0)';
+
+  // Font size
+  var savedSize = parseInt(localStorage.getItem('gs_font_size') || '100');
+  applyFontSize(savedSize);
+}
+
+// Применяем при загрузке страницы
+(function() {
+  if (localStorage.getItem('gs_low_vision') === '1') {
+    document.documentElement.setAttribute('data-low-vision', '1');
+  }
+  if (localStorage.getItem('gs_simple_ui') === '1') {
+    document.documentElement.setAttribute('data-simple-ui', '1');
+  }
+  if (localStorage.getItem('gs_big_buttons') === '1') {
+    document.documentElement.setAttribute('data-big-buttons', '1');
+  }
+  var savedSize = parseInt(localStorage.getItem('gs_font_size') || '100');
+  if (savedSize !== 100) {
+    document.documentElement.style.fontSize = savedSize + '%';
+    _fontSizeStep = savedSize;
+  }
+})();
+</script>
