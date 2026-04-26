@@ -5136,23 +5136,32 @@ function renderDash(view) {
       ${recentBlock}
       ${sampleParcels.length > 0 ? `<button onclick="setDashTab(null,'parcels')" style="width:100%;padding:12px;border:1.5px dashed #F0F0F0;border-radius:12px;background:white;color:var(--text-secondary);font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;">Показать все посылки →</button>` : ''}`,
 
-    parcels: `
-      <div class="dash-greeting">📦 Мои посылки</div>
-      <div class="dash-sub">Все ваши заказы</div>
-      ${sampleParcels.length === 0 ? `
-        <div style="background:var(--card-bg);border:1.5px dashed var(--card-border);border-radius:16px;padding:56px 20px;text-align:center;margin-bottom:16px;">
-          <div style="font-size:56px;margin-bottom:14px;">📭</div>
-          <div style="font-size:18px;font-weight:800;margin-bottom:8px;">У вас пока нет посылок</div>
-          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">Добавьте посылку вручную или оформите новый заказ — он появится в этом списке</div>
-          <button onclick="setDashTab(null,'new')" class="btn-pink" style="padding:12px 28px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">➕ Добавить посылку</button>
+    parcels: (function() {
+      const warehouseCount = sampleParcels.filter(p => p.status === 'warehouse').length;
+      return `
+      <div style="margin-bottom:20px;">
+        <div class="dash-greeting">📦 Мои посылки</div>
+        <div class="dash-sub">Управляйте посылками и оформляйте доставку по Казахстану</div>
+      </div>
+      <div class="pv2-wrap" id="pv2Wrap">
+        <div class="pv2-sidebar" id="pv2Sidebar"></div>
+        <div class="pv2-main">
+          <div class="pv2-topbar">
+            <div class="pv2-title">Посылки</div>
+            <div class="pv2-actions">
+              ${warehouseCount > 0 ? `<button onclick="selectAllWarehouse()" class="pv2-icon-btn" style="width:auto;padding:0 12px;font-size:12px;font-weight:700;gap:6px;display:flex;align-items:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Все на складе</button>` : ''}
+              <button class="pv2-icon-btn" title="Сбросить фильтр" onclick="setPv2Filter('all')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="pv2-list" id="pv2List"></div>
+          <div class="pv2-bottom">
+            <button onclick="setDashTab(null,'new')" class="btn-pink" style="width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:Manrope,sans-serif;">+ Добавить посылку</button>
+          </div>
         </div>
-      ` : `
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
-          ${Object.entries(statusConfig).map(([k,v]) => `<span style="background:${v.color};color:${v.text};padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;">${v.icon} ${v.label}</span>`).join('')}
-        </div>
-        ${sampleParcels.map(parcelCard).join('')}
-        <button onclick="setDashTab(null,'new')" class="btn-pink" style="width:100%;padding:14px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:Manrope,sans-serif;margin-top:8px;">+ Добавить новую посылку</button>
-      `}`,
+      </div>`;
+    })(),
 
     new: `
       <div class="dash-greeting">➕ Новый заказ</div>
@@ -5634,6 +5643,10 @@ function renderDash(view) {
   // Render loyalty view dynamically (needs loyaltyInfo functions loaded after)
   if (view === 'loyalty' && typeof renderLoyaltyView === 'function') {
     el.innerHTML = renderLoyaltyView();
+  }
+  // Render new parcels UI
+  if (view === 'parcels' && typeof renderPv2Parcels === 'function') {
+    renderPv2Parcels();
   }
 }
 
@@ -9724,4 +9737,1198 @@ document.addEventListener('DOMContentLoaded', function() {
     }).catch(function(){});
   }, 2000);
 });
+</script>
+
+<script>
+// =============================================
+// DELIVERY FLOW — v10
+// Оформление доставки из личного кабинета
+// =============================================
+
+// ---- Состояние выбранных посылок ----
+window._deliverySelected = new Set();
+
+// ---- Тарифы внутренней доставки (₸) ----
+// Стандартная: ≤5кг → 1000 (Алматы/Астана) или 1600 (остальные), >5кг → 0
+// Экспресс: за каждые 500г
+// Яндекс: за каждые 500г (свои тарифы)
+
+const DELIVERY_TYPES = [
+  { key: 'standard', label: '🚚 Стандартная', desc: 'Казпочта/СДЭК — 3-7 дней' },
+  { key: 'express',  label: '⚡ Экспресс',    desc: 'Курьер — 1-2 дня' },
+  { key: 'yandex',   label: '🟡 Яндекс.Доставка', desc: 'Яндекс.Доставка — 1 день' },
+  { key: 'kazpost',  label: '📮 Казпочта',    desc: 'Только для сёл и деревень' },
+];
+
+const ALMA_ASTANA = ['Алматы', 'Астана', 'Нур-Султан', 'Almaty', 'Astana'];
+
+// Экспресс тарифы (₸ за 500г)
+const EXPRESS_RATE_PER_500G = 800;
+// Яндекс тарифы (₸ за 500г)
+const YANDEX_RATE_PER_500G = 1200;
+// Казпочта (₸ за 500г)
+const KAZPOST_RATE_PER_500G = 350;
+
+function calcDeliveryCost(weightG, deliveryType, city) {
+  if (deliveryType === 'standard') {
+    if (weightG > 5000) return 0;
+    const isBigCity = ALMA_ASTANA.some(c => (city||'').toLowerCase().includes(c.toLowerCase()));
+    return isBigCity ? 1000 : 1600;
+  }
+  // для остальных — округление вверх до 500г
+  const steps = Math.ceil(weightG / 500);
+  if (deliveryType === 'express')  return steps * EXPRESS_RATE_PER_500G;
+  if (deliveryType === 'yandex')   return steps * YANDEX_RATE_PER_500G;
+  if (deliveryType === 'kazpost')  return steps * KAZPOST_RATE_PER_500G;
+  return 0;
+}
+
+// ---- Переопределяем parcelCard — добавляем чекбокс для посылок "На складе" ----
+const _origParcelCard = window.parcelCard;
+window.parcelCard = function(p) {
+  const s = statusConfig[p.status] || { label: p.status, color: '#F3F4F6', text: '#374151', icon: '📦' };
+  const isWarehouse = p.status === 'warehouse';
+  const checked = window._deliverySelected.has(p.id) ? 'checked' : '';
+
+  return `
+  <div class="parcel-card" id="pcard_${p.id}" style="background:var(--card-bg);border-radius:16px;border:1.5px solid ${isWarehouse && checked ? 'var(--accent)' : 'var(--card-border)'};padding:20px;margin-bottom:12px;transition:border-color 0.2s;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;flex:1;">
+        ${isWarehouse ? `
+          <label style="display:flex;align-items:center;cursor:pointer;margin-top:3px;flex-shrink:0;">
+            <input type="checkbox" ${checked}
+              style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;"
+              onchange="toggleDeliveryParcel('${p.id}', this.checked)" />
+          </label>` : '<div style="width:18px;flex-shrink:0;"></div>'}
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:800;margin-bottom:4px;">${p.name}</div>
+          <div style="font-size:12px;color:var(--text-secondary);">${p.id} · ${p.country} · ${p.date}</div>
+        </div>
+      </div>
+      <span style="background:${s.color};color:${s.text};padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;">${s.icon} ${s.label}</span>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:14px;margin-left:30px;">
+      <div style="background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;"><span style="color:var(--text-secondary);">Вес</span><br><b>${p.weight}</b></div>
+      <div style="background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;"><span style="color:var(--text-secondary);">Стоимость</span><br><b>${p.price}</b></div>
+    </div>
+    <div style="display:flex;gap:8px;border-top:1px solid var(--card-border);padding-top:12px;margin-left:30px;">
+      ${isWarehouse
+        ? `<button class="btn-pink" style="padding:7px 16px;border-radius:9px;font-size:12px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;" onclick="toggleDeliveryParcel('${p.id}', !window._deliverySelected.has('${p.id}'), true)">${window._deliverySelected.has(p.id) ? '✓ Выбрана' : '📦 Выбрать'}</button>`
+        : `<button disabled style="padding:7px 16px;border-radius:9px;font-size:12px;border:1.5px solid var(--card-border);background:var(--bg);color:var(--text-secondary);font-family:Manrope,sans-serif;font-weight:600;cursor:not-allowed;">🔒 Уже в пути</button>`}
+      <button class="btn-outline" style="padding:7px 16px;border-radius:9px;font-size:12px;cursor:pointer;" onclick="showPage('tracking')">🔍 Отследить</button>
+    </div>
+  </div>`;
+};
+
+// ---- Переключение выбора посылки ----
+window.toggleDeliveryParcel = function(id, selected, rerender) {
+  if (selected) {
+    window._deliverySelected.add(id);
+  } else {
+    window._deliverySelected.delete(id);
+  }
+  // Обновляем карточку без полного перерендера
+  const card = document.getElementById('pcard_' + id);
+  if (card) {
+    const cb = card.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = selected;
+    card.style.borderColor = selected ? 'var(--accent)' : 'var(--card-border)';
+    const btns = card.querySelectorAll('button');
+    if (btns[0]) btns[0].textContent = selected ? '✓ Выбрана' : '📦 Выбрать';
+  }
+  // Обновляем нижнюю панель
+  renderDeliveryBar();
+};
+
+// ---- Нижняя панель «Оформить доставку» ----
+function renderDeliveryBar() {
+  let bar = document.getElementById('deliveryBar');
+  const count = window._deliverySelected.size;
+
+  // Считаем общий вес выбранных посылок
+  const selected = sampleParcels.filter(p => window._deliverySelected.has(p.id));
+  const totalWeightG = selected.reduce((sum, p) => {
+    const w = parseFloat(String(p.weight).replace(/[^\d.]/g, ''));
+    return sum + (isNaN(w) ? 0 : w * 1000); // если в кг — *1000, если уже грамм — берём как есть
+  }, 0);
+
+  if (count === 0) {
+    if (bar) bar.remove();
+    return;
+  }
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'deliveryBar';
+    document.body.appendChild(bar);
+  }
+
+  const weightStr = totalWeightG >= 1000
+    ? (totalWeightG / 1000).toFixed(1) + ' кг'
+    : totalWeightG + ' г';
+
+  bar.style.cssText = `
+    position:fixed;bottom:0;left:0;right:0;z-index:500;
+    background:var(--accent-gradient);
+    padding:14px 20px 20px;
+    box-shadow:0 -4px 24px rgba(79,70,229,0.25);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;
+  `;
+  bar.innerHTML = `
+    <div style="color:white;">
+      <div style="font-size:14px;font-weight:800;">📦 Выбрано посылок: ${count}</div>
+      <div style="font-size:12px;opacity:0.85;">Общий вес: ${weightStr}</div>
+    </div>
+    <button onclick="openDeliveryModal()"
+      style="padding:11px 24px;background:white;color:var(--accent);border:none;border-radius:12px;
+             font-size:14px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;
+             box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0;">
+      Оформить доставку →
+    </button>
+  `;
+}
+
+// ---- Модал оформления доставки ----
+window.openDeliveryModal = function() {
+  const selected = sampleParcels.filter(p => window._deliverySelected.has(p.id));
+  if (!selected.length) return;
+
+  const old = document.getElementById('deliveryModal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'deliveryModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:800;display:flex;align-items:flex-end;justify-content:center;padding:0;';
+
+  const typeOptions = DELIVERY_TYPES.map(t =>
+    `<label style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1.5px solid var(--card-border);border-radius:12px;cursor:pointer;margin-bottom:8px;transition:border-color 0.15s;" id="dlabel_${t.key}" onclick="selectDeliveryType('${t.key}')">
+      <input type="radio" name="deliveryType" value="${t.key}" style="margin-top:3px;accent-color:var(--accent);" ${t.key==='standard'?'checked':''}/>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);">${t.label}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">${t.desc}</div>
+      </div>
+    </label>`
+  ).join('');
+
+  const parcelList = selected.map(p =>
+    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--card-border);font-size:13px;">
+      <span style="color:var(--text-primary);font-weight:600;">${p.name}</span>
+      <span style="color:var(--text-secondary);">${p.weight} · ${p.id}</span>
+    </div>`
+  ).join('');
+
+  modal.innerHTML = `
+    <div style="background:var(--card-bg);border-radius:24px 24px 0 0;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;padding:24px 20px 32px;">
+      <!-- Шапка -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:var(--text-primary);">🚚 Оформить доставку</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;">Выбрано посылок: ${selected.length}</div>
+        </div>
+        <button onclick="closeDeliveryModal()" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--card-border);background:var(--bg);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);">×</button>
+      </div>
+
+      <!-- Список посылок -->
+      <div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);letter-spacing:0.8px;margin-bottom:8px;">ПОСЫЛКИ</div>
+        ${parcelList}
+      </div>
+
+      <!-- Тип доставки -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">Тип доставки</div>
+        ${typeOptions}
+      </div>
+
+      <!-- Город -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--text-primary);display:block;margin-bottom:8px;">Город получателя <span style="color:var(--accent);">*</span></label>
+        <input type="text" id="dlvCity" placeholder="Алматы, Астана, Шымкент..."
+          oninput="updateDeliveryCost()"
+          style="width:100%;padding:12px 16px;border:1.5px solid var(--card-border);border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'" />
+      </div>
+
+      <!-- ФИО -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--text-primary);display:block;margin-bottom:8px;">ФИО получателя <span style="color:var(--accent);">*</span></label>
+        <input type="text" id="dlvName" placeholder="Иванов Иван Иванович"
+          style="width:100%;padding:12px 16px;border:1.5px solid var(--card-border);border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'" />
+      </div>
+
+      <!-- Телефон -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:var(--text-primary);display:block;margin-bottom:8px;">Телефон <span style="color:var(--accent);">*</span></label>
+        <input type="tel" id="dlvPhone" placeholder="+7 777 000 00 00"
+          style="width:100%;padding:12px 16px;border:1.5px solid var(--card-border);border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:var(--bg);color:var(--text-primary);"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'" />
+      </div>
+
+      <!-- Адрес -->
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px;font-weight:700;color:var(--text-primary);display:block;margin-bottom:8px;">Адрес доставки <span style="color:var(--accent);">*</span></label>
+        <textarea id="dlvAddress" rows="2" placeholder="ул. Абая, 10, кв. 25"
+          style="width:100%;padding:12px 16px;border:1.5px solid var(--card-border);border-radius:12px;font-size:14px;font-family:Manrope,sans-serif;outline:none;resize:none;background:var(--bg);color:var(--text-primary);"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--card-border)'"></textarea>
+      </div>
+
+      <!-- Итог -->
+      <div id="dlvCostBox" style="background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:14px;padding:16px 20px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;">СТОИМОСТЬ ДОСТАВКИ</div>
+            <div style="font-size:11px;color:var(--text-secondary);" id="dlvCostDesc">Выберите город для расчёта</div>
+          </div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent);" id="dlvCostValue">—</div>
+        </div>
+      </div>
+
+      <!-- Кнопка -->
+      <button id="dlvSubmitBtn" onclick="submitDelivery()"
+        style="width:100%;padding:15px;background:var(--accent-gradient);color:white;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;">
+        Подтвердить и оформить 🚀
+      </button>
+      <div style="text-align:center;font-size:12px;color:var(--text-secondary);margin-top:10px;">После оформления менеджер свяжется с вами для подтверждения</div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e){ if(e.target===modal) closeDeliveryModal(); });
+
+  // Подсветить первый тип
+  selectDeliveryType('standard');
+  updateDeliveryCost();
+};
+
+window.closeDeliveryModal = function() {
+  const m = document.getElementById('deliveryModal');
+  if (m) m.remove();
+};
+
+window.selectDeliveryType = function(key) {
+  DELIVERY_TYPES.forEach(t => {
+    const lbl = document.getElementById('dlabel_' + t.key);
+    if (lbl) lbl.style.borderColor = t.key === key ? 'var(--accent)' : 'var(--card-border)';
+  });
+  const rb = document.querySelector(`input[name="deliveryType"][value="${key}"]`);
+  if (rb) rb.checked = true;
+  updateDeliveryCost();
+};
+
+window.updateDeliveryCost = function() {
+  const selected = sampleParcels.filter(p => window._deliverySelected.has(p.id));
+  const totalWeightG = selected.reduce((sum, p) => {
+    let w = parseFloat(String(p.weight).replace(/[^\d.]/g, ''));
+    if (isNaN(w)) return sum;
+    // Если вес < 30 — скорее всего кг, переводим в граммы
+    if (w < 30) w = w * 1000;
+    return sum + w;
+  }, 0);
+
+  const rb = document.querySelector('input[name="deliveryType"]:checked');
+  const deliveryType = rb ? rb.value : 'standard';
+  const city = (document.getElementById('dlvCity') || {}).value || '';
+
+  const costEl = document.getElementById('dlvCostValue');
+  const descEl = document.getElementById('dlvCostDesc');
+  if (!costEl || !descEl) return;
+
+  const cost = calcDeliveryCost(totalWeightG, deliveryType, city);
+  const weightStr = totalWeightG >= 1000 ? (totalWeightG/1000).toFixed(2)+' кг' : totalWeightG+' г';
+
+  if (!city.trim()) {
+    costEl.textContent = '—';
+    descEl.textContent = 'Введите город для расчёта';
+    return;
+  }
+  costEl.textContent = cost === 0 ? 'Бесплатно' : cost.toLocaleString('ru-RU') + ' ₸';
+  descEl.textContent = `${weightStr} · ${DELIVERY_TYPES.find(t=>t.key===deliveryType)?.label || deliveryType}`;
+};
+
+window.submitDelivery = async function() {
+  const city    = (document.getElementById('dlvCity') || {}).value?.trim();
+  const name    = (document.getElementById('dlvName') || {}).value?.trim();
+  const phone   = (document.getElementById('dlvPhone') || {}).value?.trim();
+  const address = (document.getElementById('dlvAddress') || {}).value?.trim();
+  const rb      = document.querySelector('input[name="deliveryType"]:checked');
+  const deliveryType = rb ? rb.value : 'standard';
+
+  if (!city || !name || !phone || !address) {
+    alert('⚠️ Заполните все обязательные поля');
+    return;
+  }
+
+  const selected = sampleParcels.filter(p => window._deliverySelected.has(p.id));
+  if (!selected.length) { alert('Выберите хотя бы одну посылку'); return; }
+
+  const totalWeightG = selected.reduce((sum, p) => {
+    let w = parseFloat(String(p.weight).replace(/[^\d.]/g, ''));
+    if (isNaN(w)) return sum;
+    if (w < 30) w = w * 1000;
+    return sum + w;
+  }, 0);
+  const cost = calcDeliveryCost(totalWeightG, deliveryType, city);
+
+  const btn = document.getElementById('dlvSubmitBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Оформляем...'; }
+
+  try {
+    const db = window.firebaseDb;
+    const now = Date.now();
+    const deliveryId = 'dlv_' + now + '_' + (window.currentUser?.uid?.substring(0,6) || 'guest');
+
+    // Сохраняем заявку на доставку
+    await window.firebaseSetDoc(
+      window.firebaseDoc(db, 'deliveries', deliveryId),
+      {
+        id: deliveryId,
+        userId: window.currentUser?.uid,
+        userEmail: window.currentUser?.email,
+        parcelIds: selected.map(p => p.id),
+        parcelCount: selected.length,
+        totalWeightG: totalWeightG,
+        deliveryType: deliveryType,
+        deliveryCost: cost,
+        recipient: { name, phone, city, address },
+        status: 'pending',
+        createdAt: now
+      }
+    );
+
+    // Меняем статус всех выбранных посылок на "flying"
+    const updates = selected.map(async p => {
+      const docId = p.id + '_' + window.currentUser?.uid;
+      try {
+        await window.firebaseUpdateDoc(
+          window.firebaseDoc(db, 'parcels', docId),
+          {
+            status: 'flying',
+            deliveryId: deliveryId,
+            deliveryType: deliveryType,
+            deliveryCity: city,
+            deliveryRecipient: name,
+            deliveryPhone: phone,
+            deliveryAddress: address,
+            flyingAt: now
+          }
+        );
+      } catch(e) {
+        // Попробуем с другим ID форматом
+        console.warn('Could not update parcel', p.id, e);
+      }
+    });
+    await Promise.all(updates);
+
+    // Очищаем выбор
+    window._deliverySelected.clear();
+
+    // Перезагружаем посылки
+    await loadUserParcels();
+
+    closeDeliveryModal();
+    renderDeliveryBar();
+    renderDash('parcels');
+
+    // Показываем подтверждение
+    showDeliverySuccessModal(selected.length, cost, deliveryType);
+
+  } catch(err) {
+    console.error('Delivery error:', err);
+    alert('❌ Ошибка оформления: ' + (err.message || err));
+    if (btn) { btn.disabled = false; btn.textContent = 'Подтвердить и оформить 🚀'; }
+  }
+};
+
+function showDeliverySuccessModal(count, cost, type) {
+  const old = document.getElementById('deliverySuccessModal');
+  if (old) old.remove();
+  const modal = document.createElement('div');
+  modal.id = 'deliverySuccessModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const typeLabel = DELIVERY_TYPES.find(t=>t.key===type)?.label || type;
+  modal.innerHTML = `
+    <div style="background:var(--card-bg);border-radius:24px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.2);">
+      <div style="font-size:52px;margin-bottom:16px;">🎉</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:8px;">Доставка оформлена!</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">
+        ${count} посылк${count===1?'а':count<5?'и':'ок'} успешно переданы в доставку
+      </div>
+      <div style="background:var(--bg);border-radius:14px;padding:16px;margin-bottom:20px;text-align:left;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:13px;color:var(--text-secondary);">Тип доставки</span>
+          <span style="font-size:13px;font-weight:700;">${typeLabel}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-size:13px;color:var(--text-secondary);">Стоимость</span>
+          <span style="font-size:16px;font-weight:800;color:var(--accent);">${cost===0?'Бесплатно':cost.toLocaleString('ru-RU')+' ₸'}</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:20px;">Менеджер свяжется с вами в ближайшее время для подтверждения деталей</div>
+      <button onclick="document.getElementById('deliverySuccessModal').remove()"
+        style="width:100%;padding:13px;background:var(--accent-gradient);color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">
+        Отлично! ✓
+      </button>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+}
+
+// ---- Добавляем пункт в sidebar ----
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    // Ничего дополнительного — доставка доступна прямо со страницы посылок
+  }, 500);
+});
+
+console.log('✅ Delivery flow v10 loaded');
+</script>
+
+<script>
+// =============================================
+// AI MANAGER — FULL v10
+// Полноценный ИИ-менеджер с контекстом пользователя,
+// действиями в ЛК и умными подсказками
+// =============================================
+
+// ---- Собираем контекст текущего пользователя ----
+function buildUserContext() {
+  if (!window.currentUser) return '(пользователь не авторизован)';
+
+  const u = window.currentUserData || {};
+  const parcels = window.sampleParcels || [];
+
+  const byStatus = {};
+  parcels.forEach(p => { byStatus[p.status] = (byStatus[p.status]||0) + 1; });
+
+  const statusLabels = {
+    added: 'добавлена',
+    warehouse: 'на складе',
+    flying: 'в пути',
+    customs: 'на таможне',
+    kazakhstan: 'в Казахстане',
+    pickup: 'ожидает получения',
+    delivered: 'доставлено'
+  };
+
+  const parcelSummary = Object.entries(byStatus)
+    .map(([k,v]) => `${v} шт. — ${statusLabels[k]||k}`)
+    .join(', ') || 'нет посылок';
+
+  const recentParcels = parcels.slice(0,5).map(p =>
+    `  • ${p.name} (${p.id}) — ${statusLabels[p.status]||p.status}, вес: ${p.weight}, цена: ${p.price}`
+  ).join('\n') || '  нет';
+
+  // Уровень лояльности
+  let loyalty = 'не определён';
+  try {
+    const li = typeof getLoyaltyInfo === 'function' ? getLoyaltyInfo() : null;
+    if (li) loyalty = `${li.level.name} (${li.totalWeight || 0} кг в этом месяце)`;
+  } catch(e) {}
+
+  // Баланс кошелька
+  let wallet = '0';
+  try {
+    const w = JSON.parse(localStorage.getItem('gs_wallet') || '{}');
+    wallet = '$' + (w.balance || 0).toFixed(2);
+  } catch(e) {}
+
+  return `
+Авторизован: да
+Email: ${window.currentUser.email}
+Имя: ${u.name || '—'}
+Client ID: ${window.currentClientId || u.clientId || '—'}
+Уровень лояльности: ${loyalty}
+Баланс кошелька: ${wallet}
+
+Посылки (${parcels.length} всего): ${parcelSummary}
+Последние 5 посылок:
+${recentParcels}`;
+}
+
+// ---- Расширенный системный промпт ----
+function buildAiSystemPrompt() {
+  const userCtx = buildUserContext();
+  const isAuth = !!window.currentUser;
+
+  return `Ты — умный AI-менеджер сайта Global Shop KZ (globalshop.kz).
+Помогаешь клиентам с заказами, доставкой, статусами посылок и любыми вопросами о сервисе.
+
+═══ ИНФОРМАЦИЯ О СЕРВИСЕ ═══
+
+Компания: Global Shop KZ — выкуп и доставка товаров из США, Германии, Китая, Кореи в Казахстан.
+Адрес офиса: Алматы, Абылай Хан 30, бутик 02.
+WhatsApp менеджера: +7 (на сайте указан актуальный номер)
+Instagram: @globalshop.kz
+
+СКЛАДЫ:
+• 🇺🇸 США (Delaware, Newark) — Nike, Amazon, Sephora и др.
+• 🇩🇪 Германия (Langenhagen, Hannover) — европейские бренды
+• 🇨🇳 Китай (Гуанчжоу) — Taobao, 1688, Shein и др.
+• 🇰🇷 Корея (Сеул) — YesStyle, Olive Young и др.
+
+ТАРИФЫ ДОСТАВКИ ИЗ-ЗА РУБЕЖА:
+• Китай Экспресс: $12/кг, срок 1-4 дня
+• Китай Стандарт: $5/кг, срок 10-18 дней
+• США: $11/кг, срок 10-18 дней
+• Германия: $11/кг, срок 10-18 дней
+• Корея: $15/кг, срок 10-18 дней
+
+ТАРИФЫ ВНУТРЕННЕЙ ДОСТАВКИ ПО КАЗАХСТАНУ:
+• Стандартная (СДЭК/Казпочта): до 5 кг — 1000₸ (Алматы/Астана), 1600₸ (другие города); свыше 5 кг — БЕСПЛАТНО
+• Экспресс (курьер): 800₸ за каждые 500 г (с округлением вверх)
+• Яндекс.Доставка: 1200₸ за каждые 500 г
+• Казпочта (только сёла): 350₸ за каждые 500 г
+
+ТАМОЖНЯ КАЗАХСТАНА:
+• Лимит: 200€ на одну посылку без пошлины
+• Свыше лимита: пошлина 15% от суммы превышения + НДС 12%
+• Для оформления нужны: ФИО, ИИН, фото удостоверения личности получателя
+
+ОПЛАТА:
+• Kaspi перевод (номер телефона)
+• Kaspi QR
+• Наличные в офисе
+• Рассрочка 0% через Kaspi (уточнять у менеджера)
+
+ВЫКУП ТОВАРОВ:
+Клиент находит товар в магазине → копирует ссылку → оформляет заявку на выкуп в ЛК → менеджер покупает и отправляет на склад → посылка летит в Казахстан.
+
+ПРОГРАММА ЛОЯЛЬНОСТИ (5 уровней по весу в месяц):
+• Стандарт: 0-4 кг/мес
+• Бронза: 5-14 кг/мес — скидка 3%
+• Серебро: 15-29 кг/мес — скидка 5%
+• Золото: 30-49 кг/мес — скидка 7%
+• Платина: 50+ кг/мес — скидка 10%
+
+СТАТУСЫ ПОСЫЛОК:
+• 📋 Добавлена — зарегистрирована в системе
+• 🏪 На складе — поступила на склад за рубежом
+• ✈️ В пути — летит в Казахстан
+• 🛃 На таможне — проходит таможенное оформление
+• 🇰🇿 В Казахстане — прибыла в Алматы
+• 📬 Ожидает получения — готова к выдаче
+• ✅ Доставлено — получена клиентом
+
+═══ ДАННЫЕ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ ═══
+${userCtx}
+
+═══ ВОЗМОЖНЫЕ ДЕЙСТВИЯ ═══
+Ты можешь помочь клиенту перейти в нужный раздел или выполнить действие.
+Если клиент хочет что-то сделать — в КОНЦЕ ответа добавь специальный тег:
+
+Для навигации по разделам:
+  ACTION:NAV:parcels — перейти к посылкам
+  ACTION:NAV:new — новый заказ / добавить посылку
+  ACTION:NAV:payment — перейти к оплате
+  ACTION:NAV:wallet — перейти к кошельку
+  ACTION:NAV:loyalty — уровень лояльности
+  ACTION:NAV:settings — настройки профиля
+  ACTION:DELIVERY — открыть оформление доставки
+  ACTION:TRACK — перейти к отслеживанию
+  ACTION:CALC — перейти к калькулятору
+  ACTION:WAREHOUSES — адреса складов
+  ACTION:SHOPS — каталог магазинов
+
+Примеры когда добавлять ACTION:
+  "как оформить доставку?" → в ответе в конце добавь ACTION:DELIVERY
+  "хочу добавить посылку" → добавь ACTION:NAV:new
+  "сколько стоит доставка?" → добавь ACTION:CALC
+  "где мои посылки?" → добавь ACTION:NAV:parcels
+
+═══ ПРАВИЛА ОТВЕТА ═══
+• Отвечай коротко и конкретно — максимум 4-5 предложений
+• Используй эмодзи умеренно
+• Если знаешь данные пользователя — используй их (называй по имени, говори конкретно о его посылках)
+• Если вопрос требует ручного решения менеджера — добавь в конце: НАПРАВИТЬ_К_МЕНЕДЖЕРУ
+• Отвечай на том языке на котором спрашивают (русский, казахский, английский)
+• Не выдумывай данные которых нет — если не знаешь, скажи честно
+• Если пользователь не авторизован и спрашивает о своих посылках — предложи войти в аккаунт`;
+}
+
+// ---- Умные быстрые кнопки по контексту ----
+function buildSmartQuickReplies() {
+  const isAuth = !!window.currentUser;
+  const parcels = window.sampleParcels || [];
+  const warehouseParcels = parcels.filter(p => p.status === 'warehouse');
+  const flyingParcels = parcels.filter(p => p.status === 'flying' || p.status === 'customs');
+
+  if (!isAuth) {
+    return ['📦 Как оформить заказ?', '🏪 Адрес склада', '💰 Сколько стоит доставка?', '🌐 Какие магазины есть?'];
+  }
+
+  const btns = [];
+  if (warehouseParcels.length > 0) btns.push(`🚚 Оформить доставку (${warehouseParcels.length})`);
+  if (flyingParcels.length > 0) btns.push(`✈️ Где мои посылки? (${flyingParcels.length})`);
+  if (parcels.length === 0) btns.push('➕ Как добавить посылку?');
+  btns.push('💰 Рассчитать стоимость');
+  btns.push('❓ Что нужно для таможни?');
+  if (btns.length < 4) btns.push('🏪 Адреса складов');
+  return btns.slice(0, 5);
+}
+
+// ---- Обработка ACTION тегов в ответе ----
+function processAiActions(text) {
+  let cleanText = text;
+  const actions = [];
+
+  // Ищем все ACTION теги
+  const actionRegex = /ACTION:([\w:]+)/g;
+  let match;
+  while ((match = actionRegex.exec(text)) !== null) {
+    actions.push(match[1]);
+  }
+  cleanText = cleanText.replace(/ACTION:[\w:]+/g, '').trim();
+
+  return { cleanText, actions };
+}
+
+function executeAiAction(action) {
+  if (!action) return;
+  if (action.startsWith('NAV:')) {
+    const view = action.replace('NAV:', '');
+    if (document.getElementById('page-dashboard')?.classList.contains('active')) {
+      setDashTab(null, view);
+    } else {
+      showPage('dashboard');
+      setTimeout(() => setDashTab(null, view), 300);
+    }
+  } else if (action === 'DELIVERY') {
+    if (document.getElementById('page-dashboard')?.classList.contains('active')) {
+      setDashTab(null, 'parcels');
+      setTimeout(() => {
+        const warehouseParcels = (window.sampleParcels||[]).filter(p => p.status === 'warehouse');
+        if (warehouseParcels.length > 0) {
+          warehouseParcels.forEach(p => window._deliverySelected?.add(p.id));
+          renderDeliveryBar();
+          setTimeout(() => window.openDeliveryModal?.(), 400);
+        }
+      }, 400);
+    } else {
+      showPage('dashboard');
+      setTimeout(() => setDashTab(null, 'parcels'), 300);
+    }
+  } else if (action === 'TRACK') {
+    showPage('tracking');
+  } else if (action === 'CALC') {
+    showPage('calculator');
+  } else if (action === 'WAREHOUSES') {
+    showPage('warehouses');
+  } else if (action === 'SHOPS') {
+    showPage('shops');
+  }
+}
+
+// ---- Рендер сообщения бота с поддержкой action-кнопок ----
+function aiAddMsgV2(role, rawText) {
+  const msgs = document.getElementById('aiMessages');
+  if (!msgs) return;
+
+  let cleanText = rawText;
+  let showManager = false;
+  let actions = [];
+
+  if (role === 'bot') {
+    if (rawText.includes('НАПРАВИТЬ_К_МЕНЕДЖЕРУ')) {
+      cleanText = rawText.replace('НАПРАВИТЬ_К_МЕНЕДЖЕРУ', '').trim();
+      showManager = true;
+    }
+    const processed = processAiActions(cleanText);
+    cleanText = processed.cleanText;
+    actions = processed.actions;
+  }
+
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.innerHTML = cleanText
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.08);padding:1px 5px;border-radius:4px;font-size:12px;">$1</code>');
+  msgs.appendChild(div);
+
+  // Action кнопки
+  if (actions.length > 0 && role === 'bot') {
+    const actionLabels = {
+      'NAV:parcels': '📦 Перейти к посылкам',
+      'NAV:new': '➕ Добавить посылку',
+      'NAV:payment': '💳 Перейти к оплате',
+      'NAV:wallet': '👛 Открыть кошелёк',
+      'NAV:loyalty': '⭐ Мой уровень',
+      'NAV:settings': '⚙️ Настройки',
+      'DELIVERY': '🚚 Оформить доставку',
+      'TRACK': '🔍 Отследить посылку',
+      'CALC': '🧮 Калькулятор',
+      'WAREHOUSES': '🏪 Адреса складов',
+      'SHOPS': '🛍️ Каталог магазинов',
+    };
+    const btnWrap = document.createElement('div');
+    btnWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;';
+    actions.forEach(a => {
+      const label = actionLabels[a] || a;
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.style.cssText = 'padding:6px 12px;border:none;border-radius:8px;background:var(--accent);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;';
+      btn.onclick = () => {
+        executeAiAction(a);
+        toggleAiChat();
+      };
+      btnWrap.appendChild(btn);
+    });
+    msgs.appendChild(btnWrap);
+  }
+
+  // Карточка менеджера
+  if (showManager) {
+    const card = document.createElement('div');
+    card.className = 'ai-manager-card';
+    const waText = encodeURIComponent('Здравствуйте! Не нашёл ответ на сайте, нужна помощь.');
+    card.innerHTML = `
+      <div style="margin-bottom:8px;font-size:13px;color:#374151;font-weight:600;">Нужна помощь менеджера?</div>
+      <a href="https://wa.me/8615559895154?text=${waText}" target="_blank"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#25D366,#128C7E);color:white;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Написать в WhatsApp
+      </a>
+      <div style="text-align:center;margin-top:6px;font-size:11px;color:#9ca3af;">Ответим в течение 30 минут</div>`;
+    msgs.appendChild(card);
+  }
+
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ---- Переопределяем sendAiMsg с умным промптом ----
+window.sendAiMsg = async function() {
+  const inp = document.getElementById('aiInput');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  inp.disabled = true;
+  document.getElementById('aiQuickBtns').innerHTML = '';
+
+  aiAddMsgV2('user', text);
+  aiHistory.push({ role: 'user', content: text });
+
+  const typingEl = aiAddTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildAiSystemPrompt(),
+        messages: aiHistory
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error.message || 'API error');
+    }
+
+    const answer = data.content?.[0]?.text || 'Произошла ошибка, попробуйте ещё раз.';
+
+    if (typingEl) typingEl.remove();
+
+    // Сохраняем чистый ответ в историю (без action тегов)
+    const { cleanText } = processAiActions(answer);
+    aiHistory.push({ role: 'assistant', content: cleanText.replace('НАПРАВИТЬ_К_МЕНЕДЖЕРУ','').trim() });
+    if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
+
+    aiAddMsgV2('bot', answer);
+
+    // Умные быстрые кнопки после ответа
+    renderAiQuickBtns(buildSmartQuickReplies());
+
+  } catch (err) {
+    if (typingEl) typingEl.remove();
+    console.error('AI error:', err);
+    aiAddMsgV2('bot', 'Упс, что-то пошло не так 😔 Попробуйте ещё раз. НАПРАВИТЬ_К_МЕНЕДЖЕРУ');
+    renderAiQuickBtns(buildSmartQuickReplies());
+  }
+
+  inp.disabled = false;
+  inp.focus();
+};
+
+// ---- Переопределяем инициализацию чата ----
+window.toggleAiChat = function() {
+  aiOpen = !aiOpen;
+  const win = document.getElementById('aiChatWindow');
+  const btn = document.getElementById('aiChatBtn');
+  win.style.display = aiOpen ? 'flex' : 'none';
+  if (aiOpen) {
+    btn.classList.remove('idle');
+    clearTimeout(aiIdleTimer);
+    if (!aiInited) {
+      aiInited = true;
+      aiHistory = [];
+      // Персонализированное приветствие
+      const name = window.currentUserData?.name || (window.currentUser?.email?.split('@')[0]) || null;
+      const parcels = window.sampleParcels || [];
+      const warehouseCount = parcels.filter(p => p.status === 'warehouse').length;
+      const flyingCount = parcels.filter(p => p.status === 'flying' || p.status === 'customs').length;
+
+      let greeting = 'Привет! 👋 Я AI-менеджер Global Shop.\n';
+      if (window.currentUser) {
+        if (name) greeting = `Привет, ${name}! 👋 Я AI-менеджер Global Shop.\n`;
+        if (warehouseCount > 0) greeting += `\nУ вас ${warehouseCount} посылк${warehouseCount===1?'а':warehouseCount<5?'и':'ок'} на складе — готовы к оформлению доставки. 📦`;
+        else if (flyingCount > 0) greeting += `\nУ вас ${flyingCount} посылк${flyingCount===1?'а':flyingCount<5?'и':'ок'} в пути. ✈️`;
+        else greeting += '\nЗадайте любой вопрос — отвечу быстро!';
+      } else {
+        greeting += 'Спрашивайте о доставке, заказах, складах — отвечу на любой вопрос!';
+      }
+
+      aiAddMsgV2('bot', greeting);
+      renderAiQuickBtns(buildSmartQuickReplies());
+      setTimeout(() => document.getElementById('aiInput')?.focus(), 100);
+    }
+  } else {
+    aiResetIdle();
+  }
+};
+
+// ---- Быстрые кнопки: поддержка фраз про доставку ----
+window.aiQuickSend = function(text) {
+  // Спецкнопка «Оформить доставку»
+  if (text.startsWith('🚚 Оформить доставку')) {
+    const warehouseParcels = (window.sampleParcels||[]).filter(p => p.status === 'warehouse');
+    if (warehouseParcels.length > 0 && window._deliverySelected !== undefined) {
+      warehouseParcels.forEach(p => window._deliverySelected.add(p.id));
+      toggleAiChat();
+      if (document.getElementById('page-dashboard')?.classList.contains('active')) {
+        setDashTab(null, 'parcels');
+      } else {
+        showPage('dashboard');
+        setTimeout(() => setDashTab(null, 'parcels'), 300);
+      }
+      setTimeout(() => {
+        renderDeliveryBar();
+        setTimeout(() => window.openDeliveryModal?.(), 400);
+      }, 600);
+      return;
+    }
+  }
+  const inp = document.getElementById('aiInput');
+  if (inp) inp.value = text;
+  sendAiMsg();
+};
+
+console.log('✅ AI Manager Full v10 loaded');
+</script>
+
+<style>
+/* ===== PARCELS TEZREK-STYLE UI ===== */
+.pv2-wrap {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  min-height: 520px;
+  background: var(--card-bg);
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+}
+.pv2-sidebar {
+  background: var(--bg);
+  border-right: 1px solid var(--card-border);
+  padding: 8px 0;
+}
+.pv2-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 0;
+  transition: all 0.15s;
+  gap: 10px;
+  border-left: 3px solid transparent;
+}
+.pv2-filter:hover { background: var(--sidebar-active-bg); color: var(--text-primary); }
+.pv2-filter.active {
+  background: var(--card-bg);
+  color: var(--accent);
+  font-weight: 700;
+  border-left-color: var(--accent);
+}
+.pv2-filter-left { display: flex; align-items: center; gap: 10px; }
+.pv2-filter-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; background: var(--card-bg); flex-shrink: 0; transition: background 0.15s; }
+.pv2-filter.active .pv2-filter-icon { background: var(--accent-soft); }
+.pv2-count {
+  min-width: 22px; height: 22px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+.pv2-filter.active .pv2-count { background: var(--accent); color: white; }
+.pv2-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+  position: relative;
+}
+.pv2-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--card-border);
+}
+.pv2-title { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.pv2-actions { display: flex; gap: 8px; align-items: center; }
+.pv2-icon-btn {
+  width: 34px; height: 34px; border-radius: 9px;
+  border: 1.5px solid var(--card-border);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.pv2-icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.pv2-list { flex: 1; padding: 16px 20px; overflow-y: auto; }
+.pv2-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.pv2-empty-icon {
+  width: 64px; height: 64px;
+  background: var(--bg);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+.pv2-bottom {
+  padding: 14px 20px;
+  border-top: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+/* Карточка посылки в новом стиле */
+.pv2-card {
+  background: var(--bg);
+  border-radius: 14px;
+  border: 1.5px solid var(--card-border);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: default;
+}
+.pv2-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(26,107,255,0.08); }
+.pv2-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.pv2-card-cb { flex-shrink: 0; }
+.pv2-card-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: var(--card-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  border: 1px solid var(--card-border);
+}
+.pv2-card-body { flex: 1; min-width: 0; }
+.pv2-card-name { font-size: 14px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+.pv2-card-meta { font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; flex-wrap: wrap; }
+.pv2-card-right { flex-shrink: 0; text-align: right; }
+.pv2-card-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; margin-bottom: 4px; }
+.pv2-card-weight { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+
+/* Мобильный вид */
+@media (max-width: 768px) {
+  .pv2-wrap { grid-template-columns: 1fr; }
+  .pv2-sidebar { display: flex; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--card-border); padding: 8px; gap: 4px; }
+  .pv2-filter { border-left: none; border-bottom: 3px solid transparent; border-radius: 10px; padding: 8px 12px; white-space: nowrap; flex-shrink: 0; }
+  .pv2-filter.active { border-left: none; border-bottom-color: var(--accent); }
+}
+</style>
+
+<script>
+// ===== PARCELS UI v2 — Tezrek-style =====
+
+// Текущий активный фильтр
+window._pv2ActiveFilter = 'all';
+
+// Иконки для статусов
+const PV2_STATUS_ICONS = {
+  all:        { icon: '📦', label: 'Все посылки' },
+  added:      { icon: '📋', label: 'Добавлено' },
+  warehouse:  { icon: '🏪', label: 'На складе' },
+  flying:     { icon: '✈️', label: 'В пути' },
+  customs:    { icon: '🛃', label: 'На таможне' },
+  kazakhstan: { icon: '🇰🇿', label: 'В стране' },
+  pickup:     { icon: '📬', label: 'На доставке' },
+  delivered:  { icon: '✅', label: 'Доставлено' },
+};
+
+window.setPv2Filter = function(status) {
+  window._pv2ActiveFilter = status;
+  renderPv2Parcels();
+};
+
+function buildPv2SidebarItem(statusKey, allParcels) {
+  const count = statusKey === 'all'
+    ? allParcels.length
+    : allParcels.filter(p => p.status === statusKey).length;
+
+  // Скрываем статусы с 0 посылками (кроме "Все")
+  if (count === 0 && statusKey !== 'all') return '';
+
+  const cfg = PV2_STATUS_ICONS[statusKey] || { icon: '📦', label: statusKey };
+  const isActive = window._pv2ActiveFilter === statusKey;
+
+  return `
+    <div class="pv2-filter ${isActive ? 'active' : ''}" onclick="setPv2Filter('${statusKey}')">
+      <div class="pv2-filter-left">
+        <div class="pv2-filter-icon">${cfg.icon}</div>
+        <span>${cfg.label}</span>
+      </div>
+      <div class="pv2-count">${count}</div>
+    </div>`;
+}
+
+function buildPv2Card(p) {
+  const s = statusConfig[p.status] || { label: p.status, color: '#F3F4F6', text: '#374151', icon: '📦' };
+  const isWarehouse = p.status === 'warehouse';
+  const isSelected = window._deliverySelected && window._deliverySelected.has(p.id);
+
+  const checkbox = isWarehouse
+    ? `<label class="pv2-card-cb" style="cursor:pointer;">
+        <input type="checkbox" ${isSelected ? 'checked' : ''}
+          style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"
+          onchange="toggleDeliveryParcel('${p.id}', this.checked)" />
+       </label>`
+    : '';
+
+  return `
+    <div class="pv2-card ${isSelected ? 'selected' : ''}" id="pcard_${p.id}">
+      ${checkbox}
+      <div class="pv2-card-icon">${s.icon}</div>
+      <div class="pv2-card-body">
+        <div class="pv2-card-name">${p.name}</div>
+        <div class="pv2-card-meta">
+          <span>${p.id}</span>
+          <span>·</span>
+          <span>${p.country}</span>
+          <span>·</span>
+          <span>${p.date}</span>
+        </div>
+      </div>
+      <div class="pv2-card-right">
+        <div class="pv2-card-badge" style="background:${s.color};color:${s.text};">${s.icon} ${s.label}</div>
+        <div class="pv2-card-weight">${p.weight !== '—' ? '⚖️ ' + p.weight : ''} ${p.price !== '—' ? '· ' + p.price : ''}</div>
+      </div>
+    </div>`;
+}
+
+function renderPv2Parcels() {
+  const wrap = document.getElementById('pv2Wrap');
+  if (!wrap) return;
+
+  const allParcels = window.sampleParcels || [];
+  const activeFilter = window._pv2ActiveFilter || 'all';
+
+  const filtered = activeFilter === 'all'
+    ? allParcels
+    : allParcels.filter(p => p.status === activeFilter);
+
+  // Пересобираем сайдбар (чтобы обновились счётчики и активный пункт)
+  const sidebarEl = document.getElementById('pv2Sidebar');
+  if (sidebarEl) {
+    const statusOrder = ['all', 'added', 'warehouse', 'flying', 'customs', 'kazakhstan', 'pickup', 'delivered'];
+    sidebarEl.innerHTML = statusOrder.map(k => buildPv2SidebarItem(k, allParcels)).join('');
+  }
+
+  const listEl = document.getElementById('pv2List');
+  if (!listEl) return;
+
+  if (filtered.length === 0) {
+    const cfg = PV2_STATUS_ICONS[activeFilter] || { icon: '📦', label: 'посылок' };
+    listEl.innerHTML = `
+      <div class="pv2-empty">
+        <div class="pv2-empty-icon">${cfg.icon}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">
+          ${activeFilter === 'all' ? 'У вас пока нет посылок' : 'Нет посылок в этом статусе'}
+        </div>
+        <div style="font-size:13px;line-height:1.6;max-width:260px;">
+          ${activeFilter === 'all'
+            ? 'Оформите первый заказ — он появится здесь'
+            : 'Посылки с другим статусом доступны в других разделах слева'}
+        </div>
+        ${activeFilter === 'all' ? `<button onclick="setDashTab(null,'new')" class="btn-pink" style="margin-top:18px;padding:11px 24px;border-radius:12px;font-size:14px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">➕ Добавить посылку</button>` : ''}
+      </div>`;
+    return;
+  }
+
+  // Выбранные посылки на складе — показываем баннер
+  const warehouseSelected = filtered.filter(p => p.status === 'warehouse' && window._deliverySelected?.has(p.id));
+  let selBanner = '';
+  if (warehouseSelected.length > 0) {
+    selBanner = `<div style="background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:12px;padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span style="font-size:13px;font-weight:700;color:var(--accent);">✓ Выбрано ${warehouseSelected.length} посылок для доставки</span>
+      <button onclick="window.openDeliveryModal()" style="padding:7px 16px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;">Оформить →</button>
+    </div>`;
+  }
+
+  listEl.innerHTML = selBanner + filtered.map(buildPv2Card).join('');
+}
+
+// ---- Переопределяем renderDash для вкладки parcels ----
+
+
+// Выбрать все посылки на складе
+window.selectAllWarehouse = function() {
+  const warehouseParcels = (window.sampleParcels || []).filter(p => p.status === 'warehouse');
+  const allSelected = warehouseParcels.every(p => window._deliverySelected?.has(p.id));
+  warehouseParcels.forEach(p => {
+    if (allSelected) {
+      window._deliverySelected?.delete(p.id);
+    } else {
+      window._deliverySelected?.add(p.id);
+    }
+  });
+  renderDeliveryBar();
+  renderPv2Parcels();
+};
+
+// Переопределяем toggleDeliveryParcel чтобы обновлял новый UI
+const __origToggle = window.toggleDeliveryParcel;
+window.toggleDeliveryParcel = function(id, selected, rerender) {
+  if (selected) {
+    window._deliverySelected && window._deliverySelected.add(id);
+  } else {
+    window._deliverySelected && window._deliverySelected.delete(id);
+  }
+  // Обновляем карточку в новом UI
+  const card = document.getElementById('pcard_' + id);
+  if (card) {
+    card.classList.toggle('selected', selected);
+    const cb = card.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = selected;
+  }
+  // Обновляем баннер
+  renderPv2Parcels();
+  renderDeliveryBar();
+};
+
+console.log('✅ Parcels UI v2 loaded');
 </script>
