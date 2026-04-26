@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Global Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Manrope',sans-serif;
+    background:#F0F6FF;
+    min-height:100vh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    overflow:hidden;position:relative;
+  }
+  .cloud { position:absolute;border-radius:50px;background:white;opacity:0.6;animation:drift linear infinite; }
+  .cloud::before,.cloud::after { content:'';position:absolute;background:white;border-radius:50%; }
+  .c1{width:120px;height:36px;top:12%;left:-140px;animation-duration:22s;}
+  .c1::before{width:56px;height:56px;top:-28px;left:16px;} .c1::after{width:36px;height:36px;top:-18px;left:54px;}
+  .c2{width:90px;height:28px;top:28%;left:-110px;animation-duration:30s;animation-delay:-8s;opacity:0.4;}
+  .c2::before{width:40px;height:40px;top:-20px;left:12px;} .c2::after{width:28px;height:28px;top:-12px;left:42px;}
+  .c3{width:150px;height:40px;top:65%;left:-170px;animation-duration:26s;animation-delay:-14s;}
+  .c3::before{width:64px;height:64px;top:-32px;left:20px;} .c3::after{width:44px;height:44px;top:-20px;left:72px;}
+  .c4{width:80px;height:24px;top:78%;left:-100px;animation-duration:35s;animation-delay:-5s;opacity:0.35;}
+  .c4::before{width:34px;height:34px;top:-17px;left:10px;} .c4::after{width:24px;height:24px;top:-10px;left:36px;}
+  @keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 220px))}}
+  .crane{animation:float 4s ease-in-out infinite;display:block;margin:0 auto;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-18px) rotate(2deg)}}
+  .wing-l{transform-origin:90px 54px;animation:flapL .9s ease-in-out infinite;}
+  .wing-r{transform-origin:90px 54px;animation:flapR .9s ease-in-out infinite;}
+  @keyframes flapL{0%,100%{transform:rotate(0)}50%{transform:rotate(-18deg)}}
+  @keyframes flapR{0%,100%{transform:rotate(0)}50%{transform:rotate(18deg)}}
+  .shadow{width:100px;height:14px;background:radial-gradient(ellipse,rgba(26,107,255,.18) 0%,transparent 70%);border-radius:50%;margin:0 auto 28px;animation:shad 4s ease-in-out infinite;}
+  @keyframes shad{0%,100%{transform:scaleX(1);opacity:.6}50%{transform:scaleX(.6);opacity:.2}}
+  .num{font-size:96px;font-weight:900;line-height:1;margin-bottom:12px;background:linear-gradient(135deg,#1A6BFF,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-4px;}
+  .title{font-size:22px;font-weight:800;color:#0D1B3E;margin-bottom:10px;}
+  .sub{font-size:15px;color:#5B7199;max-width:340px;line-height:1.65;margin-bottom:32px;}
+  .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .btn-main{padding:13px 28px;background:linear-gradient(135deg,#1A6BFF,#7C3AED);color:white;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:Manrope,sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;box-shadow:0 4px 20px rgba(26,107,255,.30);transition:transform .2s,box-shadow .2s;}
+  .btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(26,107,255,.40);}
+  .btn-out{padding:13px 28px;background:white;color:#1A6BFF;border:1.5px solid #C8DEFF;border-radius:14px;font-size:14px;font-weight:700;font-family:Manrope,sans-serif;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;transition:transform .2s,border-color .2s;}
+  .btn-out:hover{transform:translateY(-2px);border-color:#1A6BFF;}
+  .hint{margin-top:36px;font-size:12px;color:#A0B0CC;display:flex;align-items:center;gap:6px;}
+  .dot{width:4px;height:4px;border-radius:50%;background:#C8DEFF;}
+</style>
+</head>
+<body>
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+<div class="cloud c3"></div>
+<div class="cloud c4"></div>
+
+<div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 24px;">
+  <svg class="crane" width="180" height="120" viewBox="0 0 180 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A6BFF"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient>
+      <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4F8FFF"/><stop offset="100%" stop-color="#A78BFA"/></linearGradient>
+    </defs>
+    <g class="wing-l"><path d="M88 56 C70 44 44 40 24 52 C36 58 56 60 88 64 Z" fill="url(#wg)" opacity=".85"/></g>
+    <g class="wing-r"><path d="M92 56 C110 44 136 40 156 52 C144 58 124 60 92 64 Z" fill="url(#wg)" opacity=".85"/></g>
+    <ellipse cx="90" cy="62" rx="22" ry="14" fill="url(#bg)"/>
+    <path d="M68 66 C60 74 54 80 46 82 C56 76 66 72 68 66 Z" fill="url(#bg)" opacity=".7"/>
+    <path d="M100 56 C104 48 108 40 114 34" stroke="url(#bg)" stroke-width="7" stroke-linecap="round" fill="none"/>
+    <circle cx="116" cy="30" r="9" fill="url(#bg)"/>
+    <ellipse cx="116" cy="22" rx="6" ry="4" fill="#EF4444"/>
+    <path d="M122 30 L134 28 L122 32 Z" fill="#0D1B3E"/>
+    <circle cx="120" cy="28" r="2" fill="white"/><circle cx="121" cy="28" r="1" fill="#0D1B3E"/>
+    <line x1="84" y1="74" x2="80" y2="96" stroke="url(#bg)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="94" y1="74" x2="98" y2="96" stroke="url(#bg)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M74 96 L80 96 L78 102 M80 96 L84 102" stroke="url(#bg)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M92 96 L98 96 L96 102 M98 96 L102 102" stroke="url(#bg)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  </svg>
+
+  <div class="shadow"></div>
+  <div class="num">404</div>
+  <div class="title">Страница улетела вместе с журавлём</div>
+  <div class="sub">Такой страницы не существует или она была перемещена. Не беда — вернём вас на нужный курс.</div>
+
+  <div class="btns">
+    <a href="/" class="btn-main">← На главную</a>
+    <a href="javascript:history.back()" class="btn-out">Вернуться назад</a>
+  </div>
+
+  <div class="hint">
+    <div class="dot"></div>
+    <span>Global Shop KZ · globalshop.kz</span>
+    <div class="dot"></div>
+  </div>
+</div>
+</body>
+</html>
