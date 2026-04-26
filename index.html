@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
   import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app-check.js";
@@ -2019,6 +2020,10 @@ window.showPageDirect = function(page) {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Манифесты
       </div>
+      <div class="admin-nav-item" onclick="showAdmin('registry')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H7v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9h-2"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><rect x="3" y="7" width="18" height="4" rx="1"/></svg>
+        Реестр
+      </div>
 
       <!-- ФИНАНСЫ -->
       <div class="admin-nav-section">Финансы</div>
@@ -3223,6 +3228,60 @@ const adminViews = {
     <\/script>
   `,
 
+  registry: `
+    <div class="dash-greeting">📋 Реестр</div>
+    <div class="dash-sub">Таможенный реестр посылок в пути — выгрузка в Excel для брокера</div>
+
+    <div class="acard" style="margin-bottom:16px;">
+      <div class="acard-title">Параметры выгрузки</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Страна отправления</label>
+          <select id="regCountry" onchange="loadRegistryParcels()" style="width:100%;padding:11px 14px;border:1.5px solid #F0F0F0;border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:white;">
+            <option value="">Все страны</option>
+            <option value="us">🇺🇸 США</option>
+            <option value="cn">🇨🇳 Китай</option>
+            <option value="de">🇩🇪 Германия</option>
+            <option value="kr">🇰🇷 Корея</option>
+            <option value="tr">🇹🇷 Турция</option>
+            <option value="uk">🇬🇧 Великобритания</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Статус</label>
+          <select id="regStatus" onchange="loadRegistryParcels()" style="width:100%;padding:11px 14px;border:1.5px solid #F0F0F0;border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;background:white;">
+            <option value="flying">✈️ В пути</option>
+            <option value="customs">🛃 На таможне</option>
+            <option value="warehouse">🏪 На складе</option>
+            <option value="all">Все активные</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:8px;">Общая накладная (House AWB)</label>
+          <input type="text" id="regMasterAwb" placeholder="напр. 235-78122332" style="width:100%;padding:11px 14px;border:1.5px solid #F0F0F0;border-radius:10px;font-size:14px;font-family:Manrope,sans-serif;outline:none;" />
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:6px;border-top:1px dashed #F0F0F0;">
+        <button onclick="loadRegistryParcels()" class="btn-outline" style="padding:10px 18px;border-radius:10px;font-size:13px;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">🔄 Обновить список</button>
+        <button onclick="toggleAllRegistry(true)" style="padding:10px 14px;border-radius:10px;font-size:12px;border:1.5px solid #F0F0F0;background:white;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">Выбрать все</button>
+        <button onclick="toggleAllRegistry(false)" style="padding:10px 14px;border-radius:10px;font-size:12px;border:1.5px solid #F0F0F0;background:white;cursor:pointer;font-family:Manrope,sans-serif;font-weight:600;">Снять выбор</button>
+        <div style="flex:1;"></div>
+        <span id="regSelectedCount" style="font-size:13px;color:var(--text-secondary);font-weight:600;">Выбрано: 0</span>
+        <button onclick="exportRegistryXlsx()" class="btn-pink" style="padding:11px 22px;border-radius:10px;font-size:13px;border:none;cursor:pointer;font-family:Manrope,sans-serif;font-weight:700;">📤 Скачать .xlsx</button>
+      </div>
+      <div id="regExportStatus" style="margin-top:10px;font-size:13px;font-weight:600;"></div>
+    </div>
+
+    <div class="acard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="acard-title" style="margin-bottom:0;">Посылки для реестра <span id="regCount" style="font-size:12px;color:var(--text-secondary);font-weight:600;margin-left:8px;"></span></div>
+      </div>
+      <div id="regWarnings" style="margin-bottom:12px;"></div>
+      <div id="regList" style="overflow-x:auto;">
+        <div style="padding:32px;text-align:center;color:var(--text-secondary);font-size:13px;">Загрузка...</div>
+      </div>
+    </div>`,
+
   warehouses: `
     <div class="dash-greeting">🏪 Склады</div>
     <div class="dash-sub">Управление адресами складов — изменения сразу видны клиентам</div>
@@ -3525,6 +3584,9 @@ function showAdmin(view) {
   }
   if (view === 'broadcast') {
     setTimeout(loadBroadcastHistory, 80);
+  }
+  if (view === 'registry') {
+    setTimeout(loadRegistryParcels, 80);
   }
 }
 
@@ -13265,6 +13327,439 @@ function initAccessibilityControls() {
     _wrapUpdateParcelStatus();
     if (++_wrapAttempts > 30) clearInterval(_wrapPoll);
   }, 300);
+
+})();
+</script>
+
+<!-- ============================================================== -->
+<!-- =================== REGISTRY MODULE (xlsx) =================== -->
+<!-- ============================================================== -->
+<script>
+(function() {
+  // ----- Адреса складов отправителей -----
+  // По образцу шаблона registry.xlsx (TEZTEZ LLC, BEAR DE).
+  // Можно вынести позже в Firestore /settings/warehouseSenders, если нужно редактировать через админку.
+  window.WAREHOUSE_SENDERS = window.WAREHOUSE_SENDERS || {
+    us: {
+      name: 'TEZTEZ LLC',
+      countryCode: 'US',
+      region: 'BEAR US',
+      city: 'BEAR',
+      address: '463 CARSON DRIVE BEAR'
+    },
+    cn: {
+      name: 'GLOBAL SHOP CN',
+      countryCode: 'CN',
+      region: 'GUANGZHOU',
+      city: 'GUANGZHOU',
+      address: 'Baiyun District, Guangzhou'
+    },
+    de: {
+      name: 'GLOBAL SHOP DE',
+      countryCode: 'DE',
+      region: 'NIEDERSACHSEN',
+      city: 'LANGENHAGEN',
+      address: 'Langenhagen Logistics Park'
+    },
+    kr: {
+      name: 'GLOBAL SHOP KR',
+      countryCode: 'KR',
+      region: 'SEOUL',
+      city: 'SEOUL',
+      address: 'Seoul Logistics Center'
+    },
+    tr: {
+      name: 'GLOBAL SHOP TR',
+      countryCode: 'TR',
+      region: 'ISTANBUL',
+      city: 'ISTANBUL',
+      address: 'Istanbul Logistics Hub'
+    },
+    uk: {
+      name: 'GLOBAL SHOP UK',
+      countryCode: 'GB',
+      region: 'LONDON',
+      city: 'LONDON',
+      address: 'London Logistics Center'
+    }
+  };
+
+  // ----- Состояние -----
+  var _registryCache = [];   // [{ parcel, recipient, valid, issues: [] }]
+  var _regSelected = {};     // { parcelId: true }
+
+  // ----- Утилиты -----
+  function _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _todayStr() {
+    var d = new Date();
+    var pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+  }
+  function _statusLabel(s) {
+    var m = { warehouse:'🏪 На складе', flying:'✈️ В пути', customs:'🛃 На таможне', kazakhstan:'🇰🇿 В Казахстане', pickup:'📬 В выдаче', delivered:'✅ Доставлено' };
+    return m[s] || s;
+  }
+  function _countryLabel(c) {
+    var m = { us:'🇺🇸 США', cn:'🇨🇳 Китай', de:'🇩🇪 Германия', kr:'🇰🇷 Корея', tr:'🇹🇷 Турция', uk:'🇬🇧 Великобритания', kz:'🇰🇿 Казахстан' };
+    return m[(c||'').toLowerCase()] || c || '—';
+  }
+
+  // ===== ЗАГРУЗКА ПОСЫЛОК =====
+
+  window.loadRegistryParcels = async function() {
+    var listEl = document.getElementById('regList');
+    var countEl = document.getElementById('regCount');
+    var warnEl = document.getElementById('regWarnings');
+    if (!listEl) return;
+
+    listEl.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);font-size:13px;">Загрузка...</div>';
+    if (countEl) countEl.textContent = '';
+    if (warnEl) warnEl.innerHTML = '';
+
+    var country = (document.getElementById('regCountry') || {}).value || '';
+    var status  = (document.getElementById('regStatus')  || {}).value || 'flying';
+
+    try {
+      var col = window.firebaseCollection(window.firebaseDb, 'parcels');
+      var constraints = [];
+      if (country) {
+        constraints.push(window.firebaseWhere('country', '==', country));
+      }
+      if (status === 'all') {
+        // Активные = всё кроме delivered. Без неравенств — фильтруем клиентом.
+      } else {
+        constraints.push(window.firebaseWhere('status', '==', status));
+      }
+      var q = constraints.length
+        ? window.firebaseQuery(col, ...constraints, window.firebaseLimit(500))
+        : window.firebaseQuery(col, window.firebaseLimit(500));
+
+      var snap = await window.firebaseGetDocs(q);
+      var parcels = [];
+      snap.forEach(function(d) {
+        var p = d.data();
+        if (status === 'all' && p.status === 'delivered') return;
+        parcels.push(Object.assign({ __id: d.id }, p));
+      });
+
+      // Сортируем по дате (свежие сверху)
+      parcels.sort(function(a, b) {
+        var ta = a.createdAt || a.warehouseAt || 0;
+        var tb = b.createdAt || b.warehouseAt || 0;
+        return tb - ta;
+      });
+
+      // Подгружаем получателей пачкой (уникальные recipientId)
+      var recipientIds = [];
+      var seen = {};
+      parcels.forEach(function(p) {
+        if (p.recipientId && !seen[p.recipientId]) {
+          seen[p.recipientId] = true;
+          recipientIds.push(p.recipientId);
+        }
+      });
+
+      var recipientsMap = {};
+      // Грузим по 1 (Firestore in-query до 30 за раз, но для надёжности делаем по одному с лимитом параллелизма 5)
+      var batchSize = 5;
+      for (var i = 0; i < recipientIds.length; i += batchSize) {
+        var batch = recipientIds.slice(i, i + batchSize);
+        await Promise.all(batch.map(async function(rid) {
+          try {
+            var ref = window.firebaseDoc(window.firebaseDb, 'recipients', rid);
+            var rsnap = await window.firebaseGetDoc(ref);
+            if (rsnap.exists()) recipientsMap[rid] = rsnap.data();
+          } catch(e) { /* skip */ }
+        }));
+      }
+
+      // Сборка кэша с валидацией
+      _registryCache = parcels.map(function(p) {
+        var recipient = p.recipientId ? recipientsMap[p.recipientId] : null;
+        var issues = [];
+        if (!recipient) issues.push('нет получателя');
+        if (!p.tnved) issues.push('нет ТНВЭД');
+        if (!p.weight) issues.push('нет веса');
+        if (!p.price) issues.push('нет цены');
+        if (recipient && !recipient.iin && !recipient.noIIN) issues.push('нет ИИН');
+        if (recipient && !recipient.docNumber) issues.push('нет № удостоверения');
+        return { parcel: p, recipient: recipient, issues: issues, valid: issues.length === 0 };
+      });
+
+      // Сбрасываем выбор
+      _regSelected = {};
+      _renderRegistryTable();
+      _renderRegistryWarnings();
+
+      if (countEl) countEl.textContent = '· ' + _registryCache.length + ' шт.';
+    } catch(e) {
+      console.error('loadRegistryParcels', e);
+      listEl.innerHTML = '<div style="padding:32px;text-align:center;color:#B91C1C;font-size:13px;">Ошибка загрузки: ' + _esc(e.message || e) + '</div>';
+    }
+  };
+
+  function _renderRegistryTable() {
+    var listEl = document.getElementById('regList');
+    if (!listEl) return;
+
+    if (_registryCache.length === 0) {
+      listEl.innerHTML = '<div style="padding:48px 20px;text-align:center;color:var(--text-secondary);">' +
+        '<div style="font-size:42px;margin-bottom:10px;">📦</div>' +
+        '<div style="font-size:14px;font-weight:700;">Нет посылок по выбранным фильтрам</div>' +
+        '<div style="font-size:12px;margin-top:4px;">Измените фильтры или дождитесь, пока посылки перейдут в выбранный статус</div>' +
+        '</div>';
+      return;
+    }
+
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+      '<thead><tr style="background:#fafafa;">' +
+        '<th style="padding:10px 8px;width:30px;"><input type="checkbox" id="regHeaderCheck" onchange="toggleAllRegistry(this.checked)" /></th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Трек</th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Страна</th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Статус</th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Получатель</th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Товар</th>' +
+        '<th style="padding:10px 8px;text-align:right;color:var(--text-secondary);">ТНВЭД</th>' +
+        '<th style="padding:10px 8px;text-align:right;color:var(--text-secondary);">Вес, кг</th>' +
+        '<th style="padding:10px 8px;text-align:right;color:var(--text-secondary);">Цена</th>' +
+        '<th style="padding:10px 8px;text-align:left;color:var(--text-secondary);">Замечания</th>' +
+      '</tr></thead><tbody>';
+
+    _registryCache.forEach(function(row) {
+      var p = row.parcel;
+      var r = row.recipient;
+      var bg = row.valid ? '' : 'background:#FEF2F2;';
+      var recName = r ? (r.fullName || ((r.lastName||'') + ' ' + (r.firstName||'')).trim()) : '—';
+      var checked = _regSelected[p.__id] ? 'checked' : '';
+      html += '<tr style="border-top:1px solid #F0F0F0;' + bg + '">' +
+        '<td style="padding:8px;text-align:center;"><input type="checkbox" class="reg-row-check" data-id="' + _esc(p.__id) + '" onchange="onRegRowToggle(\'' + _esc(p.__id) + '\', this.checked)" ' + checked + ' /></td>' +
+        '<td style="padding:8px;font-weight:700;font-family:monospace;">' + _esc(p.trackId || p.__id.slice(0,12)) + '</td>' +
+        '<td style="padding:8px;">' + _esc(_countryLabel(p.country)) + '</td>' +
+        '<td style="padding:8px;font-size:11px;">' + _esc(_statusLabel(p.status)) + '</td>' +
+        '<td style="padding:8px;">' + _esc(recName) + (r && r.clientId ? ' <span style="color:var(--text-secondary);">(' + _esc(r.clientId) + ')</span>' : '') + '</td>' +
+        '<td style="padding:8px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _esc(p.itemName || p.name || '—') + '</td>' +
+        '<td style="padding:8px;text-align:right;font-family:monospace;">' + _esc(p.tnved || '—') + '</td>' +
+        '<td style="padding:8px;text-align:right;">' + _esc(p.weight || '—') + '</td>' +
+        '<td style="padding:8px;text-align:right;">' + _esc((p.price ? (p.price + ' ' + (p.currency || 'USD')) : '—')) + '</td>' +
+        '<td style="padding:8px;font-size:11px;color:#B91C1C;">' + (row.issues.length ? '⚠ ' + _esc(row.issues.join(', ')) : '<span style="color:#065F46;">✓</span>') + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+    updateRegistrySelected();
+  }
+
+  function _renderRegistryWarnings() {
+    var warnEl = document.getElementById('regWarnings');
+    if (!warnEl) return;
+    var bad = _registryCache.filter(function(r) { return !r.valid; });
+    if (bad.length === 0) {
+      warnEl.innerHTML = '';
+      return;
+    }
+    var noRecipient = bad.filter(function(r) { return !r.recipient; }).length;
+    var noTnved     = bad.filter(function(r) { return !r.parcel.tnved; }).length;
+    var noWeight    = bad.filter(function(r) { return !r.parcel.weight; }).length;
+    var noIin       = bad.filter(function(r) { return r.recipient && !r.recipient.iin && !r.recipient.noIIN; }).length;
+
+    var parts = [];
+    if (noRecipient) parts.push(noRecipient + ' без получателя');
+    if (noTnved)     parts.push(noTnved + ' без ТНВЭД');
+    if (noWeight)    parts.push(noWeight + ' без веса');
+    if (noIin)       parts.push(noIin + ' без ИИН');
+
+    warnEl.innerHTML = '<div style="background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:10px;padding:12px 14px;font-size:13px;color:#92400E;">' +
+      '<b>⚠ Внимание:</b> ' + parts.join(', ') + '. Эти посылки можно выгрузить, но в файле будут пустые поля — таможня может вернуть. Лучше сначала запросить недостающее у клиентов или менеджера.' +
+    '</div>';
+  }
+
+  // ===== ВЫБОР ПОСЫЛОК =====
+
+  window.toggleAllRegistry = function(state) {
+    _registryCache.forEach(function(r) {
+      _regSelected[r.parcel.__id] = !!state;
+    });
+    document.querySelectorAll('.reg-row-check').forEach(function(cb) { cb.checked = !!state; });
+    var headerCb = document.getElementById('regHeaderCheck');
+    if (headerCb) headerCb.checked = !!state;
+    updateRegistrySelected();
+  };
+
+  window.onRegRowToggle = function(id, checked) {
+    _regSelected[id] = !!checked;
+    updateRegistrySelected();
+  };
+
+  window.updateRegistrySelected = function() {
+    var n = 0;
+    Object.keys(_regSelected).forEach(function(k) { if (_regSelected[k]) n++; });
+    var el = document.getElementById('regSelectedCount');
+    if (el) el.textContent = 'Выбрано: ' + n;
+  };
+
+  // ===== ЭКСПОРТ В XLSX =====
+
+  // Колонки в строгом порядке шаблона
+  var REGISTRY_COLUMNS = [
+    'Инд. Накладная',
+    'Общая накладная',
+    'Отправитель. Имя ',           // пробел в конце сохранён как в шаблоне
+    'Отправитель. Код Страны',
+    'Отправитель. Регион',
+    'Отправитель. Город',
+    'Отправитель. Адрес',
+    'Получатель. ФИО',
+    'Получатель. № Удв',
+    'Получатель. Дата выдачи УДВ',
+    'Получатель. ИИН',
+    'Получатель. Код Страны',
+    'Получатель. Регион',
+    'Получатель. Город',
+    'Получатель. Адрес',
+    'Получатель. Телефон',
+    'Общий Вес',
+    'ТНВЕД',
+    'Количество',
+    'Описание',
+    'Цена',
+    'Валюта',
+    'Цена KZT',
+    'Вес'
+  ];
+
+  // Курс USD→KZT для колонки «Цена KZT»
+  function _rate() {
+    return window.APP_USD_KZT || 500;
+  }
+
+  // Дата выдачи в YYYY-MM-DD как в шаблоне
+  function _formatIssueDate(d) {
+    if (!d) return '';
+    if (typeof d === 'string') {
+      // Уже строка — оставляем как есть, если похоже на ISO; иначе пробуем привести
+      if (/^\d{4}-\d{2}-\d{2}/.test(d)) return d.slice(0, 10);
+      var parsed = new Date(d);
+      if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+      return d;
+    }
+    if (typeof d === 'number') {
+      var dd = new Date(d);
+      return dd.toISOString().slice(0, 10);
+    }
+    if (d && typeof d.toDate === 'function') {
+      return d.toDate().toISOString().slice(0, 10);
+    }
+    return '';
+  }
+
+  function _buildRow(item, masterAwb) {
+    var p = item.parcel;
+    var r = item.recipient || {};
+    var sender = window.WAREHOUSE_SENDERS[(p.country || '').toLowerCase()] || {};
+
+    var priceNum = parseFloat(String(p.price || '').replace(/[^\d.]/g, '')) || 0;
+    var currency = p.currency || 'USD';
+    var weight   = parseFloat(p.weight) || 0;
+    var qty      = parseInt(p.quantity, 10) || 1;
+    var priceKzt = currency === 'USD' ? Math.round(priceNum * _rate())
+                  : currency === 'KZT' ? Math.round(priceNum)
+                  : '';  // для других валют оставляем брокеру
+
+    return [
+      p.trackId || '',                                     // Инд. Накладная
+      masterAwb || '',                                     // Общая накладная
+      sender.name || '',                                   // Отправитель. Имя
+      sender.countryCode || '',                            // Отправитель. Код Страны
+      sender.region || '',                                 // Отправитель. Регион
+      sender.city || '',                                   // Отправитель. Город
+      sender.address || '',                                // Отправитель. Адрес
+      r.fullName || ((r.lastName||'') + ' ' + (r.firstName||'') + (r.midName ? ' ' + r.midName : '')).trim(),  // Получатель. ФИО
+      r.docNumber || '',                                   // Получатель. № Удв
+      _formatIssueDate(r.issueDate),                       // Получатель. Дата выдачи УДВ
+      r.iin || '',                                         // Получатель. ИИН
+      'KZ',                                                // Получатель. Код Страны
+      r.region || r.city || '',                            // Получатель. Регион
+      r.city || '',                                        // Получатель. Город
+      r.address || '',                                     // Получатель. Адрес
+      r.phone || '',                                       // Получатель. Телефон
+      weight,                                              // Общий Вес
+      p.tnved || '',                                       // ТНВЕД
+      qty,                                                 // Количество
+      p.itemName || p.name || '',                          // Описание
+      priceNum,                                            // Цена
+      currency,                                            // Валюта
+      priceKzt,                                            // Цена KZT
+      weight                                               // Вес (по строке товара — для одной строки = общий)
+    ];
+  }
+
+  window.exportRegistryXlsx = function() {
+    var statusEl = document.getElementById('regExportStatus');
+    function setStatus(msg, color) {
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = color || ''; }
+    }
+
+    if (typeof XLSX === 'undefined') {
+      setStatus('Ошибка: библиотека XLSX не загрузилась. Проверьте интернет и обновите страницу.', '#B91C1C');
+      return;
+    }
+
+    var selected = _registryCache.filter(function(r) { return _regSelected[r.parcel.__id]; });
+    if (selected.length === 0) {
+      setStatus('Не выбрано ни одной посылки', '#B91C1C');
+      return;
+    }
+
+    // Пропускаем посылки без получателя — без него в реестре делать нечего
+    var skipped = selected.filter(function(r) { return !r.recipient; });
+    var toExport = selected.filter(function(r) { return r.recipient; });
+
+    if (toExport.length === 0) {
+      setStatus('У всех выбранных посылок нет получателя — нечего выгружать', '#B91C1C');
+      return;
+    }
+
+    var masterAwb = (document.getElementById('regMasterAwb') || {}).value || '';
+
+    setStatus('Формирование файла...', 'var(--text-secondary)');
+
+    try {
+      // Собираем массив массивов: первая строка — заголовки, далее данные
+      var aoa = [REGISTRY_COLUMNS];
+      toExport.forEach(function(item) {
+        aoa.push(_buildRow(item, masterAwb));
+      });
+
+      var ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      // Ширина колонок (в условных единицах xlsx)
+      ws['!cols'] = [
+        { wch: 22 }, { wch: 16 }, { wch: 16 }, { wch: 6 },  { wch: 14 },
+        { wch: 14 }, { wch: 28 }, { wch: 30 }, { wch: 14 }, { wch: 12 },
+        { wch: 14 }, { wch: 6 },  { wch: 14 }, { wch: 14 }, { wch: 30 },
+        { wch: 16 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 24 },
+        { wch: 10 }, { wch: 8 },  { wch: 12 }, { wch: 8 }
+      ];
+
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Worksheet');
+
+      var fname = 'registry_' + _todayStr() + '.xlsx';
+      XLSX.writeFile(wb, fname);
+
+      var msg = '✓ Выгружено: ' + toExport.length + ' посылок';
+      if (skipped.length) msg += ' (' + skipped.length + ' пропущено — без получателя)';
+      setStatus(msg, '#065F46');
+      setTimeout(function(){ setStatus('', ''); }, 5000);
+    } catch(e) {
+      console.error('exportRegistryXlsx', e);
+      setStatus('Ошибка экспорта: ' + (e.message || e), '#B91C1C');
+    }
+  };
 
 })();
 </script>
