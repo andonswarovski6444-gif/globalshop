@@ -3284,10 +3284,8 @@ const adminViews = {
           <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Кг/месяц</th>
           <th style="padding:10px 12px;text-align:left;font-size:11px;color:var(--text-secondary);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Уровень</th>
         </tr></thead>
-        <tbody>
-          <tr style="border-top:1px solid var(--card-border);"><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">Сейткали Б.</td><td style="padding:12px;font-size:13px;"><span style="background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700;">GS-1003</span></td><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">142 кг</td><td style="padding:12px;">💎 <b>Платина</b></td></tr>
-          <tr style="border-top:1px solid var(--card-border);"><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">Алия М.</td><td style="padding:12px;font-size:13px;"><span style="background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700;">GS-1001</span></td><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">47 кг</td><td style="padding:12px;">🥇 <b>Золото</b></td></tr>
-          <tr style="border-top:1px solid var(--card-border);"><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">Жансая К.</td><td style="padding:12px;font-size:13px;"><span style="background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700;">GS-1002</span></td><td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">18 кг</td><td style="padding:12px;">🥈 <b>Сильвер</b></td></tr>
+        <tbody id="adminTopClientsTable">
+          <tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">Загрузка...</td></tr>
         </tbody>
       </table>
     </div>`
@@ -4683,8 +4681,76 @@ async function loadAdminDashboardMetrics() {
           </table>`;
       }
     }
+    // Топ клиенты по весу посылок за текущий месяц
+    await loadTopClients();
+
   } catch (err) {
     console.warn('Не удалось загрузить метрики админа:', err);
+  }
+}
+
+async function loadTopClients() {
+  const tbody = document.getElementById('adminTopClientsTable');
+  if (!tbody) return;
+  try {
+    const parcelsSnap = await window.firebaseGetDocs(
+      window.firebaseCollection(window.firebaseDb, 'parcels')
+    );
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const weightByUser = {};
+    parcelsSnap.forEach(d => {
+      const p = d.data();
+      if (!p.userId) return;
+      const ts = p.createdAt && p.createdAt.toDate ? p.createdAt.toDate().getTime() : 0;
+      if (ts && ts < monthStart) return;
+      const w = parseFloat(String(p.weight || '0').replace(/[^\d.]/g, '')) || 0;
+      if (!weightByUser[p.userId]) weightByUser[p.userId] = { weight: 0, email: p.userEmail || '' };
+      weightByUser[p.userId].weight += w;
+    });
+    const sorted = Object.entries(weightByUser)
+      .sort((a, b) => b[1].weight - a[1].weight)
+      .slice(0, 5);
+
+    if (sorted.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">Нет данных за текущий месяц</td></tr>';
+      return;
+    }
+
+    const loyaltyTiers = [
+      { name: 'Платина',  icon: '\ud83d\udc8e', min: 50 },
+      { name: 'Золото',   icon: '\ud83e\udd47', min: 30 },
+      { name: 'Сильвер',  icon: '\ud83e\udd48', min: 15 },
+      { name: 'Бронза',   icon: '\ud83e\udd49', min: 5  },
+      { name: 'Стандарт', icon: '\u2b50',        min: 0  },
+    ];
+    const getTier = w => loyaltyTiers.find(t => w >= t.min) || loyaltyTiers[4];
+
+    const rows = await Promise.all(sorted.map(async ([uid, info]) => {
+      let name = info.email || uid;
+      let gsId = '—';
+      try {
+        const uDoc = await window.firebaseGetDoc(
+          window.firebaseDoc(window.firebaseDb, 'users', uid)
+        );
+        if (uDoc.exists()) {
+          const ud = uDoc.data();
+          name = ud.fullName || ud.displayName || ud.email || info.email || uid;
+          gsId = ud.gsId || ud.clientId || '—';
+        }
+      } catch(e) {}
+      const tier = getTier(info.weight);
+      return '<tr style="border-top:1px solid var(--card-border);">'
+        + '<td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">' + name + '</td>'
+        + '<td style="padding:12px;font-size:13px;"><span style="background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700;">' + gsId + '</span></td>'
+        + '<td style="padding:12px;font-size:13px;font-weight:700;color:var(--text-primary);">' + info.weight.toFixed(1) + ' кг</td>'
+        + '<td style="padding:12px;">' + tier.icon + ' <b>' + tier.name + '</b></td>'
+        + '</tr>';
+    }));
+    tbody.innerHTML = rows.join('');
+  } catch(e) {
+    console.warn('loadTopClients error:', e);
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-secondary);font-size:13px;">Ошибка загрузки</td></tr>';
   }
 }
 
